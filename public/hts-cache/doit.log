@@ -1,8 +1,0 @@
--q -%i -w https://copytradingbroker.io -O "/home/taliban/websites/tedbroker.com" -n -%P -p7 -N0 -s0 -p7 -D -a -K0 -c4 -%k -r3 -%e0 -A100000 -%c4 -F "Mozilla/4.5 (compatible; HTTrack 3.0x; Windows 98)" -%F "<!-- Mirrored from %s%s by HTTrack Website Copier/3.x [XR&CO'2014], %s -->" +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -%s -%u -%B
-File generated automatically on Mon, 13 Oct 2025 07:40:53, do NOT edit
-
-To update a mirror, just launch httrack without any parameters
-The existing cache will be used (and modified)
-To have other options, retype all parameters and launch HTTrack
-To continue an interrupted mirror, just launch httrack without any parameters
-
