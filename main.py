@@ -1,0 +1,208 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
+
+from app.database import connect_to_mongo, close_mongo_connection
+from app.routes import auth, traders, plans, wallet
+
+app = FastAPI(
+    title="TED Broker API",
+    description="RESTful API for TED Broker with authentication",
+    version="1.0.0"
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include authentication routes
+app.include_router(auth.router)
+# Include traders routes
+app.include_router(traders.router)
+# Include investment plans routes
+app.include_router(plans.router)
+# Include wallet routes
+app.include_router(wallet.router)
+
+
+@app.on_event("startup")
+async def startup_db_client():
+    """Initialize database connection on startup"""
+    connect_to_mongo()
+
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    """Close database connection on shutdown"""
+    close_mongo_connection()
+
+# Get the base directory - current folder is the root
+BASE_DIR = Path(__file__).resolve().parent
+SITE_DIR = BASE_DIR  # Use current directory as site root
+
+# Check if we have a public/copytradingbroker.io subdirectory and use it
+if (BASE_DIR / "public" / "copytradingbroker.io").exists():
+    SITE_DIR = BASE_DIR / "public" / "copytradingbroker.io"
+# Otherwise check for public directory
+elif (BASE_DIR / "public").exists():
+    SITE_DIR = BASE_DIR / "public"
+
+# Mount static files for assets (CSS, JS, images, etc)
+if (SITE_DIR / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=str(SITE_DIR / "assets")), name="assets")
+
+if (SITE_DIR / "temp").exists():
+    app.mount("/temp", StaticFiles(directory=str(SITE_DIR / "temp")), name="temp")
+
+# Handle translate.google.com assets
+if (SITE_DIR / "translate.google.com").exists():
+    app.mount("/translate.google.com", StaticFiles(directory=str(SITE_DIR / "translate.google.com")), name="translate")
+
+
+def read_html_file(file_path: Path) -> str:
+    """Read and return HTML file content"""
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Page not found")
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        return f.read()
+
+
+@app.get("/", response_class=HTMLResponse)
+async def home():
+    """Serve the home page"""
+    return read_html_file(SITE_DIR / "index.html")
+
+
+@app.get("/index", response_class=HTMLResponse)
+@app.get("/index.html", response_class=HTMLResponse)
+async def index():
+    """Serve the index page"""
+    return read_html_file(SITE_DIR / "index.html")
+
+
+@app.get("/about-us", response_class=HTMLResponse)
+@app.get("/about-us.html", response_class=HTMLResponse)
+async def about_us():
+    """Serve the about us page"""
+    return read_html_file(SITE_DIR / "about-us.html")
+
+
+@app.get("/contact-us", response_class=HTMLResponse)
+@app.get("/contact-us.html", response_class=HTMLResponse)
+async def contact_us():
+    """Serve the contact us page"""
+    return read_html_file(SITE_DIR / "contact-us.html")
+
+
+@app.get("/faqs", response_class=HTMLResponse)
+@app.get("/faqs.html", response_class=HTMLResponse)
+async def faqs():
+    """Serve the FAQs page"""
+    return read_html_file(SITE_DIR / "faqs.html")
+
+
+@app.get("/investors", response_class=HTMLResponse)
+@app.get("/investors.html", response_class=HTMLResponse)
+async def investors():
+    """Serve the investors page"""
+    return read_html_file(SITE_DIR / "investors.html")
+
+
+@app.get("/traders", response_class=HTMLResponse)
+@app.get("/traders.html", response_class=HTMLResponse)
+async def traders():
+    """Serve the traders page"""
+    return read_html_file(SITE_DIR / "traders.html")
+
+
+@app.get("/how_it_works", response_class=HTMLResponse)
+@app.get("/how_it_works.html", response_class=HTMLResponse)
+async def how_it_works():
+    """Serve the how it works page"""
+    return read_html_file(SITE_DIR / "how_it_works.html")
+
+
+@app.get("/register", response_class=HTMLResponse)
+@app.get("/register.html", response_class=HTMLResponse)
+async def register():
+    """Serve the register page"""
+    return read_html_file(SITE_DIR / "register.html")
+
+
+@app.get("/login", response_class=HTMLResponse)
+@app.get("/login.html", response_class=HTMLResponse)
+async def login():
+    """Serve the login page"""
+    return read_html_file(SITE_DIR / "login.html")
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/dashboard.html", response_class=HTMLResponse)
+async def dashboard():
+    """Serve the dashboard page"""
+    return read_html_file(SITE_DIR / "dashboard.html")
+
+
+@app.get("/forgot-password", response_class=HTMLResponse)
+@app.get("/forgot-password.html", response_class=HTMLResponse)
+async def forgot_password():
+    """Serve the forgot password page"""
+    return read_html_file(SITE_DIR / "forgot-password.html")
+
+
+@app.get("/privacy-policy", response_class=HTMLResponse)
+@app.get("/privacy-policy.html", response_class=HTMLResponse)
+async def privacy_policy():
+    """Serve the privacy policy page"""
+    return read_html_file(SITE_DIR / "privacy-policy.html")
+
+
+# Legal pages
+@app.get("/legal/privacy_policy", response_class=HTMLResponse)
+@app.get("/legal/privacy_policy.html", response_class=HTMLResponse)
+async def legal_privacy_policy():
+    """Serve the legal privacy policy page"""
+    return read_html_file(SITE_DIR / "legal" / "privacy_policy.html")
+
+
+@app.get("/legal/terms_conditions", response_class=HTMLResponse)
+@app.get("/legal/terms_conditions.html", response_class=HTMLResponse)
+async def legal_terms_conditions():
+    """Serve the legal terms and conditions page"""
+    return read_html_file(SITE_DIR / "legal" / "terms_conditions.html")
+
+
+@app.get("/legal/aml_policy", response_class=HTMLResponse)
+@app.get("/legal/aml_policy.html", response_class=HTMLResponse)
+async def legal_aml_policy():
+    """Serve the legal AML policy page"""
+    return read_html_file(SITE_DIR / "legal" / "aml_policy.html")
+
+
+@app.get("/legal/risk_closure", response_class=HTMLResponse)
+@app.get("/legal/risk_closure.html", response_class=HTMLResponse)
+async def legal_risk_closure():
+    """Serve the legal risk closure page"""
+    return read_html_file(SITE_DIR / "legal" / "risk_closure.html")
+
+
+@app.get("/legal", response_class=HTMLResponse)
+@app.get("/legal/", response_class=HTMLResponse)
+@app.get("/legal/index", response_class=HTMLResponse)
+@app.get("/legal/index.html", response_class=HTMLResponse)
+async def legal_index():
+    """Serve the legal index page"""
+    return read_html_file(SITE_DIR / "legal" / "index.html")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

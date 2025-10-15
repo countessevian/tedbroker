@@ -1,0 +1,28 @@
+
+:root{
+    --base-color: #336699;
+    --secondary-base-color: #000;
+    --base-h: 210;
+    --base-s: 50%;
+    --base-l: 40%;
+
+    --secondary-base-h: 0;
+    --secondary-base-s: 0%;
+    --secondary-base-l: 0%;
+
+    --base: var(--base-h), var(--base-s), var(--base-l);
+    --secondary-base: var(--secondary-base-h), var(--secondary-base-s), var(--secondary-base-l);
+
+    --base-r: 51;
+    --base-g: 102;
+    --base-b: 153;
+
+    --secondary-base-r: 0;
+    --secondary-base-g: 0;
+    --secondary-base-b: 0;
+}
+
+
+.inner-hero-section{
+    border-bottom: 5px solid ##336699 !important;
+}
