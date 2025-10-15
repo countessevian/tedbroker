@@ -1,6 +1,10 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # MongoDB Configuration
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
