@@ -239,7 +239,7 @@ function createTraderCard(trader) {
                     <div style="color: #8b93a7; font-size: 12px;">YTD Return</div>
                 </div>
                 <div>
-                    <div style="font-size: 24px; color: #7bb6da; font-weight: bold;">${trader.win_rate}%</div>
+                    <div style="font-size: 24px; color: #8B1538; font-weight: bold;">${trader.win_rate}%</div>
                     <div style="color: #8b93a7; font-size: 12px;">Win Rate</div>
                 </div>
                 <div>
@@ -343,7 +343,7 @@ function createPlanCard(plan) {
     const potentialProfit = (plan.minimum_investment * plan.expected_return_percent / 100).toFixed(2);
 
     card.innerHTML = `
-        <h3 style="color: #7bb6da; margin-bottom: 10px;">${plan.name}</h3>
+        <h3 style="color: #8B1538; margin-bottom: 10px;">${plan.name}</h3>
 
         <div style="margin: 20px 0;">
             <div style="font-size: 36px; font-weight: bold; color: #000;">$${plan.minimum_investment.toLocaleString()}</div>
@@ -358,7 +358,7 @@ function createPlanCard(plan) {
                 <div style="font-size: 12px; color: #8b93a7;">Expected Return</div>
             </div>
             <div>
-                <div style="font-size: 24px; font-weight: bold; color: #7bb6da;">${plan.holding_period_months} mo</div>
+                <div style="font-size: 24px; font-weight: bold; color: #8B1538;">${plan.holding_period_months} mo</div>
                 <div style="font-size: 12px; color: #8b93a7;">Holding Period</div>
             </div>
         </div>
