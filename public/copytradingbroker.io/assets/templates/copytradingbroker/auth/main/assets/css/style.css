@@ -148,7 +148,7 @@ License        :   Licensed under ThemeForest License
 :root {
     --primary-bg-color: #181A20; /* Bybit Dark Background */
     --primary-bg-hover: #22262E; /* Slightly Lighter Dark */
-    --primary-bg-border: #8B1538; /* Bybit Gold Border */
+    --primary-bg-border: #D32F2F; /* Bybit Gold Border */
     --btn-primary-color: #FFD700; /* Brighter Gold for Buttons */
 }
 
@@ -176,8 +176,8 @@ body {
 }
 
 .btn-primary:hover {
-    background-color: #8B1538; /* Slightly Darker Gold on Hover */
-    border-color: #8B1538;
+    background-color: #D32F2F; /* Slightly Darker Gold on Hover */
+    border-color: #D32F2F;
     box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); /* Soft Glow */
 }
 
@@ -200,7 +200,7 @@ html {
 
 /* Default Link */
 a {
-    color: #8B1538; /* Gold */
+    color: #D32F2F; /* Gold */
     text-decoration: none;
     transition: color 0.3s ease-in-out;
 }
@@ -218,7 +218,7 @@ a:visited {
 
 /* Active Link */
 a:active {
-    color: #8B1538; /* Keeps Gold */
+    color: #D32F2F; /* Keeps Gold */
 }
 
 
@@ -96469,7 +96469,7 @@ hr.message-inner-separator {
 }
 /* Default Link */
 a {
-    color: #8B1538; /* Gold */
+    color: #D32F2F; /* Gold */
     text-decoration: none;
     transition: color 0.3s ease-in-out;
 }
@@ -96487,7 +96487,7 @@ a:visited {
 
 /* Active Link */
 a:active {
-    color: #8B1538; /* Keeps Gold */
+    color: #D32F2F; /* Keeps Gold */
 }
 
 .moto-icon {
