@@ -40,11 +40,18 @@ document.addEventListener('DOMContentLoaded', function() {
         TED_AUTH.closeLoading();
 
         if (result.success) {
-            TED_AUTH.showSuccess('Login successful! Redirecting...');
-            // Redirect to dashboard after 1 second
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 1000);
+            if (result.data.requires_2fa) {
+                // Redirect to 2FA verification page
+                TED_AUTH.showSuccess('Verification code sent! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = `/verify-2fa?email=${encodeURIComponent(result.data.email)}`;
+                }, 1000);
+            } else {
+                TED_AUTH.showSuccess('Login successful! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
+            }
         } else {
             TED_AUTH.showError(result.error);
         }

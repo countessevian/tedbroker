@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta name="csrf-token" content="M3XMFmO1P72RsP9UzSPWrMgCcJt9CFMThtEHyGMu">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+    <meta name="description" content="TED Brokers - Email Verification">
+    <meta name="author" content="TED Brokers">
+    <meta name="keywords" content="TED Brokers, 2FA, Two-Factor Authentication">
+    <title>Email Verification | TED Brokers</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="assets/images/logoIcon/tedbrokers-fav.ico" type="image/x-icon" />
+
+    <!-- Bootstrap css-->
+    <link id="style" href="assets/templates/copytradingbroker/auth/main/assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Icons css-->
+    <link href="assets/templates/copytradingbroker/auth/main/assets/web-fonts/icons.css" rel="stylesheet" />
+    <link href="assets/templates/copytradingbroker/auth/main/assets/web-fonts/font-awesome/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Style css-->
+    <link href="assets/templates/copytradingbroker/auth/main/assets/css/style.css" rel="stylesheet">
+    <link href="assets/templates/copytradingbroker/auth/main/assets/css/plugins.css" rel="stylesheet">
+    <link href="assets/css/custom-theme.css" rel="stylesheet" />
+
+    <style>
+        .verification-code-input {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 16px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border: 2px solid #D32F2F;
+            border-radius: 8px;
+        }
+
+        .verification-code-input:focus {
+            outline: none;
+            border-color: #B71C1C;
+            box-shadow: 0 0 0 0.2rem rgba(211, 47, 47, 0.25);
+        }
+
+        .resend-link {
+            color: #D32F2F;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .resend-link:hover {
+            text-decoration: underline;
+        }
+
+        .timer {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .verification-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body class="main-body leftmenu ltr light-theme" data-bs-theme="light">
+
+    <!-- Page -->
+    <div class="page main-signin-wrapper">
+        <!-- Row -->
+        <div class="row signpages text-center">
+            <div class="col-md-12">
+                <div class="card border-0">
+                    <div class="row row-sm">
+                        <div class="col-lg-12 col-xl-12 login_form rounded-start-11">
+                            <div class="container-fluid">
+                                <div class="row row-sm">
+                                    <div class="card-body mt-2 mb-2">
+                                        <div class="verification-container">
+                                            <div class="text-center mb-4">
+                                                <a href="index">
+                                                    <img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" width="200" style="border-radius: 10px; border: 1px solid #D32F2F;" />
+                                                </a>
+                                            </div>
+
+                                            <h2 class="text-center mb-3">Verify Your Email</h2>
+                                            <p class="text-center text-muted mb-4">
+                                                We've sent a 6-digit verification code to <strong id="user-email"></strong>
+                                            </p>
+
+                                            <form id="verify-2fa-form">
+                                                <div class="form-group mb-4">
+                                                    <label class="tx-medium">Enter Verification Code</label>
+                                                    <input
+                                                        type="text"
+                                                        class="form-control verification-code-input"
+                                                        id="verification-code"
+                                                        name="code"
+                                                        maxlength="6"
+                                                        pattern="[0-9]{6}"
+                                                        placeholder="000000"
+                                                        required
+                                                        autocomplete="off"
+                                                    />
+                                                </div>
+
+                                                <div class="text-center mb-4 timer" id="timer-container">
+                                                    Code expires in: <span id="timer">10:00</span>
+                                                </div>
+
+                                                <button type="submit" class="btn btn-primary btn-block w-100 mb-3">
+                                                    Verify Code
+                                                </button>
+                                            </form>
+
+                                            <div class="text-center">
+                                                <p class="mb-2">Didn't receive the code?</p>
+                                                <a href="javascript:void(0)" id="resend-code" class="resend-link">
+                                                    Resend Code
+                                                </a>
+                                            </div>
+
+                                            <div class="text-center mt-4">
+                                                <a href="login" class="text-muted">Back to Login</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/templates/copytradingbroker/auth/main/assets/plugins/jquery/jquery.min.js"></script>
+    <script src="assets/templates/copytradingbroker/auth/main/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/sweetalert2@7.8.2/dist/sweetalert2.all.js"></script>
+    <script src="assets/js/auth.js"></script>
+
+    <script>
+        // Get email from URL parameter or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const userEmail = urlParams.get('email') || localStorage.getItem('pending_verification_email');
+
+        if (!userEmail) {
+            window.location.href = '/login';
+        }
+
+        // Store email in localStorage for page refreshes
+        localStorage.setItem('pending_verification_email', userEmail);
+
+        // Display email
+        document.getElementById('user-email').textContent = userEmail;
+
+        // Timer countdown (10 minutes)
+        let timeLeft = 600; // 10 minutes in seconds
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').textContent =
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft > 0) {
+                timeLeft--;
+                setTimeout(updateTimer, 1000);
+            } else {
+                document.getElementById('timer-container').innerHTML =
+                    '<span class="text-danger">Code expired. Please request a new one.</span>';
+                document.getElementById('verification-code').disabled = true;
+            }
+        }
+
+        updateTimer();
+
+        // Auto-focus on verification code input
+        document.getElementById('verification-code').focus();
+
+        // Only allow numbers
+        document.getElementById('verification-code').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Handle form submission
+        document.getElementById('verify-2fa-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const code = document.getElementById('verification-code').value;
+
+            if (code.length !== 6) {
+                TED_AUTH.showError('Please enter a 6-digit code');
+                return;
+            }
+
+            TED_AUTH.showLoading('Verifying code...');
+
+            try {
+                const response = await TED_AUTH.apiCall('/api/auth/verify-2fa', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email: userEmail,
+                        code: code
+                    }),
+                    skipAuth: true
+                });
+
+                const data = await response.json();
+                TED_AUTH.closeLoading();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Verification failed');
+                }
+
+                // Save token
+                TED_AUTH.saveToken(data.access_token);
+
+                // Clear pending email
+                localStorage.removeItem('pending_verification_email');
+
+                // Get user data
+                await TED_AUTH.fetchCurrentUser();
+
+                TED_AUTH.showSuccess('Verification successful! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+
+            } catch (error) {
+                TED_AUTH.showError(error.message);
+                document.getElementById('verification-code').value = '';
+                document.getElementById('verification-code').focus();
+            }
+        });
+
+        // Handle resend code
+        document.getElementById('resend-code').addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            TED_AUTH.showLoading('Sending new code...');
+
+            try {
+                const response = await TED_AUTH.apiCall('/api/auth/resend-2fa', {
+                    method: 'POST',
+                    body: JSON.stringify({ email: userEmail }),
+                    skipAuth: true
+                });
+
+                const data = await response.json();
+                TED_AUTH.closeLoading();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to resend code');
+                }
+
+                // Reset timer
+                timeLeft = 600;
+                document.getElementById('verification-code').disabled = false;
+                document.getElementById('verification-code').value = '';
+                document.getElementById('verification-code').focus();
+                updateTimer();
+
+                TED_AUTH.showSuccess('New verification code sent to your email');
+
+            } catch (error) {
+                TED_AUTH.showError(error.message);
+            }
+        });
+    </script>
+</body>
+</html>
