@@ -93,11 +93,18 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Registration result:', result);
 
         if (result.success) {
-            TED_AUTH.showSuccess('Registration successful! Please login to continue.');
-            // Redirect to login after 2 seconds
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 2000);
+            if (result.data.requires_2fa) {
+                // Redirect to 2FA verification page
+                TED_AUTH.showSuccess('Registration successful! Please verify your email.');
+                setTimeout(() => {
+                    window.location.href = `/verify-2fa?email=${encodeURIComponent(result.data.email)}`;
+                }, 1500);
+            } else {
+                TED_AUTH.showSuccess('Registration successful! Please login to continue.');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            }
         } else {
             console.error('Registration error:', result.error);
             TED_AUTH.showError(result.error);

@@ -3,15 +3,22 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routes import auth, traders, plans, wallet
+from app.rate_limiter import limiter
 
 app = FastAPI(
     title="TED Broker API",
     description="RESTful API for TED Broker with authentication",
     version="1.0.0"
 )
+
+# Add rate limiter state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS middleware
 app.add_middleware(
@@ -156,6 +163,13 @@ async def dashboard():
 async def forgot_password():
     """Serve the forgot password page"""
     return read_html_file(SITE_DIR / "forgot-password.html")
+
+
+@app.get("/verify-2fa", response_class=HTMLResponse)
+@app.get("/verify-2fa.html", response_class=HTMLResponse)
+async def verify_2fa_page():
+    """Serve the 2FA verification page"""
+    return read_html_file(SITE_DIR / "verify-2fa.html")
 
 
 @app.get("/privacy-policy", response_class=HTMLResponse)

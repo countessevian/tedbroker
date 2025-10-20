@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 from bson import ObjectId
@@ -12,8 +12,25 @@ from app.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 from app.database import get_collection, USERS_COLLECTION
+from app.twofa_service import twofa_service
+from app.email_service import email_service
+from app.login_history import login_history_service
+from app.security_alerts import security_alerts_service
+from app.rate_limiter import limiter, get_rate_limit
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+
+# Pydantic models for 2FA
+class TwoFAVerify(BaseModel):
+    email: str
+    code: str
+
+
+class TwoFAResponse(BaseModel):
+    message: str
+    requires_2fa: bool = False
 
 
 def get_user_by_email(email: str):
@@ -37,9 +54,10 @@ def get_user_by_id(user_id: str):
         return None
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserRegister):
-    """Register a new user"""
+@router.post("/register")
+@limiter.limit(get_rate_limit("register"))
+async def register(request: Request, user_data: UserRegister):
+    """Register a new user and send 2FA verification code"""
     print(f"DEBUG: Received registration data: {user_data.model_dump()}")
     users = get_collection(USERS_COLLECTION)
 
@@ -77,31 +95,48 @@ async def register(user_data: UserRegister):
     result = users.insert_one(user_dict)
     user_dict["_id"] = result.inserted_id
 
-    # Return user response
-    return UserResponse(
-        id=str(user_dict["_id"]),
+    # Generate 2FA code for email verification
+    code = twofa_service.create_2fa_session(
         email=user_dict["email"],
-        username=user_dict["username"],
-        full_name=user_dict["full_name"],
-        phone=user_dict["phone"],
-        gender=user_dict["gender"],
-        country=user_dict["country"],
-        account_types=user_dict["account_types"],
-        wallet_balance=user_dict["wallet_balance"],
-        is_active=user_dict["is_active"],
-        is_verified=user_dict["is_verified"],
-        created_at=user_dict["created_at"],
-        updated_at=user_dict["updated_at"]
+        user_id=str(user_dict["_id"])
     )
 
+    # Send 2FA code via email
+    email_sent = email_service.send_2fa_code(
+        to_email=user_dict["email"],
+        code=code,
+        username=user_dict["full_name"]
+    )
 
-@router.post("/login", response_model=Token)
-async def login(user_credentials: UserLogin):
-    """Login user and return access token"""
+    if not email_sent:
+        # If SendGrid is not configured, log the code for testing
+        print(f"2FA Code for {user_dict['email']}: {code}")
+
+    # Return response indicating 2FA is required
+    return {
+        "message": "Registration successful. Please verify your email with the code sent to you.",
+        "requires_2fa": True,
+        "email": user_dict["email"],
+        "user_id": str(user_dict["_id"])
+    }
+
+
+@router.post("/login")
+@limiter.limit(get_rate_limit("login"))
+async def login(request: Request, user_credentials: UserLogin):
+    """Login user - sends 2FA code via email with security tracking"""
     # Get user from database
     user = get_user_by_email(user_credentials.email)
 
     if not user:
+        # Record failed login attempt
+        login_history_service.record_login_attempt(
+            email=user_credentials.email,
+            user_id=None,
+            request=request,
+            success=False,
+            failure_reason="User not found"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -110,6 +145,14 @@ async def login(user_credentials: UserLogin):
 
     # Verify password
     if not verify_password(user_credentials.password, user["hashed_password"]):
+        # Record failed login attempt
+        login_history_service.record_login_attempt(
+            email=user["email"],
+            user_id=str(user["_id"]),
+            request=request,
+            success=False,
+            failure_reason="Incorrect password"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -118,19 +161,68 @@ async def login(user_credentials: UserLogin):
 
     # Check if user is active
     if not user.get("is_active", True):
+        login_history_service.record_login_attempt(
+            email=user["email"],
+            user_id=str(user["_id"]),
+            request=request,
+            success=False,
+            failure_reason="Account inactive"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is inactive"
         )
 
-    # Create access token
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user["email"], "user_id": str(user["_id"])},
-        expires_delta=access_token_expires
+    # Check for suspicious activity
+    suspicious_activity = login_history_service.check_suspicious_activity(
+        email=user["email"],
+        request=request
     )
 
-    return Token(access_token=access_token, token_type="bearer")
+    # Send security alert if suspicious
+    if suspicious_activity.get("is_suspicious"):
+        ip_address = login_history_service.get_ip_address(request)
+        device_info = login_history_service.get_device_info(request)
+        location = login_history_service.get_location_from_ip(ip_address)
+        username = user.get("full_name", user.get("username", "User"))
+
+        # Send alert email (non-blocking)
+        try:
+            security_alerts_service.send_suspicious_login_alert(
+                email=user["email"],
+                username=username,
+                suspicious_activity=suspicious_activity,
+                ip_address=ip_address,
+                device_info=device_info,
+                location=location
+            )
+        except Exception as e:
+            print(f"Failed to send security alert: {e}")
+
+    # Generate 2FA code
+    code = twofa_service.create_2fa_session(
+        email=user["email"],
+        user_id=str(user["_id"])
+    )
+
+    # Send 2FA code via email
+    username = user.get("full_name", user.get("username", "User"))
+    email_sent = email_service.send_2fa_code(
+        to_email=user["email"],
+        code=code,
+        username=username
+    )
+
+    if not email_sent:
+        # If SendGrid is not configured, log the code for testing
+        print(f"2FA Code for {user['email']}: {code}")
+
+    return {
+        "message": "Verification code sent to your email",
+        "requires_2fa": True,
+        "email": user["email"],
+        "security_alert": suspicious_activity.get("is_suspicious", False)
+    }
 
 
 @router.post("/token", response_model=Token)
@@ -244,3 +336,125 @@ async def delete_account(current_user: dict = Depends(get_current_user_token)):
         )
 
     return {"message": "Account deleted successfully"}
+
+
+@router.post("/verify-2fa", response_model=Token)
+@limiter.limit(get_rate_limit("verify_2fa"))
+async def verify_2fa(request: Request, verification_data: TwoFAVerify):
+    """Verify 2FA code and return access token with login history tracking"""
+    # Verify the code
+    result = twofa_service.verify_code(
+        email=verification_data.email,
+        code=verification_data.code
+    )
+
+    if not result["success"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"]
+        )
+
+    # Get user
+    user = get_user_by_email(verification_data.email)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Record successful login
+    login_history_service.record_login_attempt(
+        email=user["email"],
+        user_id=str(user["_id"]),
+        request=request,
+        success=True
+    )
+
+    # Clean up 2FA session
+    twofa_service.delete_session(verification_data.email)
+
+    # Create access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user["email"], "user_id": str(user["_id"])},
+        expires_delta=access_token_expires
+    )
+
+    return Token(access_token=access_token, token_type="bearer")
+
+
+@router.post("/resend-2fa")
+@limiter.limit(get_rate_limit("resend_2fa"))
+async def resend_2fa(request: Request, email_data: dict):
+    """Resend 2FA verification code"""
+    email = email_data.get("email")
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is required"
+        )
+
+    # Get user
+    user = get_user_by_email(email)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Generate new 2FA code
+    code = twofa_service.create_2fa_session(
+        email=user["email"],
+        user_id=str(user["_id"])
+    )
+
+    # Send code via email
+    username = user.get("full_name", user.get("username", "User"))
+    email_sent = email_service.send_2fa_code(
+        to_email=user["email"],
+        code=code,
+        username=username
+    )
+
+    if not email_sent:
+        print(f"2FA Code for {user['email']}: {code}")
+
+    return {
+        "message": "New verification code sent to your email"
+    }
+
+
+@router.get("/login-history")
+async def get_login_history(
+    current_user: dict = Depends(get_current_user_token),
+    limit: int = 50,
+    offset: int = 0
+):
+    """Get login history for current user"""
+    history = login_history_service.get_user_login_history(
+        user_id=current_user["user_id"],
+        limit=limit,
+        offset=offset
+    )
+
+    return {
+        "history": history,
+        "count": len(history)
+    }
+
+
+@router.get("/login-statistics")
+async def get_login_statistics(
+    current_user: dict = Depends(get_current_user_token),
+    days: int = 30
+):
+    """Get login statistics for current user"""
+    stats = login_history_service.get_login_statistics(
+        user_id=current_user["user_id"],
+        days=days
+    )
+
+    return stats

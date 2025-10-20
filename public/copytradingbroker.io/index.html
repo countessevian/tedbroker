@@ -266,19 +266,18 @@
 							<!-- TradingView Widget -->
 							<div class="tradingview-widget-container">
 								<div class="tradingview-widget-container__widget"></div>
-								<script type="text/javascript" src="../s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js"
-									async>
-									{
-										"symbol": "FX:EURUSD",
-										"width": "100%",
-										"height": "220",
-										"locale": "en",
-										"dateRange": "12M",
-										"colorTheme": "dark",
-										"isTransparent": false,
-										"autosize": false,
-										"largeChartUrl": ""
-									}
+								<script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+								{
+									"symbol": "FX:EURUSD",
+									"width": "100%",
+									"height": 220,
+									"locale": "en",
+									"dateRange": "12M",
+									"colorTheme": "light",
+									"isTransparent": false,
+									"autosize": false,
+									"largeChartUrl": ""
+								}
 								</script>
 							</div>
 						</div>
@@ -295,80 +294,97 @@
 			<div class="row">
 				<div class="col-lg-12">
 					<h2 class="text-dark mb-4">Live Market Updates</h2>
-					<div class="tradingview-widget-container">
+
+					<!-- Ticker Tape Widget -->
+					<div class="tradingview-widget-container mb-6">
 						<div class="tradingview-widget-container__widget"></div>
-						<script type="text/javascript" src="../s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-							{
-								"symbols": [{
-										"proName": "FOREXCOM:SPXUSD",
-										"title": "S&P 500"
-									},
-									{
-										"proName": "FOREXCOM:NSXUSD",
-										"title": "Nasdaq 100"
-									},
-									{
-										"proName": "FX:EURUSD",
-										"title": "EUR/USD"
-									}
-								],
-								"colorTheme": "light",
-								"isTransparent": false,
-								"displayMode": "regular",
-								"locale": "en"
-							}
+						<script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+						{
+							"symbols": [
+								{
+									"proName": "FOREXCOM:SPXUSD",
+									"title": "S&P 500"
+								},
+								{
+									"proName": "FOREXCOM:NSXUSD",
+									"title": "Nasdaq 100"
+								},
+								{
+									"proName": "FX_IDC:EURUSD",
+									"title": "EUR/USD"
+								},
+								{
+									"proName": "FX_IDC:GBPUSD",
+									"title": "GBP/USD"
+								},
+								{
+									"proName": "FX_IDC:USDJPY",
+									"title": "USD/JPY"
+								},
+								{
+									"proName": "BITSTAMP:BTCUSD",
+									"title": "BTC/USD"
+								},
+								{
+									"proName": "BITSTAMP:ETHUSD",
+									"title": "ETH/USD"
+								},
+								{
+									"description": "Gold",
+									"proName": "TVC:GOLD"
+								},
+								{
+									"description": "Crude Oil",
+									"proName": "TVC:USOIL"
+								}
+							],
+							"showSymbolLogo": true,
+							"colorTheme": "light",
+							"isTransparent": false,
+							"displayMode": "adaptive",
+							"locale": "en"
+						}
 						</script>
+					</div>
+
+					<!-- Candlestick Chart Display -->
+					<div class="row mt-6">
+						<div class="col-lg-12">
+							<h4 class="text-dark mb-4">Real-Time Market Chart</h4>
+							<div class="tradingview-widget-container" style="height:500px;">
+								<div id="tradingview_live_chart" style="height:100%;"></div>
+								<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+								<script type="text/javascript">
+								new TradingView.widget({
+									"width": "100%",
+									"height": "500",
+									"symbol": "FX_IDC:EURUSD",
+									"interval": "15",
+									"timezone": "Etc/UTC",
+									"theme": "light",
+									"style": "1",
+									"locale": "en",
+									"toolbar_bg": "#f1f3f6",
+									"enable_publishing": false,
+									"withdateranges": true,
+									"allow_symbol_change": true,
+									"details": true,
+									"hotlist": true,
+									"calendar": false,
+									"studies": [
+										"STD;SMA"
+									],
+									"container_id": "tradingview_live_chart"
+								});
+								</script>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 	</section>
 
-	<!-- Additional TradingView Widgets -->
-	<section class="additional-widgets py-10 bg-white">
-		<div class="container">
-			<div class="row">
-				<div class="col-lg-6">
-					<div class="tradingview-widget-container">
-						<div class="tradingview-widget-container__widget"></div>
-						<script type="text/javascript" src="../s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js"
-							async>
-							{
-								"symbol": "FX:GBPUSD",
-								"width": "100%",
-								"height": "220",
-								"locale": "en",
-								"dateRange": "12M",
-								"colorTheme": "dark",
-								"isTransparent": false,
-								"autosize": false,
-								"largeChartUrl": ""
-							}
-						</script>
-					</div>
-				</div>
-				<div class="col-lg-6">
-					<div class="tradingview-widget-container">
-						<div class="tradingview-widget-container__widget"></div>
-						<script type="text/javascript" src="../s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js"
-							async>
-							{
-								"symbol": "FX:USDJPY",
-								"width": "100%",
-								"height": "220",
-								"locale": "en",
-								"dateRange": "12M",
-								"colorTheme": "dark",
-								"isTransparent": false,
-								"autosize": false,
-								"largeChartUrl": ""
-							}
-						</script>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
 
 
 	<section class="market-overview-section bg-white py-10">
