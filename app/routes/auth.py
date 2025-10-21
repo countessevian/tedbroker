@@ -17,6 +17,7 @@ from app.email_service import email_service
 from app.login_history import login_history_service
 from app.security_alerts import security_alerts_service
 from app.rate_limiter import limiter, get_rate_limit
+from app.referrals_service import referrals_service
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -84,7 +85,7 @@ async def register(request: Request, user_data: UserRegister):
         "gender": user_data.gender,
         "country": user_data.country,
         "account_types": user_data.account_types if user_data.account_types else [],
-        "wallet_balance": 5000.0,  # Give new users $5000 starting balance for testing
+        "wallet_balance": 0.0,  # New users start with zero balance
         "is_active": True,
         "is_verified": False,
         "created_at": datetime.utcnow(),
@@ -94,6 +95,13 @@ async def register(request: Request, user_data: UserRegister):
     # Insert user into database
     result = users.insert_one(user_dict)
     user_dict["_id"] = result.inserted_id
+
+    # Generate unique referral code for the new user
+    try:
+        referral_code = referrals_service.create_referral_link(str(user_dict["_id"]))
+        print(f"Generated referral code for user {user_dict['username']}: {referral_code}")
+    except Exception as e:
+        print(f"Failed to generate referral code: {e}")
 
     # Generate 2FA code for email verification
     code = twofa_service.create_2fa_session(
