@@ -314,6 +314,55 @@
         </div>
     </div>
 
+    <!-- Add Plan Modal -->
+    <div class="modal" id="add-plan-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-chart-line"></i> Add New Investment Plan</h2>
+            <form id="add-plan-form" onsubmit="submitNewPlan(event)">
+                <div class="form-group">
+                    <label for="plan-name">Plan Name *</label>
+                    <input type="text" id="plan-name" required maxlength="100" placeholder="e.g., Premium Copy Trading">
+                </div>
+
+                <div class="form-group">
+                    <label for="plan-description">Description *</label>
+                    <textarea id="plan-description" rows="4" required placeholder="Describe the plan benefits and features"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="plan-min-investment">Minimum Investment (USD) *</label>
+                    <input type="number" id="plan-min-investment" required min="1" step="0.01" placeholder="1000">
+                </div>
+
+                <div class="form-group">
+                    <label for="plan-return">Expected Return (%) *</label>
+                    <input type="number" id="plan-return" required step="0.01" placeholder="15.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="plan-period">Holding Period (Months) *</label>
+                    <input type="number" id="plan-period" required min="1" step="1" placeholder="12">
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="plan-active" checked style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Create Plan
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddPlanModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/assets/js/admin-dashboard.js"></script>
 </body>
 </html>

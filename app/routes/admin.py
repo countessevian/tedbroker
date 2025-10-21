@@ -47,6 +47,16 @@ class CreateTrader(BaseModel):
     copiers: int = Field(default=0, description="Number of copiers")
 
 
+class CreatePlan(BaseModel):
+    """Schema for creating an investment plan"""
+    name: str = Field(..., min_length=1, max_length=100, description="Plan name")
+    description: str = Field(..., description="Plan description")
+    minimum_investment: float = Field(..., gt=0, description="Minimum investment amount")
+    expected_return_percent: float = Field(..., description="Expected return percentage")
+    holding_period_months: int = Field(..., gt=0, description="Holding period in months")
+    is_active: bool = Field(default=True, description="Whether the plan is active")
+
+
 # Dependency to verify admin authentication
 async def get_current_admin(current_user: dict = Depends(get_current_user_token)) -> dict:
     """
@@ -519,4 +529,53 @@ async def create_trader(
         "copiers": trader_dict["copiers"],
         "trades": trader_dict["trades"],
         "created_at": trader_dict["created_at"].isoformat()
+    }
+
+
+# ============================================================
+# INVESTMENT PLANS MANAGEMENT
+# ============================================================
+
+@router.post("/plans")
+async def create_plan(
+    plan_data: CreatePlan,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Create a new investment plan (admin only)
+
+    Args:
+        plan_data: Plan information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Created plan data
+    """
+    plans = get_collection(INVESTMENT_PLANS_COLLECTION)
+
+    # Create plan document
+    plan_dict = {
+        "name": plan_data.name,
+        "description": plan_data.description,
+        "minimum_investment": plan_data.minimum_investment,
+        "expected_return_percent": plan_data.expected_return_percent,
+        "holding_period_months": plan_data.holding_period_months,
+        "is_active": plan_data.is_active,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+
+    # Insert plan into database
+    result = plans.insert_one(plan_dict)
+    plan_dict["_id"] = result.inserted_id
+
+    return {
+        "id": str(plan_dict["_id"]),
+        "name": plan_dict["name"],
+        "description": plan_dict["description"],
+        "minimum_investment": plan_dict["minimum_investment"],
+        "expected_return_percent": plan_dict["expected_return_percent"],
+        "holding_period_months": plan_dict["holding_period_months"],
+        "is_active": plan_dict["is_active"],
+        "created_at": plan_dict["created_at"].isoformat()
     }
