@@ -335,7 +335,51 @@ async function loadPlans() {
 
 // Show add plan modal
 function showAddPlanModal() {
-    alert('Add Plan feature - Please use the API directly at /api/plans/ (POST) or contact support for full implementation');
+    const modal = document.getElementById('add-plan-modal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+// Hide add plan modal
+function hideAddPlanModal() {
+    const modal = document.getElementById('add-plan-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('add-plan-form').reset();
+    }
+}
+
+// Submit new plan
+async function submitNewPlan(event) {
+    event.preventDefault();
+
+    const planData = {
+        name: document.getElementById('plan-name').value,
+        description: document.getElementById('plan-description').value,
+        minimum_investment: parseFloat(document.getElementById('plan-min-investment').value),
+        expected_return_percent: parseFloat(document.getElementById('plan-return').value),
+        holding_period_months: parseInt(document.getElementById('plan-period').value),
+        is_active: document.getElementById('plan-active').checked
+    };
+
+    try {
+        const response = await adminFetch('/api/admin/plans', {
+            method: 'POST',
+            body: JSON.stringify(planData)
+        });
+
+        if (response.ok) {
+            alert('Investment plan created successfully!');
+            hideAddPlanModal();
+            loadPlans();
+        } else {
+            const error = await response.json();
+            alert(`Error: ${error.detail || 'Failed to create plan'}`);
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+    }
 }
 
 // Delete plan
