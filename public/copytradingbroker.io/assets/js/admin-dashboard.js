@@ -81,6 +81,9 @@ function switchTab(tab) {
     if (tab === 'users') loadUsers();
     if (tab === 'traders') loadTraders();
     if (tab === 'plans') loadPlans();
+    if (tab === 'deposits') loadDepositRequests();
+    if (tab === 'bank-accounts') loadBankAccounts();
+    if (tab === 'crypto-wallets') loadCryptoWallets();
 }
 
 // Load dashboard statistics
@@ -401,4 +404,143 @@ function logout() {
         localStorage.removeItem('admin_token');
         window.location.href = '/admin/login';
     }
+}
+
+// ============================================================
+// DEPOSIT REQUESTS
+// ============================================================
+
+// Load deposit requests
+async function loadDepositRequests(statusFilter = '') {
+    const container = document.getElementById('deposits-table-container');
+    container.innerHTML = 'Loading...';
+
+    try {
+        const url = statusFilter ? `/api/admin/deposit-requests?status_filter=${statusFilter}` : '/api/admin/deposit-requests';
+        const response = await adminFetch(url);
+        const data = await response.json();
+
+        if (data.requests.length === 0) {
+            container.innerHTML = '<p>No deposit requests found</p>';
+            return;
+        }
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        data.requests.forEach(req => {
+            const date = new Date(req.created_at).toLocaleDateString();
+            const statusBadge = `badge-${req.status}`;
+            html += `
+                <tr>
+                    <td>${req.username}<br><small style="color: #8b93a7;">${req.email}</small></td>
+                    <td><strong>$${req.amount.toLocaleString()}</strong></td>
+                    <td>${req.payment_method}</td>
+                    <td><span class="badge ${statusBadge}">${req.status}</span></td>
+                    <td>${date}</td>
+                    <td>
+                        ${req.status === 'pending' ? `
+                            <div class="action-buttons">
+                                <button class="btn btn-success" style="padding: 5px 10px;" onclick="approveDeposit('${req.id}')">Approve</button>
+                                <button class="btn btn-danger" style="padding: 5px 10px;" onclick="rejectDeposit('${req.id}')">Reject</button>
+                            </div>
+                        ` : `<span style="color: #8b93a7;">Reviewed</span>`}
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch (error) {
+        container.innerHTML = '<p style="color: red;">Error loading deposit requests</p>';
+        console.error(error);
+    }
+}
+
+// Filter deposit requests
+function filterDepositRequests() {
+    const statusFilter = document.getElementById('deposit-status-filter').value;
+    loadDepositRequests(statusFilter);
+}
+
+// Approve deposit
+async function approveDeposit(requestId) {
+    if (!confirm('Approve this deposit request? This will credit the user wallet.')) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/deposit-requests/${requestId}/approve`, { method: 'PUT' });
+        if (response.ok) {
+            const data = await response.json();
+            alert(`Deposit approved! $${data.amount} credited to user wallet.`);
+            loadDepositRequests();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to approve deposit'));
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+// Reject deposit
+async function rejectDeposit(requestId) {
+    if (!confirm('Reject this deposit request?')) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/deposit-requests/${requestId}/reject`, { method: 'PUT' });
+        if (response.ok) {
+            alert('Deposit request rejected');
+            loadDepositRequests();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to reject deposit'));
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+// ============================================================
+// BANK ACCOUNTS
+// ============================================================
+
+// Load bank accounts
+async function loadBankAccounts() {
+    const container = document.getElementById('bank-accounts-container');
+    container.innerHTML = '<p>Bank accounts management coming soon...</p>';
+}
+
+// Show add bank account modal
+function showAddBankAccountModal() {
+    alert('Add bank account functionality will be implemented');
+}
+
+// ============================================================
+// CRYPTO WALLETS
+// ============================================================
+
+// Load crypto wallets
+async function loadCryptoWallets() {
+    const container = document.getElementById('crypto-wallets-container');
+    container.innerHTML = '<p>Crypto wallets management coming soon...</p>';
+}
+
+// Show add crypto wallet modal
+function showAddCryptoWalletModal() {
+    alert('Add crypto wallet functionality will be implemented');
 }
