@@ -516,31 +516,252 @@ async function rejectDeposit(requestId) {
 }
 
 // ============================================================
-// BANK ACCOUNTS
-// ============================================================
-
-// Load bank accounts
-async function loadBankAccounts() {
-    const container = document.getElementById('bank-accounts-container');
-    container.innerHTML = '<p>Bank accounts management coming soon...</p>';
-}
-
-// Show add bank account modal
-function showAddBankAccountModal() {
-    alert('Add bank account functionality will be implemented');
-}
-
-// ============================================================
 // CRYPTO WALLETS
 // ============================================================
 
 // Load crypto wallets
 async function loadCryptoWallets() {
     const container = document.getElementById('crypto-wallets-container');
-    container.innerHTML = '<p>Crypto wallets management coming soon...</p>';
+    container.innerHTML = 'Loading...';
+
+    try {
+        const response = await adminFetch('/api/admin/crypto-wallets');
+        const wallets = await response.json();
+
+        if (wallets.length === 0) {
+            container.innerHTML = '<p>No crypto wallets found. <button class="btn btn-primary" onclick="showAddCryptoWalletModal()">Add First Wallet</button></p>';
+            return;
+        }
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Currency</th>
+                        <th>Wallet Address</th>
+                        <th>Network</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        wallets.forEach(wallet => {
+            const date = wallet.created_at ? new Date(wallet.created_at).toLocaleDateString() : 'N/A';
+            html += `
+                <tr>
+                    <td><strong>${wallet.currency}</strong></td>
+                    <td><code style="background: #f7fafc; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${wallet.wallet_address}</code></td>
+                    <td>${wallet.network || 'N/A'}</td>
+                    <td><span class="badge badge-${wallet.is_active ? 'active' : 'inactive'}">${wallet.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td>${date}</td>
+                    <td>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteCryptoWallet('${wallet.id}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch (error) {
+        container.innerHTML = '<p style="color: red;">Error loading crypto wallets</p>';
+        console.error(error);
+    }
 }
 
 // Show add crypto wallet modal
 function showAddCryptoWalletModal() {
-    alert('Add crypto wallet functionality will be implemented');
+    const modal = document.getElementById('add-crypto-wallet-modal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+// Hide add crypto wallet modal
+function hideAddCryptoWalletModal() {
+    const modal = document.getElementById('add-crypto-wallet-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('add-crypto-wallet-form').reset();
+    }
+}
+
+// Submit new crypto wallet
+async function submitNewCryptoWallet(event) {
+    event.preventDefault();
+
+    const walletData = {
+        currency: document.getElementById('crypto-currency').value,
+        wallet_address: document.getElementById('crypto-wallet-address').value,
+        network: document.getElementById('crypto-network').value || null,
+        is_active: document.getElementById('crypto-active').checked
+    };
+
+    try {
+        const response = await adminFetch('/api/admin/crypto-wallets', {
+            method: 'POST',
+            body: JSON.stringify(walletData)
+        });
+
+        if (response.ok) {
+            alert('Crypto wallet added successfully!');
+            hideAddCryptoWalletModal();
+            loadCryptoWallets();
+        } else {
+            const error = await response.json();
+            alert(`Error: ${error.detail || 'Failed to add wallet'}`);
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+// Delete crypto wallet
+async function deleteCryptoWallet(walletId) {
+    if (!confirm('Delete this crypto wallet?')) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/crypto-wallets/${walletId}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Crypto wallet deleted successfully');
+            loadCryptoWallets();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to delete wallet'));
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+// ============================================================
+// BANK ACCOUNTS
+// ============================================================
+
+// Load bank accounts
+async function loadBankAccounts() {
+    const container = document.getElementById('bank-accounts-container');
+    container.innerHTML = 'Loading...';
+
+    try {
+        const response = await adminFetch('/api/admin/bank-accounts');
+        const accounts = await response.json();
+
+        if (accounts.length === 0) {
+            container.innerHTML = '<p>No bank accounts found. <button class="btn btn-primary" onclick="showAddBankAccountModal()">Add First Account</button></p>';
+            return;
+        }
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bank Name</th>
+                        <th>Account Name</th>
+                        <th>Account Number</th>
+                        <th>Routing</th>
+                        <th>SWIFT</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        accounts.forEach(account => {
+            html += `
+                <tr>
+                    <td><strong>${account.bank_name}</strong></td>
+                    <td>${account.account_name}</td>
+                    <td><code style="background: #f7fafc; padding: 4px 8px; border-radius: 4px;">${account.account_number}</code></td>
+                    <td>${account.routing_number || 'N/A'}</td>
+                    <td>${account.swift_code || 'N/A'}</td>
+                    <td><span class="badge badge-${account.is_active ? 'active' : 'inactive'}">${account.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteBankAccount('${account.id}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch (error) {
+        container.innerHTML = '<p style="color: red;">Error loading bank accounts</p>';
+        console.error(error);
+    }
+}
+
+// Show add bank account modal
+function showAddBankAccountModal() {
+    const modal = document.getElementById('add-bank-account-modal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+// Hide add bank account modal
+function hideAddBankAccountModal() {
+    const modal = document.getElementById('add-bank-account-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('add-bank-account-form').reset();
+    }
+}
+
+// Submit new bank account
+async function submitNewBankAccount(event) {
+    event.preventDefault();
+
+    const accountData = {
+        bank_name: document.getElementById('bank-name').value,
+        account_name: document.getElementById('account-name').value,
+        account_number: document.getElementById('account-number').value,
+        routing_number: document.getElementById('routing-number').value || null,
+        swift_code: document.getElementById('swift-code').value || null,
+        is_active: document.getElementById('bank-active').checked
+    };
+
+    try {
+        const response = await adminFetch('/api/admin/bank-accounts', {
+            method: 'POST',
+            body: JSON.stringify(accountData)
+        });
+
+        if (response.ok) {
+            alert('Bank account added successfully!');
+            hideAddBankAccountModal();
+            loadBankAccounts();
+        } else {
+            const error = await response.json();
+            alert(`Error: ${error.detail || 'Failed to add account'}`);
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+// Delete bank account
+async function deleteBankAccount(accountId) {
+    if (!confirm('Delete this bank account?')) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/bank-accounts/${accountId}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Bank account deleted successfully');
+            loadBankAccounts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to delete account'));
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
 }
