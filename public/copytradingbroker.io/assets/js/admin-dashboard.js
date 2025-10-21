@@ -234,7 +234,56 @@ async function loadTraders() {
 
 // Show add trader modal
 function showAddTraderModal() {
-    alert('Add Trader feature - Please use the API directly at /api/traders/ (POST) or contact support for full implementation');
+    const modal = document.getElementById('addTraderModal');
+    modal.classList.add('show');
+
+    // Setup form submission if not already done
+    const form = document.getElementById('add-trader-form');
+    if (!form.dataset.listenerAdded) {
+        form.addEventListener('submit', handleAddTraderSubmit);
+        form.dataset.listenerAdded = 'true';
+    }
+}
+
+// Close add trader modal
+function closeAddTraderModal() {
+    const modal = document.getElementById('addTraderModal');
+    modal.classList.remove('show');
+    document.getElementById('add-trader-form').reset();
+}
+
+// Handle add trader form submission
+async function handleAddTraderSubmit(e) {
+    e.preventDefault();
+
+    const formData = {
+        full_name: document.getElementById('trader-full-name').value,
+        profile_photo: document.getElementById('trader-profile-photo').value,
+        description: document.getElementById('trader-description').value,
+        specialization: document.getElementById('trader-specialization').value,
+        ytd_return: parseFloat(document.getElementById('trader-ytd-return').value),
+        win_rate: parseFloat(document.getElementById('trader-win-rate').value),
+        copiers: parseInt(document.getElementById('trader-copiers').value) || 0
+    };
+
+    try {
+        const response = await adminFetch('/api/admin/traders', {
+            method: 'POST',
+            body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+            alert('Trader added successfully!');
+            closeAddTraderModal();
+            loadTraders(); // Reload traders list
+        } else {
+            const error = await response.json();
+            alert('Error adding trader: ' + (error.detail || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error adding trader:', error);
+        alert('Network error. Please try again.');
+    }
 }
 
 // Delete trader

@@ -269,7 +269,50 @@
         </main>
     </div>
     
-    <!-- Modals will be added by JavaScript -->
+    <!-- Add Trader Modal -->
+    <div class="modal" id="addTraderModal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-user-tie"></i> Add New Trader</h2>
+            <form id="add-trader-form">
+                <div class="form-group">
+                    <label for="trader-full-name">Full Name *</label>
+                    <input type="text" id="trader-full-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="trader-profile-photo">Profile Photo URL *</label>
+                    <input type="url" id="trader-profile-photo" placeholder="https://example.com/photo.jpg" required>
+                </div>
+                <div class="form-group">
+                    <label for="trader-description">Description *</label>
+                    <textarea id="trader-description" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="trader-specialization">Specialization *</label>
+                    <input type="text" id="trader-specialization" placeholder="e.g., Forex, Crypto, Stocks" required>
+                </div>
+                <div class="form-group">
+                    <label for="trader-ytd-return">YTD Return (%) *</label>
+                    <input type="number" id="trader-ytd-return" step="0.01" placeholder="e.g., 35.5" required>
+                </div>
+                <div class="form-group">
+                    <label for="trader-win-rate">Win Rate (%) *</label>
+                    <input type="number" id="trader-win-rate" step="0.01" min="0" max="100" placeholder="e.g., 85.5" required>
+                </div>
+                <div class="form-group">
+                    <label for="trader-copiers">Number of Copiers</label>
+                    <input type="number" id="trader-copiers" min="0" value="0">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Add Trader
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddTraderModal()" style="flex: 1;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="/assets/js/admin-dashboard.js"></script>
 </body>

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from pydantic import BaseModel, EmailStr
-from datetime import timedelta
+from pydantic import BaseModel, EmailStr, Field
+from datetime import timedelta, datetime
 from typing import List, Optional
 from bson import ObjectId
 
 from app.admin_service import admin_service
 from app.auth import create_access_token, get_current_user_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION
-from app.schemas import Token
+from app.schemas import Token, Trade
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -34,6 +34,17 @@ class AdminResponse(BaseModel):
     email: str
     full_name: str
     role: str
+
+
+class CreateTrader(BaseModel):
+    """Schema for creating a trader"""
+    full_name: str = Field(..., min_length=1, max_length=100)
+    profile_photo: str = Field(..., description="URL to profile photo")
+    description: str = Field(..., description="Trader description and expertise")
+    specialization: str = Field(..., description="Trading specialization")
+    ytd_return: float = Field(..., description="Year-to-date return percentage")
+    win_rate: float = Field(..., description="Win rate percentage")
+    copiers: int = Field(default=0, description="Number of copiers")
 
 
 # Dependency to verify admin authentication
@@ -455,4 +466,57 @@ async def get_statistics(current_admin: dict = Depends(get_current_admin)):
             "total": total_plans,
             "active": active_plans
         }
+    }
+
+
+# ============================================================
+# TRADERS MANAGEMENT
+# ============================================================
+
+@router.post("/traders")
+async def create_trader(
+    trader_data: CreateTrader,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Create a new expert trader (admin only)
+
+    Args:
+        trader_data: Trader information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Created trader data
+    """
+    traders = get_collection(TRADERS_COLLECTION)
+
+    # Create trader document
+    trader_dict = {
+        "full_name": trader_data.full_name,
+        "profile_photo": trader_data.profile_photo,
+        "description": trader_data.description,
+        "specialization": trader_data.specialization,
+        "ytd_return": trader_data.ytd_return,
+        "win_rate": trader_data.win_rate,
+        "copiers": trader_data.copiers,
+        "trades": [],
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+
+    # Insert trader into database
+    result = traders.insert_one(trader_dict)
+    trader_dict["_id"] = result.inserted_id
+
+    return {
+        "id": str(trader_dict["_id"]),
+        "full_name": trader_dict["full_name"],
+        "profile_photo": trader_dict["profile_photo"],
+        "description": trader_dict["description"],
+        "specialization": trader_dict["specialization"],
+        "ytd_return": trader_dict["ytd_return"],
+        "win_rate": trader_dict["win_rate"],
+        "copiers": trader_dict["copiers"],
+        "trades": trader_dict["trades"],
+        "created_at": trader_dict["created_at"].isoformat()
     }
