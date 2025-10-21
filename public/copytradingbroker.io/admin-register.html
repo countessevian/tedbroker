@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration | TED Brokers</title>
+    <link rel="shortcut icon" href="assets/images/logoIcon/tedbrokers-fav.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .register-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 100%;
+            padding: 40px;
+        }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo img { max-width: 180px; border-radius: 10px; }
+        h1 {
+            color: #D32F2F;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            color: #8b93a7;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #D32F2F;
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #D32F2F;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover { background: #B71C1C; transform: translateY(-2px); }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .alert-error {
+            background: #fee;
+            color: #c00;
+            border: 1px solid #fcc;
+        }
+        .alert-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #90caf9;
+        }
+        .alert-warning {
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffcc80;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #8b93a7;
+            font-size: 14px;
+        }
+        .login-link a {
+            color: #D32F2F;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .login-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="logo">
+            <img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers">
+        </div>
+        <h1><i class="fas fa-user-shield"></i> Admin Registration</h1>
+        <p class="subtitle">Create the first admin account</p>
+        <div id="alert-container"></div>
+        <form id="admin-register-form">
+            <div class="form-group">
+                <label for="full_name"><i class="fas fa-id-card"></i> Full Name</label>
+                <input type="text" id="full_name" name="full_name" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="password" name="password" required minlength="8">
+            </div>
+            <button type="submit" class="btn" id="register-btn">
+                <i class="fas fa-user-plus"></i> Register Admin
+            </button>
+        </form>
+        <div class="login-link">
+            Already have an account? <a href="/admin/login">Login</a>
+        </div>
+    </div>
+    <script>
+        const API_BASE = '';
+        
+        // Check if admin already exists
+        async function checkAdminExists() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/check-setup`);
+                const data = await response.json();
+                
+                if (!data.setup_required) {
+                    showAlert('Admin already registered. Redirecting to login...', 'warning');
+                    setTimeout(() => window.location.href = '/admin/login', 2000);
+                }
+            } catch (error) {
+                console.error('Error checking admin setup:', error);
+            }
+        }
+        
+        // Show alert
+        function showAlert(message, type = 'error') {
+            const container = document.getElementById('alert-container');
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+        
+        // Handle form submission
+        document.getElementById('admin-register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                full_name: document.getElementById('full_name').value,
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+            
+            const btn = document.getElementById('register-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('Admin registered successfully! Redirecting to login...', 'info');
+                    setTimeout(() => window.location.href = '/admin/login', 2000);
+                } else {
+                    showAlert(data.detail || 'Registration failed');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-user-plus"></i> Register Admin';
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Register Admin';
+            }
+        });
+        
+        checkAdminExists();
+    </script>
+</body>
+</html>

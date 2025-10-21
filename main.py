@@ -7,7 +7,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.database import connect_to_mongo, close_mongo_connection
-from app.routes import auth, traders, plans, wallet, referrals
+from app.routes import auth, traders, plans, wallet, referrals, admin
 from app.rate_limiter import limiter
 
 app = FastAPI(
@@ -39,6 +39,8 @@ app.include_router(plans.router)
 app.include_router(wallet.router)
 # Include referrals routes
 app.include_router(referrals.router)
+# Include admin routes
+app.include_router(admin.router)
 
 
 @app.on_event("startup")
@@ -217,6 +219,30 @@ async def legal_risk_closure():
 async def legal_index():
     """Serve the legal index page"""
     return read_html_file(SITE_DIR / "legal" / "index.html")
+
+
+# Admin pages
+@app.get("/admin", response_class=HTMLResponse)
+@app.get("/admin/", response_class=HTMLResponse)
+@app.get("/admin/login", response_class=HTMLResponse)
+@app.get("/admin/login.html", response_class=HTMLResponse)
+async def admin_login_page():
+    """Serve the admin login page"""
+    return read_html_file(SITE_DIR / "admin-login.html")
+
+
+@app.get("/admin/register", response_class=HTMLResponse)
+@app.get("/admin/register.html", response_class=HTMLResponse)
+async def admin_register_page():
+    """Serve the admin registration page"""
+    return read_html_file(SITE_DIR / "admin-register.html")
+
+
+@app.get("/admin/dashboard", response_class=HTMLResponse)
+@app.get("/admin/dashboard.html", response_class=HTMLResponse)
+async def admin_dashboard_page():
+    """Serve the admin dashboard page"""
+    return read_html_file(SITE_DIR / "admin-dashboard.html")
 
 
 if __name__ == "__main__":
