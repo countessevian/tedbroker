@@ -6,8 +6,9 @@ from bson import ObjectId
 
 from app.admin_service import admin_service
 from app.auth import create_access_token, get_current_user_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION
+from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, TRANSACTIONS_COLLECTION
 from app.schemas import Token, Trade
+import secrets
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -578,4 +579,218 @@ async def create_plan(
         "holding_period_months": plan_dict["holding_period_months"],
         "is_active": plan_dict["is_active"],
         "created_at": plan_dict["created_at"].isoformat()
+    }
+
+
+# ============================================================
+# DEPOSIT REQUESTS MANAGEMENT
+# ============================================================
+
+@router.get("/deposit-requests")
+async def get_all_deposit_requests(
+    current_admin: dict = Depends(get_current_admin),
+    status_filter: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0
+):
+    """
+    Get all deposit requests (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+        status_filter: Filter by status (pending, approved, rejected)
+        limit: Maximum number of requests to return
+        offset: Number of requests to skip
+
+    Returns:
+        dict: Deposit requests list and count
+    """
+    deposit_requests = get_collection(DEPOSIT_REQUESTS_COLLECTION)
+
+    # Build query
+    query = {}
+    if status_filter:
+        query["status"] = status_filter
+
+    # Get total count
+    total_count = deposit_requests.count_documents(query)
+
+    # Get requests
+    cursor = deposit_requests.find(query).sort("created_at", -1).skip(offset).limit(limit)
+
+    requests_list = []
+    for req in cursor:
+        requests_list.append({
+            "id": str(req["_id"]),
+            "user_id": req["user_id"],
+            "username": req.get("username", ""),
+            "email": req.get("email", ""),
+            "amount": req["amount"],
+            "payment_method": req["payment_method"],
+            "payment_proof": req.get("payment_proof"),
+            "notes": req.get("notes"),
+            "status": req["status"],
+            "created_at": req["created_at"].isoformat(),
+            "updated_at": req["updated_at"].isoformat(),
+            "reviewed_by": req.get("reviewed_by"),
+            "reviewed_at": req["reviewed_at"].isoformat() if req.get("reviewed_at") else None
+        })
+
+    return {
+        "requests": requests_list,
+        "total": total_count,
+        "limit": limit,
+        "offset": offset
+    }
+
+
+@router.put("/deposit-requests/{request_id}/approve")
+async def approve_deposit_request(
+    request_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Approve a deposit request and credit user wallet
+
+    Args:
+        request_id: Deposit request ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    deposit_requests = get_collection(DEPOSIT_REQUESTS_COLLECTION)
+    users = get_collection(USERS_COLLECTION)
+    transactions = get_collection(TRANSACTIONS_COLLECTION)
+
+    # Get deposit request
+    try:
+        deposit_request = deposit_requests.find_one({"_id": ObjectId(request_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid request ID"
+        )
+
+    if not deposit_request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Deposit request not found"
+        )
+
+    if deposit_request["status"] != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Request already {deposit_request['status']}"
+        )
+
+    # Update user wallet balance
+    user_id = deposit_request["user_id"]
+    amount = deposit_request["amount"]
+
+    try:
+        user_result = users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$inc": {"wallet_balance": amount}}
+        )
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID"
+        )
+
+    if user_result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Create transaction record
+    transaction = {
+        "user_id": user_id,
+        "transaction_type": "deposit",
+        "amount": amount,
+        "status": "completed",
+        "payment_method": deposit_request["payment_method"],
+        "reference_number": secrets.token_hex(16),
+        "description": f"Deposit approved by admin - {deposit_request['payment_method']}",
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    transactions.insert_one(transaction)
+
+    # Update deposit request status
+    deposit_requests.update_one(
+        {"_id": ObjectId(request_id)},
+        {
+            "$set": {
+                "status": "approved",
+                "reviewed_by": current_admin["user_id"],
+                "reviewed_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "message": "Deposit request approved successfully",
+        "amount": amount,
+        "user_id": user_id
+    }
+
+
+@router.put("/deposit-requests/{request_id}/reject")
+async def reject_deposit_request(
+    request_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Reject a deposit request
+
+    Args:
+        request_id: Deposit request ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    deposit_requests = get_collection(DEPOSIT_REQUESTS_COLLECTION)
+
+    # Get deposit request
+    try:
+        deposit_request = deposit_requests.find_one({"_id": ObjectId(request_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid request ID"
+        )
+
+    if not deposit_request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Deposit request not found"
+        )
+
+    if deposit_request["status"] != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Request already {deposit_request['status']}"
+        )
+
+    # Update deposit request status
+    result = deposit_requests.update_one(
+        {"_id": ObjectId(request_id)},
+        {
+            "$set": {
+                "status": "rejected",
+                "reviewed_by": current_admin["user_id"],
+                "reviewed_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "message": "Deposit request rejected successfully",
+        "request_id": request_id
     }

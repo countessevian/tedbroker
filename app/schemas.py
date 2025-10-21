@@ -241,3 +241,38 @@ class TransactionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class DepositRequest(BaseModel):
+    """Schema for creating a deposit request"""
+    amount: float = Field(..., gt=0, description="Deposit amount in USD")
+    payment_method: str = Field(default="bank_transfer", description="Payment method")
+    payment_proof: Optional[str] = Field(None, description="URL or reference to payment proof")
+    notes: Optional[str] = Field(None, description="Additional notes from user")
+
+    @field_validator('payment_method')
+    @classmethod
+    def validate_payment_method(cls, v):
+        if v not in ['bank_transfer', 'crypto', 'card']:
+            raise ValueError('Payment method must be "bank_transfer", "crypto", or "card"')
+        return v
+
+
+class DepositRequestResponse(BaseModel):
+    """Schema for deposit request response"""
+    id: str
+    user_id: str
+    username: str
+    email: str
+    amount: float
+    payment_method: str
+    payment_proof: Optional[str]
+    notes: Optional[str]
+    status: str  # pending, approved, rejected
+    created_at: datetime
+    updated_at: datetime
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
