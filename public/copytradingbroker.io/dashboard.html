@@ -1196,6 +1196,62 @@
         </div>
     </div>
 
+    <!-- Referral Modal (for new users) -->
+    <div id="referral-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 240, 240, 0.95); z-index: 10001; align-items: center; justify-content: center;">
+        <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #D32F2F, #5a9abf); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i class="fa-solid fa-gift" style="font-size: 36px; color: white;"></i>
+                </div>
+                <h2 style="margin: 0 0 10px 0; color: #D32F2F;">Welcome to TED Brokers!</h2>
+                <p style="color: #8b93a7; margin: 0; font-size: 14px;">Were you referred by someone? Enter their code below!</p>
+            </div>
+
+            <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 25px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="fa-solid fa-star" style="color: #ffc107; font-size: 18px;"></i>
+                    <p style="margin: 0; color: #000; font-weight: 600;">Referral Bonus</p>
+                </div>
+                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
+                    When you submit a valid referral code, your referrer will receive a <strong style="color: #4caf50;">$50 bonus</strong> as a thank you!
+                </p>
+            </div>
+
+            <form id="referral-form" onsubmit="handleReferralSubmission(event)">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px; font-weight: 600;">
+                        <i class="fa-solid fa-ticket"></i> Referral Code (Optional)
+                    </label>
+                    <input type="text" id="referral-code-input"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px; text-transform: uppercase;"
+                        placeholder="Enter referral code (e.g., ABC12345)"
+                        pattern="[A-Za-z0-9]{8}"
+                        title="Referral code should be 8 characters"
+                        maxlength="8">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
+                        <i class="fa-solid fa-info-circle"></i> Leave blank if you don't have a referral code
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button type="button" onclick="skipReferral()" class="btn-primary-custom"
+                        style="flex: 1; background: #8b93a7; padding: 12px;">
+                        <i class="fa-solid fa-forward"></i> Skip
+                    </button>
+                    <button type="submit" class="btn-primary-custom" style="flex: 2; padding: 12px;">
+                        <i class="fa-solid fa-check-circle"></i> Submit Code
+                    </button>
+                </div>
+            </form>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(123, 182, 218, 0.2);">
+                <p style="color: #8b93a7; font-size: 12px; text-align: center; margin: 0;">
+                    💡 You can only submit a referral code once. If you don't have one, you can skip this step.
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- JS -->
     <script src="assets/templates/copytradingbroker/frontend/js/plugins.js"></script>
     <script src="assets/templates/copytradingbroker/frontend/js/main.js"></script>

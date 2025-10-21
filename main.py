@@ -7,7 +7,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.database import connect_to_mongo, close_mongo_connection
-from app.routes import auth, traders, plans, wallet
+from app.routes import auth, traders, plans, wallet, referrals
 from app.rate_limiter import limiter
 
 app = FastAPI(
@@ -37,6 +37,8 @@ app.include_router(traders.router)
 app.include_router(plans.router)
 # Include wallet routes
 app.include_router(wallet.router)
+# Include referrals routes
+app.include_router(referrals.router)
 
 
 @app.on_event("startup")
