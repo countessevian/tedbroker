@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Populate dashboard with user data
     populateDashboard(userData);
 
+    // Check if user is new and hasn't been referred yet
+    checkAndShowReferralModal(userData);
+
     // Load expert traders when traders tab is clicked
     const tradersTab = document.querySelector('.menu-item[data-tab="traders"]');
     if (tradersTab) {
@@ -44,6 +47,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     const walletTab = document.querySelector('.menu-item[data-tab="wallet"]');
     if (walletTab) {
         walletTab.addEventListener('click', loadWalletData);
+    }
+
+    // Load referral data when referrals tab is clicked
+    const referralsTab = document.querySelector('.menu-item[data-tab="referrals"]');
+    if (referralsTab) {
+        referralsTab.addEventListener('click', loadReferralData);
     }
 });
 
@@ -710,6 +719,224 @@ async function handleWithdraw(event) {
     }
 }
 
+/**
+ * Check if user should see referral modal (new users)
+ */
+async function checkAndShowReferralModal(userData) {
+    // Check if the user has already been referred or seen the modal
+    const hasSeenReferralModal = localStorage.getItem('hasSeenReferralModal');
+
+    // Only show if user hasn't seen the modal before
+    if (!hasSeenReferralModal) {
+        // Mark as seen immediately to prevent showing again
+        localStorage.setItem('hasSeenReferralModal', 'true');
+
+        // Small delay to let dashboard load first
+        setTimeout(() => {
+            showReferralModal();
+        }, 1000);
+    }
+}
+
+/**
+ * Show referral modal for new users
+ */
+function showReferralModal() {
+    const modal = document.getElementById('referral-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+/**
+ * Close referral modal
+ */
+function closeReferralModal() {
+    const modal = document.getElementById('referral-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Handle referral code submission
+ */
+async function handleReferralSubmission(event) {
+    event.preventDefault();
+
+    const referralCode = document.getElementById('referral-code-input').value.trim();
+
+    if (!referralCode) {
+        alert('Please enter a referral code');
+        return;
+    }
+
+    try {
+        TED_AUTH.showLoading('Verifying referral code...');
+
+        const response = await TED_AUTH.apiCall('/api/referrals/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                referral_code: referralCode
+            })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Invalid referral code');
+        }
+
+        const result = await response.json();
+
+        // Close modal
+        closeReferralModal();
+
+        // Show success message
+        alert(`Success! Your referrer has been credited with $${result.bonus_amount}. Thank you for using their referral link!`);
+
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Referral submission error:', error);
+        alert(`Referral submission failed: ${error.message}`);
+    }
+}
+
+/**
+ * Skip referral (user doesn't have a code)
+ */
+function skipReferral() {
+    if (confirm('Are you sure you want to skip? You won\'t be able to submit a referral code later.')) {
+        closeReferralModal();
+    }
+}
+
+/**
+ * Load and display referral data
+ */
+let referralDataLoaded = false;
+
+async function loadReferralData() {
+    // Only load once
+    if (referralDataLoaded) return;
+
+    try {
+        TED_AUTH.showLoading('Loading your referral data...');
+
+        // Get referral link
+        const linkResponse = await TED_AUTH.apiCall('/api/referrals/my-link');
+        if (linkResponse.ok) {
+            const linkData = await linkResponse.json();
+            document.getElementById('referral-link').textContent = linkData.referral_link;
+        }
+
+        // Get referral statistics
+        const statsResponse = await TED_AUTH.apiCall('/api/referrals/my-statistics');
+        if (statsResponse.ok) {
+            const stats = await statsResponse.json();
+
+            // Update stat boxes
+            document.querySelector('#tab-referrals .stat-box:nth-child(1) .stat-value').textContent = stats.total_referrals;
+            document.querySelector('#tab-referrals .stat-box:nth-child(2) .stat-value').textContent =
+                `$${stats.total_earnings.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.querySelector('#tab-referrals .stat-box:nth-child(3) .stat-value').textContent = stats.active_referrals;
+
+            // Display referred users
+            displayReferredUsers(stats.referred_users);
+        }
+
+        TED_AUTH.closeLoading();
+        referralDataLoaded = true;
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Error loading referral data:', error);
+        alert('Failed to load referral data. Please try again later.');
+    }
+}
+
+/**
+ * Display referred users list
+ */
+function displayReferredUsers(referredUsers) {
+    const container = document.querySelector('#tab-referrals .dashboard-card:last-child');
+
+    if (!referredUsers || referredUsers.length === 0) {
+        container.innerHTML = `
+            <h3 style="margin-bottom: 20px;">Your Referrals</h3>
+            <p style="text-align: center; color: #8b93a7; padding: 40px 0;">You haven't referred anyone yet. Start sharing your referral link to earn rewards!</p>
+        `;
+        return;
+    }
+
+    let tableHTML = `
+        <h3 style="margin-bottom: 20px;">Your Referrals (${referredUsers.length})</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid rgba(123, 182, 218, 0.2);">
+                        <th style="text-align: left; padding: 12px; color: #8b93a7; font-weight: 600;">User</th>
+                        <th style="text-align: left; padding: 12px; color: #8b93a7; font-weight: 600;">Email</th>
+                        <th style="text-align: left; padding: 12px; color: #8b93a7; font-weight: 600;">Joined Date</th>
+                        <th style="text-align: right; padding: 12px; color: #8b93a7; font-weight: 600;">Bonus Earned</th>
+                        <th style="text-align: center; padding: 12px; color: #8b93a7; font-weight: 600;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    referredUsers.forEach(user => {
+        const joinedDate = user.joined_date ? new Date(user.joined_date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        }) : 'N/A';
+
+        const statusClass = user.status === 'completed' ? 'badge-active' : 'badge-pending';
+
+        tableHTML += `
+            <tr style="border-bottom: 1px solid rgba(123, 182, 218, 0.1);">
+                <td style="padding: 15px; color: #000;">
+                    <div style="font-weight: 600;">${user.full_name || user.username}</div>
+                    <div style="color: #8b93a7; font-size: 12px;">@${user.username}</div>
+                </td>
+                <td style="padding: 15px; color: #8b93a7;">${user.email}</td>
+                <td style="padding: 15px; color: #000;">${joinedDate}</td>
+                <td style="padding: 15px; text-align: right; font-weight: 600; color: #4caf50;">
+                    +$${user.bonus_earned.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                </td>
+                <td style="padding: 15px; text-align: center;">
+                    <span class="badge-status ${statusClass}">${user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span>
+                </td>
+            </tr>
+        `;
+    });
+
+    tableHTML += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    container.innerHTML = tableHTML;
+}
+
+/**
+ * Copy referral link to clipboard
+ */
+function copyReferralLink() {
+    const linkText = document.getElementById('referral-link').textContent;
+    navigator.clipboard.writeText(linkText).then(() => {
+        alert('Referral link copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy link. Please try selecting and copying manually.');
+    });
+}
+
 // Export functions for use in HTML
 window.handleLogout = handleLogout;
 window.copyTrader = copyTrader;
@@ -720,3 +947,7 @@ window.showWithdrawModal = showWithdrawModal;
 window.closeWithdrawModal = closeWithdrawModal;
 window.handleDeposit = handleDeposit;
 window.handleWithdraw = handleWithdraw;
+window.copyReferralLink = copyReferralLink;
+window.handleReferralSubmission = handleReferralSubmission;
+window.closeReferralModal = closeReferralModal;
+window.skipReferral = skipReferral;
