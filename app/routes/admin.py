@@ -6,7 +6,7 @@ from bson import ObjectId
 
 from app.admin_service import admin_service
 from app.auth import create_access_token, get_current_user_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, TRANSACTIONS_COLLECTION
+from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, TRANSACTIONS_COLLECTION, CRYPTO_WALLETS_COLLECTION, BANK_ACCOUNTS_COLLECTION
 from app.schemas import Token, Trade
 import secrets
 
@@ -56,6 +56,32 @@ class CreatePlan(BaseModel):
     expected_return_percent: float = Field(..., description="Expected return percentage")
     holding_period_months: int = Field(..., gt=0, description="Holding period in months")
     is_active: bool = Field(default=True, description="Whether the plan is active")
+
+
+class CreateCryptoWallet(BaseModel):
+    """Schema for creating a crypto wallet"""
+    currency: str = Field(..., description="Cryptocurrency type (BTC, ETH, USDT)")
+    wallet_address: str = Field(..., min_length=1, description="Wallet address")
+    network: Optional[str] = Field(None, description="Network (e.g., TRC20 for USDT)")
+    is_active: bool = Field(default=True, description="Whether the wallet is active")
+
+    @field_validator('currency')
+    @classmethod
+    def validate_currency(cls, v):
+        allowed = ['BTC', 'ETH', 'USDT']
+        if v.upper() not in allowed:
+            raise ValueError(f'Currency must be one of: {", ".join(allowed)}')
+        return v.upper()
+
+
+class CreateBankAccount(BaseModel):
+    """Schema for creating a bank account"""
+    bank_name: str = Field(..., min_length=1, max_length=100, description="Bank name")
+    account_name: str = Field(..., min_length=1, max_length=100, description="Account holder name")
+    account_number: str = Field(..., min_length=1, description="Account number")
+    routing_number: Optional[str] = Field(None, description="Routing/sort code")
+    swift_code: Optional[str] = Field(None, description="SWIFT/BIC code")
+    is_active: bool = Field(default=True, description="Whether the account is active")
 
 
 # Dependency to verify admin authentication
@@ -794,3 +820,227 @@ async def reject_deposit_request(
         "message": "Deposit request rejected successfully",
         "request_id": request_id
     }
+
+
+# ============================================================
+# CRYPTO WALLETS MANAGEMENT
+# ============================================================
+
+@router.get("/crypto-wallets")
+async def get_crypto_wallets(
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get all crypto wallets (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+
+    Returns:
+        list: Crypto wallets
+    """
+    crypto_wallets = get_collection(CRYPTO_WALLETS_COLLECTION)
+
+    wallets = list(crypto_wallets.find().sort("created_at", -1))
+
+    return [
+        {
+            "id": str(wallet["_id"]),
+            "currency": wallet["currency"],
+            "wallet_address": wallet["wallet_address"],
+            "network": wallet.get("network"),
+            "is_active": wallet.get("is_active", True),
+            "created_at": wallet["created_at"].isoformat() if wallet.get("created_at") else None
+        }
+        for wallet in wallets
+    ]
+
+
+@router.post("/crypto-wallets")
+async def create_crypto_wallet(
+    wallet_data: CreateCryptoWallet,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Create a new crypto wallet (admin only)
+
+    Args:
+        wallet_data: Crypto wallet information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Created wallet data
+    """
+    crypto_wallets = get_collection(CRYPTO_WALLETS_COLLECTION)
+
+    # Create wallet document
+    wallet_dict = {
+        "currency": wallet_data.currency,
+        "wallet_address": wallet_data.wallet_address,
+        "network": wallet_data.network,
+        "is_active": wallet_data.is_active,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+
+    # Insert wallet into database
+    result = crypto_wallets.insert_one(wallet_dict)
+    wallet_dict["_id"] = result.inserted_id
+
+    return {
+        "id": str(wallet_dict["_id"]),
+        "currency": wallet_dict["currency"],
+        "wallet_address": wallet_dict["wallet_address"],
+        "network": wallet_dict["network"],
+        "is_active": wallet_dict["is_active"],
+        "created_at": wallet_dict["created_at"].isoformat()
+    }
+
+
+@router.delete("/crypto-wallets/{wallet_id}")
+async def delete_crypto_wallet(
+    wallet_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Delete a crypto wallet
+
+    Args:
+        wallet_id: Wallet ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    crypto_wallets = get_collection(CRYPTO_WALLETS_COLLECTION)
+
+    try:
+        result = crypto_wallets.delete_one({"_id": ObjectId(wallet_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid wallet ID"
+        )
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Wallet not found"
+        )
+
+    return {"message": "Crypto wallet deleted successfully"}
+
+
+# ============================================================
+# BANK ACCOUNTS MANAGEMENT
+# ============================================================
+
+@router.get("/bank-accounts")
+async def get_bank_accounts(
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get all bank accounts (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+
+    Returns:
+        list: Bank accounts
+    """
+    bank_accounts = get_collection(BANK_ACCOUNTS_COLLECTION)
+
+    accounts = list(bank_accounts.find().sort("created_at", -1))
+
+    return [
+        {
+            "id": str(account["_id"]),
+            "bank_name": account["bank_name"],
+            "account_name": account["account_name"],
+            "account_number": account["account_number"],
+            "routing_number": account.get("routing_number"),
+            "swift_code": account.get("swift_code"),
+            "is_active": account.get("is_active", True),
+            "created_at": account["created_at"].isoformat() if account.get("created_at") else None
+        }
+        for account in accounts
+    ]
+
+
+@router.post("/bank-accounts")
+async def create_bank_account(
+    account_data: CreateBankAccount,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Create a new bank account (admin only)
+
+    Args:
+        account_data: Bank account information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Created account data
+    """
+    bank_accounts = get_collection(BANK_ACCOUNTS_COLLECTION)
+
+    # Create account document
+    account_dict = {
+        "bank_name": account_data.bank_name,
+        "account_name": account_data.account_name,
+        "account_number": account_data.account_number,
+        "routing_number": account_data.routing_number,
+        "swift_code": account_data.swift_code,
+        "is_active": account_data.is_active,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+
+    # Insert account into database
+    result = bank_accounts.insert_one(account_dict)
+    account_dict["_id"] = result.inserted_id
+
+    return {
+        "id": str(account_dict["_id"]),
+        "bank_name": account_dict["bank_name"],
+        "account_name": account_dict["account_name"],
+        "account_number": account_dict["account_number"],
+        "routing_number": account_dict["routing_number"],
+        "swift_code": account_dict["swift_code"],
+        "is_active": account_dict["is_active"],
+        "created_at": account_dict["created_at"].isoformat()
+    }
+
+
+@router.delete("/bank-accounts/{account_id}")
+async def delete_bank_account(
+    account_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Delete a bank account
+
+    Args:
+        account_id: Account ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    bank_accounts = get_collection(BANK_ACCOUNTS_COLLECTION)
+
+    try:
+        result = bank_accounts.delete_one({"_id": ObjectId(account_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid account ID"
+        )
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Account not found"
+        )
+
+    return {"message": "Bank account deleted successfully"}

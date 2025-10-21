@@ -424,6 +424,99 @@
         </div>
     </div>
 
+    <!-- Add Crypto Wallet Modal -->
+    <div class="modal" id="add-crypto-wallet-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fab fa-bitcoin"></i> Add Crypto Wallet</h2>
+            <form id="add-crypto-wallet-form" onsubmit="submitNewCryptoWallet(event)">
+                <div class="form-group">
+                    <label for="crypto-currency">Cryptocurrency *</label>
+                    <select id="crypto-currency" required>
+                        <option value="">Select cryptocurrency</option>
+                        <option value="BTC">Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                        <option value="USDT">Tether (USDT)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="crypto-wallet-address">Wallet Address *</label>
+                    <input type="text" id="crypto-wallet-address" required placeholder="Enter wallet address">
+                </div>
+
+                <div class="form-group">
+                    <label for="crypto-network">Network (Optional)</label>
+                    <input type="text" id="crypto-network" placeholder="e.g., TRC20 for USDT">
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="crypto-active" checked style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Add Wallet
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddCryptoWalletModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Bank Account Modal -->
+    <div class="modal" id="add-bank-account-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-building-columns"></i> Add Bank Account</h2>
+            <form id="add-bank-account-form" onsubmit="submitNewBankAccount(event)">
+                <div class="form-group">
+                    <label for="bank-name">Bank Name *</label>
+                    <input type="text" id="bank-name" required maxlength="100" placeholder="e.g., Chase Bank">
+                </div>
+
+                <div class="form-group">
+                    <label for="account-name">Account Holder Name *</label>
+                    <input type="text" id="account-name" required maxlength="100" placeholder="Full name on account">
+                </div>
+
+                <div class="form-group">
+                    <label for="account-number">Account Number *</label>
+                    <input type="text" id="account-number" required placeholder="Account number">
+                </div>
+
+                <div class="form-group">
+                    <label for="routing-number">Routing/Sort Code</label>
+                    <input type="text" id="routing-number" placeholder="Optional">
+                </div>
+
+                <div class="form-group">
+                    <label for="swift-code">SWIFT/BIC Code</label>
+                    <input type="text" id="swift-code" placeholder="Optional">
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="bank-active" checked style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Add Account
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddBankAccountModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/assets/js/admin-dashboard.js"></script>
 </body>
 </html>
