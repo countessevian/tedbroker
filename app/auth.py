@@ -64,8 +64,14 @@ async def get_current_user_token(token: str = Depends(oauth2_scheme)) -> dict:
 
     email: str = payload.get("sub")
     user_id: str = payload.get("user_id")
+    role: str = payload.get("role")  # Extract role from token
 
     if email is None or user_id is None:
         raise credentials_exception
 
-    return {"email": email, "user_id": user_id}
+    # Return user data including role if present
+    result = {"email": email, "user_id": user_id}
+    if role:
+        result["role"] = role
+
+    return result
