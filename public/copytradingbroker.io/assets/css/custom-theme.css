@@ -103,10 +103,9 @@ a:hover {
 	color: #B71C1C;
 }
 
-/* Logo border */
+/* Logo styling */
 .navbar-brand img {
-	border-radius: 10px;
-	border: 1px solid #D32F2F;
+	/* No border or border-radius */
 }
 
 /* Additional utility classes */
