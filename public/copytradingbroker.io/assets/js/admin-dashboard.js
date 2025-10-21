@@ -39,9 +39,13 @@ async function adminFetch(url, options = {}) {
 
 // Setup tab switching
 function setupTabSwitching() {
-    document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
+    console.log('Setting up tab switching...');
+    const menuItems = document.querySelectorAll('.menu-item[data-tab]');
+    console.log('Found menu items:', menuItems.length);
+    menuItems.forEach(item => {
         item.addEventListener('click', function() {
             const tab = this.getAttribute('data-tab');
+            console.log('Switching to tab:', tab);
             switchTab(tab);
         });
     });
@@ -49,14 +53,31 @@ function setupTabSwitching() {
 
 // Switch tabs
 function switchTab(tab) {
+    console.log('switchTab called with tab:', tab);
+
+    // Remove active class from all menu items
     document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-    document.querySelector(`.menu-item[data-tab="${tab}"]`).classList.add('active');
-    
+
+    // Add active class to selected menu item
+    const selectedMenuItem = document.querySelector(`.menu-item[data-tab="${tab}"]`);
+    console.log('Selected menu item:', selectedMenuItem);
+    if (selectedMenuItem) {
+        selectedMenuItem.classList.add('active');
+    }
+
+    // Hide all tab contents
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.getElementById(`tab-${tab}`).classList.add('active');
-    
+
+    // Show selected tab content
+    const selectedTab = document.getElementById(`tab-${tab}`);
+    console.log('Selected tab content:', selectedTab);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+
     currentTab = tab;
-    
+
+    // Load data for specific tabs
     if (tab === 'users') loadUsers();
     if (tab === 'traders') loadTraders();
     if (tab === 'plans') loadPlans();
