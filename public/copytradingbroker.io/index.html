@@ -676,108 +676,109 @@
 <!-- Parallax Scrolling Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-	// Add parallax background layers with different shade
-	const sections = document.querySelectorAll('.hero-section, .market-overview-section, .benefits-section, .cta-section');
-	
-	sections.forEach((section, index) => {
-		if (!section.querySelector('.parallax-bg-layer')) {
-			const bgLayer = document.createElement('div');
-			bgLayer.className = 'parallax-bg-layer';
-			
-			// Different shades of white/gray for parallax layers
-			let bgColor = '';
-			if (section.classList.contains('hero-section')) {
-				bgColor = 'linear-gradient(135deg, rgba(211, 47, 47, 0.95) 0%, rgba(183, 28, 28, 0.95) 100%)';
-			} else if (section.classList.contains('market-overview-section')) {
-				bgColor = 'linear-gradient(180deg, rgba(250, 250, 250, 1) 0%, rgba(245, 245, 245, 1) 100%)';
-			} else if (section.classList.contains('benefits-section')) {
-				bgColor = 'linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(248, 248, 248, 1) 100%)';
-			} else if (section.classList.contains('cta-section')) {
-				bgColor = 'linear-gradient(135deg, rgba(211, 47, 47, 1) 0%, rgba(183, 28, 28, 1) 100%)';
-			}
-			
-			bgLayer.style.cssText = `
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 120%;
-				background: ${bgColor};
-				z-index: 0;
-				will-change: transform;
-			`;
-			
-			section.insertBefore(bgLayer, section.firstChild);
-			section.style.position = 'relative';
-			section.style.overflow = 'hidden';
-			
-			// Ensure content is above background
-			const container = section.querySelector('.container');
-			if (container) {
-				container.style.position = 'relative';
-				container.style.zIndex = '1';
-			}
-		}
-	});
+	// Create parallax layers for sections with distinct speeds
+	const createParallaxLayers = () => {
+		const sections = [
+			{ selector: '.hero-section', speed: 0.8, contentSpeed: 0.15, bgColor: 'linear-gradient(135deg, rgba(211, 47, 47, 0.95) 0%, rgba(183, 28, 28, 0.95) 100%)' },
+			{ selector: '.trading-section', speed: 0.15, contentSpeed: 0.03, bgColor: 'linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(252, 252, 252, 1) 100%)' },
+			{ selector: '.market-overview-section', speed: 0.4, contentSpeed: 0.1, bgColor: 'linear-gradient(180deg, rgba(250, 250, 250, 1) 0%, rgba(245, 245, 245, 1) 100%)' },
+			{ selector: '.benefits-section', speed: 0.3, contentSpeed: 0.12, bgColor: 'linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(248, 248, 248, 1) 100%)' },
+			{ selector: '.how-it-works-section', speed: 0.2, contentSpeed: 0.15, bgColor: 'linear-gradient(180deg, rgba(248, 248, 248, 1) 0%, rgba(243, 243, 243, 1) 100%)' },
+			{ selector: '.testimonials-section', speed: 0.5, contentSpeed: 0.08, bgColor: 'linear-gradient(180deg, rgba(252, 252, 252, 1) 0%, rgba(247, 247, 247, 1) 100%)' },
+			{ selector: '.cta-section', speed: 0.7, contentSpeed: 0.05, bgColor: 'linear-gradient(135deg, rgba(211, 47, 47, 1) 0%, rgba(183, 28, 28, 1) 100%)' }
+		];
 
-	// Parallax scroll effect with requestAnimationFrame for smooth performance
+		sections.forEach(config => {
+			const section = document.querySelector(config.selector);
+			if (section && !section.querySelector('.parallax-layer')) {
+				// Create background layer
+				const bgLayer = document.createElement('div');
+				bgLayer.className = 'parallax-layer parallax-bg';
+				bgLayer.setAttribute('data-speed', config.speed);
+				bgLayer.style.cssText = `
+					position: absolute;
+					top: -20%;
+					left: 0;
+					width: 100%;
+					height: 140%;
+					background: ${config.bgColor};
+					z-index: 0;
+					will-change: transform;
+				`;
+
+				// Create middle layer (decorative)
+				const midLayer = document.createElement('div');
+				midLayer.className = 'parallax-layer parallax-mid';
+				midLayer.setAttribute('data-speed', config.speed * 0.7);
+				midLayer.style.cssText = `
+					position: absolute;
+					top: -10%;
+					left: 0;
+					width: 100%;
+					height: 120%;
+					background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.05) 0%, transparent 50%);
+					z-index: 1;
+					will-change: transform;
+					pointer-events: none;
+				`;
+
+				section.style.position = 'relative';
+				section.style.overflow = 'hidden';
+				section.insertBefore(midLayer, section.firstChild);
+				section.insertBefore(bgLayer, section.firstChild);
+
+				// Store content speed on the section for later use
+				section.setAttribute('data-content-speed', config.contentSpeed);
+
+				// Ensure content is above parallax layers
+				const container = section.querySelector('.container');
+				if (container) {
+					container.style.position = 'relative';
+					container.style.zIndex = '10';
+					container.style.willChange = 'transform';
+				}
+			}
+		});
+	};
+
+	createParallaxLayers();
+
+	// Parallax scroll handler
 	let ticking = false;
+	let lastScrollY = 0;
 
 	function updateParallax() {
-		const scrollPosition = window.pageYOffset;
+		const scrollY = window.pageYOffset;
+		const scrollDelta = scrollY - lastScrollY;
+		lastScrollY = scrollY;
 
-		// Hero section parallax
-		const heroBg = document.querySelector('.hero-section .parallax-bg-layer');
-		if (heroBg) {
-			heroBg.style.transform = `translateY(${scrollPosition * 0.5}px) scale(1.1)`;
-		}
+		// Update all parallax layers (background layers)
+		document.querySelectorAll('.parallax-layer').forEach(layer => {
+			const parent = layer.closest('section');
+			if (!parent) return;
 
-		// Market overview parallax
-		const marketBg = document.querySelector('.market-overview-section .parallax-bg-layer');
-		if (marketBg) {
-			const section = document.querySelector('.market-overview-section');
-			const sectionOffset = section.offsetTop;
-			const sectionScroll = scrollPosition - sectionOffset;
-			if (scrollPosition > sectionOffset - window.innerHeight) {
-				marketBg.style.transform = `translateY(${sectionScroll * 0.3}px) scale(1.05)`;
+			const rect = parent.getBoundingClientRect();
+			const speed = parseFloat(layer.getAttribute('data-speed')) || 0.5;
+
+			// Only apply parallax if section is in viewport
+			if (rect.top < window.innerHeight && rect.bottom > 0) {
+				const yPos = -(scrollY - parent.offsetTop) * speed;
+				layer.style.transform = `translate3d(0, ${yPos}px, 0)`;
 			}
-		}
+		});
 
-		// Benefits section parallax
-		const benefitsBg = document.querySelector('.benefits-section .parallax-bg-layer');
-		if (benefitsBg) {
-			const section = document.querySelector('.benefits-section');
-			const sectionOffset = section.offsetTop;
-			const sectionScroll = scrollPosition - sectionOffset;
-			if (scrollPosition > sectionOffset - window.innerHeight) {
-				benefitsBg.style.transform = `translateY(${sectionScroll * 0.25}px) scale(1.05)`;
-			}
-		}
+		// Update content containers with different speeds for each section
+		document.querySelectorAll('section[data-content-speed]').forEach(section => {
+			const rect = section.getBoundingClientRect();
+			const contentSpeed = parseFloat(section.getAttribute('data-content-speed')) || 0;
 
-		// CTA section parallax
-		const ctaBg = document.querySelector('.cta-section .parallax-bg-layer');
-		if (ctaBg) {
-			const section = document.querySelector('.cta-section');
-			const sectionOffset = section.offsetTop;
-			const sectionScroll = scrollPosition - sectionOffset;
-			if (scrollPosition > sectionOffset - window.innerHeight) {
-				ctaBg.style.transform = `translateY(${sectionScroll * 0.4}px) scale(1.1)`;
-			}
-		}
-
-		// Parallax for cards
-		const allCards = document.querySelectorAll('.market-card, .stat-card, .benefit-card, .testimonial-card, .step-card');
-		allCards.forEach((card, index) => {
-			const cardOffset = card.offsetTop;
-			const cardBottom = cardOffset + card.offsetHeight;
-			
-			if (scrollPosition + window.innerHeight > cardOffset && scrollPosition < cardBottom) {
-				const cardScroll = scrollPosition - cardOffset + window.innerHeight;
-				const speed = 0.05 + (index % 3) * 0.02;
-				const translateY = cardScroll * -speed;
-				
-				card.style.transform = `translateY(${translateY}px)`;
-				card.style.transition = 'transform 0.05s linear';
+			// Only apply parallax if section is in viewport
+			if (rect.top < window.innerHeight && rect.bottom > 0) {
+				const container = section.querySelector('.container');
+				if (container) {
+					const yPos = -(scrollY - section.offsetTop) * contentSpeed;
+					container.style.transform = `translate3d(0, ${yPos}px, 0)`;
+				}
 			}
 		});
 
@@ -791,137 +792,20 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
-	window.addEventListener('scroll', requestTick, { passive: true });
+	// Throttled scroll event
+	let scrollTimeout;
+	window.addEventListener('scroll', () => {
+		if (scrollTimeout) {
+			window.cancelAnimationFrame(scrollTimeout);
+		}
+		scrollTimeout = window.requestAnimationFrame(requestTick);
+	}, { passive: true });
+
+	// Initial update
 	updateParallax();
 
-	// Intersection Observer for dynamic section animations
-	const observerOptions = {
-		root: null,
-		rootMargin: '0px',
-		threshold: [0, 0.1, 0.25, 0.5, 0.75, 1]
-	};
-
-	// Observe all major sections
-	const sectionObserver = new IntersectionObserver((entries) => {
-		entries.forEach(entry => {
-			const section = entry.target;
-			const ratio = entry.intersectionRatio;
-
-			if (entry.isIntersecting) {
-				section.classList.add('section-visible');
-
-				// Add dynamic scale and opacity based on intersection ratio
-				section.style.opacity = Math.max(0.3, ratio);
-				section.style.transform = `scale(${0.95 + (ratio * 0.05)})`;
-				section.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-			} else {
-				section.style.opacity = '0.3';
-				section.style.transform = 'scale(0.95)';
-			}
-		});
-	}, observerOptions);
-
-	// Observe sections
-	document.querySelectorAll('.trading-section, .market-overview-section, .benefits-section, .how-it-works-section, .testimonials-section').forEach(section => {
-		sectionObserver.observe(section);
-	});
-
-	// Card observer for staggered fade-in animations
-	const cardObserver = new IntersectionObserver((entries) => {
-		entries.forEach((entry, index) => {
-			if (entry.isIntersecting) {
-				const card = entry.target;
-				const delay = (Array.from(card.parentElement.children).indexOf(card) * 100);
-
-				setTimeout(() => {
-					card.style.opacity = '1';
-					card.style.transform = 'translateY(0) scale(1)';
-					card.style.transition = 'opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
-				}, delay);
-
-				cardObserver.unobserve(card);
-			}
-		});
-	}, {
-		root: null,
-		rootMargin: '-50px',
-		threshold: 0.1
-	});
-
-	// Set initial state and observe cards
-	document.querySelectorAll('.market-card, .stat-card, .benefit-card, .testimonial-card, .step-card').forEach(card => {
-		card.style.opacity = '0';
-		card.style.transform = 'translateY(50px) scale(0.9)';
-		cardObserver.observe(card);
-	});
-
-	// Title observer for dynamic heading animations
-	const titleObserver = new IntersectionObserver((entries) => {
-		entries.forEach(entry => {
-			if (entry.isIntersecting) {
-				const title = entry.target;
-				title.style.opacity = '1';
-				title.style.transform = 'translateY(0)';
-				title.style.transition = 'opacity 1s ease-out, transform 1s ease-out';
-				titleObserver.unobserve(title);
-			}
-		});
-	}, {
-		root: null,
-		rootMargin: '0px',
-		threshold: 0.3
-	});
-
-	// Set initial state and observe section titles
-	document.querySelectorAll('section h2, section h4').forEach(title => {
-		title.style.opacity = '0';
-		title.style.transform = 'translateY(30px)';
-		titleObserver.observe(title);
-	});
-
-	// CTA button observer for bounce effect
-	const ctaObserver = new IntersectionObserver((entries) => {
-		entries.forEach(entry => {
-			if (entry.isIntersecting) {
-				const btn = entry.target;
-				btn.style.animation = 'ctaBounce 1s ease-out';
-				ctaObserver.unobserve(btn);
-			}
-		});
-	}, {
-		root: null,
-		rootMargin: '0px',
-		threshold: 0.5
-	});
-
-	// Observe CTA buttons
-	document.querySelectorAll('.cta-section .btn').forEach(btn => {
-		ctaObserver.observe(btn);
-	});
-
-	// Add CSS animation for CTA bounce
-	const style = document.createElement('style');
-	style.textContent = `
-		@keyframes ctaBounce {
-			0%, 100% { transform: translateY(0); }
-			10%, 30%, 50%, 70%, 90% { transform: translateY(-10px); }
-			20%, 40%, 60%, 80% { transform: translateY(-5px); }
-		}
-		.section-visible {
-			animation: sectionFadeIn 1s ease-out;
-		}
-		@keyframes sectionFadeIn {
-			from {
-				opacity: 0;
-				transform: translateY(30px) scale(0.98);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0) scale(1);
-			}
-		}
-	`;
-	document.head.appendChild(style);
+	// Intersection Observer animations disabled
+	// All content is now visible by default with only parallax scrolling active
 
 	// Smooth scroll for anchor links
 	document.querySelectorAll('a[href^="#"]').forEach(anchor => {
