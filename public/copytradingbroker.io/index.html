@@ -727,15 +727,11 @@ document.addEventListener('DOMContentLoaded', function() {
 				section.insertBefore(midLayer, section.firstChild);
 				section.insertBefore(bgLayer, section.firstChild);
 
-				// Store content speed on the section for later use
-				section.setAttribute('data-content-speed', config.contentSpeed);
-
-				// Ensure content is above parallax layers
+				// Ensure content is above parallax layers and remains stationary
 				const container = section.querySelector('.container');
 				if (container) {
 					container.style.position = 'relative';
 					container.style.zIndex = '10';
-					container.style.willChange = 'transform';
 				}
 			}
 		});
@@ -767,20 +763,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 
-		// Update content containers with different speeds for each section
-		document.querySelectorAll('section[data-content-speed]').forEach(section => {
-			const rect = section.getBoundingClientRect();
-			const contentSpeed = parseFloat(section.getAttribute('data-content-speed')) || 0;
-
-			// Only apply parallax if section is in viewport
-			if (rect.top < window.innerHeight && rect.bottom > 0) {
-				const container = section.querySelector('.container');
-				if (container) {
-					const yPos = -(scrollY - section.offsetTop) * contentSpeed;
-					container.style.transform = `translate3d(0, ${yPos}px, 0)`;
-				}
-			}
-		});
+		// Content containers remain stationary - no parallax on text/content
 
 		ticking = false;
 	}
