@@ -40,6 +40,7 @@ class EmailService:
             bool: True if email sent successfully, False otherwise
         """
         if not self.api_key:
+            print(f"⚠️  SendGrid API key not configured!")
             print(f"Email would have been sent to {to_email}: {subject}")
             return False
 
@@ -55,9 +56,20 @@ class EmailService:
             sg = SendGridAPIClient(self.api_key)
             response = sg.send(message)
 
-            return response.status_code in [200, 201, 202]
+            if response.status_code in [200, 201, 202]:
+                print(f"✓ Email sent successfully to {to_email}")
+                print(f"  Subject: {subject}")
+                print(f"  Status: {response.status_code}")
+                return True
+            else:
+                print(f"✗ Email sending failed to {to_email}")
+                print(f"  Status: {response.status_code}")
+                print(f"  Response: {response.body}")
+                return False
         except Exception as e:
-            print(f"Error sending email: {str(e)}")
+            print(f"✗ Error sending email to {to_email}: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def send_2fa_code(self, to_email: str, code: str, username: str = "User") -> bool:
