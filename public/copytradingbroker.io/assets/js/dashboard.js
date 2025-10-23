@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Populate dashboard with user data
     populateDashboard(userData);
 
+    // Load active investments on dashboard
+    loadDashboardActiveInvestments();
+
     // Check if user is new and hasn't been referred yet
     checkAndShowReferralModal(userData);
 
@@ -40,7 +43,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load investment plans when subscription tab is clicked
     const subscriptionTab = document.querySelector('.menu-item[data-tab="subscription"]');
     if (subscriptionTab) {
-        subscriptionTab.addEventListener('click', loadInvestmentPlans);
+        subscriptionTab.addEventListener('click', function() {
+            // Force reload each time to ensure fresh data
+            loadInvestmentPlans(true);
+        });
     }
 
     // Load wallet data when wallet tab is clicked
@@ -326,7 +332,10 @@ async function loadInvestmentPlans(forceReload = false) {
         }
 
         // Update wallet balance display
-        document.getElementById('wallet-balance').textContent = `$${userWalletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        const walletBalanceElement = document.getElementById('wallet-balance');
+        if (walletBalanceElement) {
+            walletBalanceElement.textContent = `$${userWalletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
 
         // Fetch investment plans from API
         const response = await TED_AUTH.apiCall('/api/plans/', {
@@ -334,7 +343,8 @@ async function loadInvestmentPlans(forceReload = false) {
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to fetch investment plans: ${response.statusText}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `Failed to fetch investment plans: ${response.statusText}`);
         }
 
         const plans = await response.json();
@@ -347,7 +357,19 @@ async function loadInvestmentPlans(forceReload = false) {
         displayPlans(plans);
     } catch (error) {
         console.error('Error loading investment plans:', error);
-        container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 0;">Failed to load investment plans. Please try again later.</p>';
+        plansLoaded = false; // Reset flag so user can retry
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px 0;">
+                <p style="color: #ff6b6b; margin-bottom: 15px;">
+                    <i class="fa fa-exclamation-circle" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                    Failed to load investment plans
+                </p>
+                <p style="color: #8b93a7; font-size: 14px; margin-bottom: 20px;">${error.message}</p>
+                <button class="btn-primary-custom" onclick="loadInvestmentPlans(true)">
+                    <i class="fa fa-refresh"></i> Retry
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -1568,10 +1590,150 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+/**
+ * Load and display active investments on the dashboard home tab
+ */
+async function loadDashboardActiveInvestments() {
+    try {
+        const response = await TED_AUTH.apiCall('/api/investments/portfolio', {
+            method: 'GET'
+        });
+
+        if (!response.ok) {
+            console.error('Failed to fetch portfolio for dashboard');
+            return;
+        }
+
+        const portfolio = await response.json();
+
+        // Only show active investments section if user has active investments
+        if (portfolio.active_investments > 0 && portfolio.investments.length > 0) {
+            const activeInvestmentsCard = document.getElementById('active-investments-card');
+            const container = document.getElementById('dashboard-active-investments-container');
+
+            if (activeInvestmentsCard && container) {
+                activeInvestmentsCard.style.display = 'block';
+
+                // Filter only active investments
+                const activeInvestments = portfolio.investments.filter(inv => inv.status === 'active');
+
+                // Display up to 3 active investments on dashboard
+                const displayInvestments = activeInvestments.slice(0, 3);
+
+                container.innerHTML = '';
+                displayInvestments.forEach(investment => {
+                    const card = createDashboardInvestmentCard(investment);
+                    container.appendChild(card);
+                });
+
+                // Show message if there are more investments
+                if (activeInvestments.length > 3) {
+                    const moreMessage = document.createElement('div');
+                    moreMessage.style.cssText = 'text-align: center; padding: 15px; color: #8b93a7; font-size: 14px;';
+                    moreMessage.innerHTML = `<i class="fa fa-info-circle"></i> And ${activeInvestments.length - 3} more active investment${activeInvestments.length - 3 > 1 ? 's' : ''}. <a href="#" onclick="viewFullPortfolio(); return false;" style="color: #D32F2F; text-decoration: underline;">View all</a>`;
+                    container.appendChild(moreMessage);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading dashboard active investments:', error);
+    }
+}
+
+/**
+ * Create a compact investment card for dashboard display
+ */
+function createDashboardInvestmentCard(investment) {
+    const card = document.createElement('div');
+    card.className = 'plan-card';
+    card.style.marginBottom = '15px';
+
+    const profitColor = investment.profit_loss >= 0 ? '#4caf50' : '#f44336';
+    const profitSign = investment.profit_loss >= 0 ? '+' : '';
+
+    const maturityDate = new Date(investment.maturity_date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+
+    // Calculate progress percentage
+    const totalDays = investment.days_elapsed + investment.days_remaining;
+    const progressPercent = totalDays > 0 ? (investment.days_elapsed / totalDays * 100) : 0;
+
+    card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h3 style="color: #D32F2F; margin: 0 0 5px 0; font-size: 18px;">${investment.plan_name}</h3>
+                <span class="badge-status badge-active" style="font-size: 11px;">Active</span>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 20px; font-weight: bold; color: #000;">$${investment.amount_invested.toLocaleString()}</div>
+                <div style="font-size: 11px; color: #8b93a7;">Invested</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; padding: 12px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
+            <div>
+                <div style="font-size: 16px; font-weight: bold; color: ${profitColor};">${profitSign}$${Math.abs(investment.profit_loss).toLocaleString()}</div>
+                <div style="font-size: 11px; color: #8b93a7;">Profit/Loss</div>
+            </div>
+            <div>
+                <div style="font-size: 16px; font-weight: bold; color: #000;">$${investment.current_value.toLocaleString()}</div>
+                <div style="font-size: 11px; color: #8b93a7;">Current Value</div>
+            </div>
+            <div>
+                <div style="font-size: 16px; font-weight: bold; color: #4caf50;">${investment.expected_return_percent}%</div>
+                <div style="font-size: 11px; color: #8b93a7;">Expected Return</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span style="color: #8b93a7; font-size: 11px;">Progress to Maturity</span>
+                <span style="color: #000; font-size: 11px; font-weight: 600;">${progressPercent.toFixed(0)}%</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: rgba(123, 182, 218, 0.2); border-radius: 3px; overflow: hidden;">
+                <div style="width: ${progressPercent}%; height: 100%; background: linear-gradient(90deg, #D32F2F, #5a9abf); border-radius: 3px;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                <span style="color: #8b93a7; font-size: 10px;">${investment.days_remaining} days remaining</span>
+                <span style="color: #8b93a7; font-size: 10px;">Matures: ${maturityDate}</span>
+            </div>
+        </div>
+    `;
+
+    return card;
+}
+
+/**
+ * Navigate to full portfolio view
+ */
+function viewFullPortfolio() {
+    // Activate portfolio tab
+    document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+    const portfolioTab = document.querySelector('.menu-item[data-tab="portfolio"]');
+    if (portfolioTab) {
+        portfolioTab.classList.add('active');
+    }
+
+    // Show portfolio tab content
+    document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
+    const portfolioContent = document.getElementById('tab-portfolio');
+    if (portfolioContent) {
+        portfolioContent.classList.add('active');
+    }
+
+    // Load portfolio data
+    loadPortfolioPerformance(true);
+}
+
 // Export functions for use in HTML
 window.handleLogout = handleLogout;
 window.copyTrader = copyTrader;
 window.investInPlan = investInPlan;
+window.loadInvestmentPlans = loadInvestmentPlans;
+window.viewFullPortfolio = viewFullPortfolio;
 window.showDepositModal = showDepositModal;
 window.closeDepositModal = closeDepositModal;
 window.showWithdrawModal = showWithdrawModal;
