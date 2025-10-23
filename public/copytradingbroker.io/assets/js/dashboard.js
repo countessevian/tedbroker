@@ -571,6 +571,8 @@ function showDepositModal() {
     const modal = document.getElementById('deposit-modal');
     modal.style.display = 'flex';
     document.getElementById('deposit-form').reset();
+    // Hide all payment method fields initially
+    hideAllDepositPaymentFields();
 }
 
 /**
@@ -618,9 +620,15 @@ async function handleDeposit(event) {
 
     const amount = parseFloat(document.getElementById('deposit-amount').value);
     const paymentMethod = document.getElementById('deposit-payment-method').value;
+    const password = document.getElementById('deposit-password').value;
 
     if (!amount || !paymentMethod) {
-        alert('Please fill in all fields');
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    if (!password) {
+        alert('Please enter your password to confirm this deposit');
         return;
     }
 
@@ -634,6 +642,62 @@ async function handleDeposit(event) {
         return;
     }
 
+    // Collect payment method specific details
+    const paymentDetails = {
+        amount: amount,
+        payment_method: paymentMethod,
+        password: password
+    };
+
+    // Add method-specific fields
+    switch(paymentMethod) {
+        case 'Bank Transfer':
+            const bankName = document.getElementById('bank-name').value;
+            const bankReference = document.getElementById('bank-reference').value;
+            if (!bankName || !bankReference) {
+                alert('Please fill in all bank transfer details');
+                return;
+            }
+            paymentDetails.bank_name = bankName;
+            paymentDetails.reference_number = bankReference;
+            break;
+
+        case 'Cryptocurrency':
+            const cryptoType = document.getElementById('crypto-type').value;
+            const cryptoTxHash = document.getElementById('crypto-tx-hash').value;
+            if (!cryptoType || !cryptoTxHash) {
+                alert('Please select cryptocurrency and enter transaction hash');
+                return;
+            }
+            paymentDetails.crypto_type = cryptoType;
+            paymentDetails.transaction_hash = cryptoTxHash;
+            break;
+
+        case 'Credit Card':
+            const cardNumber = document.getElementById('card-number').value;
+            const cardExpiry = document.getElementById('card-expiry').value;
+            const cardCvv = document.getElementById('card-cvv').value;
+            const cardHolderName = document.getElementById('card-holder-name').value;
+            if (!cardNumber || !cardExpiry || !cardCvv || !cardHolderName) {
+                alert('Please fill in all credit card details');
+                return;
+            }
+            paymentDetails.card_number = cardNumber;
+            paymentDetails.card_expiry = cardExpiry;
+            paymentDetails.card_cvv = cardCvv;
+            paymentDetails.card_holder_name = cardHolderName;
+            break;
+
+        case 'PayPal':
+            const paypalEmail = document.getElementById('paypal-email').value;
+            if (!paypalEmail) {
+                alert('Please enter your PayPal email');
+                return;
+            }
+            paymentDetails.paypal_email = paypalEmail;
+            break;
+    }
+
     try {
         TED_AUTH.showLoading('Processing deposit...');
 
@@ -642,10 +706,7 @@ async function handleDeposit(event) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                amount: amount,
-                payment_method: paymentMethod
-            })
+            body: JSON.stringify(paymentDetails)
         });
 
         TED_AUTH.closeLoading();
@@ -674,7 +735,7 @@ async function handleDeposit(event) {
         // Close modal
         closeDepositModal();
 
-        alert(`Deposit successful! $${amount.toLocaleString()} has been added to your wallet.\nReference: ${result.transaction.reference_number}`);
+        alert(`Deposit request submitted successfully!\nAmount: $${amount.toLocaleString()}\nPayment Method: ${paymentMethod}\nReference: ${result.transaction.reference_number}\n\nYour deposit will be processed shortly.`);
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Deposit error:', error);
@@ -969,6 +1030,323 @@ function copyReferralLink() {
     });
 }
 
+/**
+ * Quick Action: Navigate to subscription/trading plans tab
+ */
+function quickActionStartCopyTrading() {
+    // Activate subscription tab
+    document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+    const subscriptionTab = document.querySelector('.menu-item[data-tab="subscription"]');
+    if (subscriptionTab) {
+        subscriptionTab.classList.add('active');
+    }
+
+    // Show subscription tab content
+    document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
+    const subscriptionContent = document.getElementById('tab-subscription');
+    if (subscriptionContent) {
+        subscriptionContent.classList.add('active');
+    }
+
+    // Load investment plans
+    loadInvestmentPlans();
+}
+
+/**
+ * Quick Action: Navigate to wallet tab
+ */
+function quickActionDepositFunds() {
+    // Activate wallet tab
+    document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+    const walletTab = document.querySelector('.menu-item[data-tab="wallet"]');
+    if (walletTab) {
+        walletTab.classList.add('active');
+    }
+
+    // Show wallet tab content
+    document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
+    const walletContent = document.getElementById('tab-wallet');
+    if (walletContent) {
+        walletContent.classList.add('active');
+    }
+
+    // Load wallet data
+    loadWalletData();
+}
+
+/**
+ * Quick Action: Navigate to traders tab
+ */
+function quickActionBrowseTraders() {
+    // Activate traders tab
+    document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+    const tradersTab = document.querySelector('.menu-item[data-tab="traders"]');
+    if (tradersTab) {
+        tradersTab.classList.add('active');
+    }
+
+    // Show traders tab content
+    document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
+    const tradersContent = document.getElementById('tab-traders');
+    if (tradersContent) {
+        tradersContent.classList.add('active');
+    }
+
+    // Load expert traders
+    loadExpertTraders();
+}
+
+/**
+ * Show update profile modal
+ */
+function showUpdateProfileModal() {
+    const modal = document.getElementById('update-profile-modal');
+    modal.style.display = 'flex';
+
+    // Pre-fill form with current user data
+    const userData = TED_AUTH.getUser();
+    if (userData) {
+        document.getElementById('update-full-name').value = userData.full_name || '';
+        document.getElementById('update-phone').value = userData.phone || '';
+        document.getElementById('update-gender').value = userData.gender || '';
+        document.getElementById('update-country').value = userData.country || '';
+    }
+}
+
+/**
+ * Close update profile modal
+ */
+function closeUpdateProfileModal() {
+    const modal = document.getElementById('update-profile-modal');
+    modal.style.display = 'none';
+}
+
+/**
+ * Handle update profile form submission
+ */
+async function handleUpdateProfile(event) {
+    event.preventDefault();
+
+    const fullName = document.getElementById('update-full-name').value.trim();
+    const phone = document.getElementById('update-phone').value.trim();
+    const gender = document.getElementById('update-gender').value;
+    const country = document.getElementById('update-country').value.trim();
+
+    try {
+        TED_AUTH.showLoading('Updating your profile...');
+
+        const response = await TED_AUTH.apiCall('/api/auth/update-profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                full_name: fullName,
+                phone: phone,
+                gender: gender,
+                country: country
+            })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Profile update failed');
+        }
+
+        const result = await response.json();
+
+        // Update user data in localStorage
+        TED_AUTH.saveUser(result);
+
+        // Refresh dashboard data
+        populateDashboard(result);
+
+        // Close modal
+        closeUpdateProfileModal();
+
+        alert('Profile updated successfully!');
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Profile update error:', error);
+        alert(`Profile update failed: ${error.message}`);
+    }
+}
+
+/**
+ * Show change password modal
+ */
+function showChangePasswordModal() {
+    const modal = document.getElementById('change-password-modal');
+    modal.style.display = 'flex';
+    document.getElementById('change-password-form').reset();
+}
+
+/**
+ * Close change password modal
+ */
+function closeChangePasswordModal() {
+    const modal = document.getElementById('change-password-modal');
+    modal.style.display = 'none';
+}
+
+/**
+ * Handle change password form submission
+ */
+async function handleChangePassword(event) {
+    event.preventDefault();
+
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmNewPassword = document.getElementById('confirm-new-password').value;
+
+    // Validate passwords match
+    if (newPassword !== confirmNewPassword) {
+        alert('New passwords do not match!');
+        return;
+    }
+
+    // Validate password strength
+    if (newPassword.length < 8) {
+        alert('Password must be at least 8 characters long');
+        return;
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+        alert('Password must contain at least one uppercase letter');
+        return;
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+        alert('Password must contain at least one lowercase letter');
+        return;
+    }
+
+    if (!/[0-9]/.test(newPassword)) {
+        alert('Password must contain at least one number');
+        return;
+    }
+
+    try {
+        TED_AUTH.showLoading('Changing your password...');
+
+        const response = await TED_AUTH.apiCall('/api/auth/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                old_password: currentPassword,
+                new_password: newPassword
+            })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Password change failed');
+        }
+
+        // Close modal
+        closeChangePasswordModal();
+
+        alert('Password changed successfully! Please login with your new password.');
+
+        // Log out user to force re-login with new password
+        setTimeout(() => {
+            TED_AUTH.logout();
+        }, 1000);
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Password change error:', error);
+        alert(`Password change failed: ${error.message}`);
+    }
+}
+
+/**
+ * Hide all deposit payment method fields
+ */
+function hideAllDepositPaymentFields() {
+    document.getElementById('bank-transfer-fields').style.display = 'none';
+    document.getElementById('crypto-fields').style.display = 'none';
+    document.getElementById('credit-card-fields').style.display = 'none';
+    document.getElementById('paypal-fields').style.display = 'none';
+}
+
+/**
+ * Toggle deposit payment method fields based on selection
+ */
+function toggleDepositPaymentFields() {
+    const paymentMethod = document.getElementById('deposit-payment-method').value;
+
+    // Hide all fields first
+    hideAllDepositPaymentFields();
+
+    // Show relevant fields based on selected payment method
+    switch(paymentMethod) {
+        case 'Bank Transfer':
+            document.getElementById('bank-transfer-fields').style.display = 'block';
+            break;
+        case 'Cryptocurrency':
+            document.getElementById('crypto-fields').style.display = 'block';
+            break;
+        case 'Credit Card':
+            document.getElementById('credit-card-fields').style.display = 'block';
+            break;
+        case 'PayPal':
+            document.getElementById('paypal-fields').style.display = 'block';
+            break;
+    }
+}
+
+/**
+ * Cryptocurrency wallet addresses (managed by admin)
+ */
+const cryptoWallets = {
+    'Bitcoin': 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    'Ethereum': '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+    'Tether': 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    'USD Coin': '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d'
+};
+
+/**
+ * Handle crypto type selection to show wallet address
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const cryptoTypeSelect = document.getElementById('crypto-type');
+    if (cryptoTypeSelect) {
+        cryptoTypeSelect.addEventListener('change', function() {
+            const selectedCrypto = this.value;
+            const walletInfo = document.getElementById('crypto-wallet-info');
+            const walletAddress = document.getElementById('crypto-wallet-address');
+
+            if (selectedCrypto && cryptoWallets[selectedCrypto]) {
+                walletAddress.textContent = cryptoWallets[selectedCrypto];
+                walletInfo.style.display = 'block';
+            } else {
+                walletInfo.style.display = 'none';
+            }
+        });
+    }
+});
+
+/**
+ * Copy crypto wallet address to clipboard
+ */
+function copyCryptoAddress() {
+    const address = document.getElementById('crypto-wallet-address').textContent;
+    if (address && address !== '-') {
+        navigator.clipboard.writeText(address).then(() => {
+            alert('Wallet address copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            alert('Failed to copy address. Please try selecting and copying manually.');
+        });
+    }
+}
+
 // Export functions for use in HTML
 window.handleLogout = handleLogout;
 window.copyTrader = copyTrader;
@@ -983,3 +1361,14 @@ window.copyReferralLink = copyReferralLink;
 window.handleReferralSubmission = handleReferralSubmission;
 window.closeReferralModal = closeReferralModal;
 window.skipReferral = skipReferral;
+window.showUpdateProfileModal = showUpdateProfileModal;
+window.closeUpdateProfileModal = closeUpdateProfileModal;
+window.handleUpdateProfile = handleUpdateProfile;
+window.showChangePasswordModal = showChangePasswordModal;
+window.closeChangePasswordModal = closeChangePasswordModal;
+window.handleChangePassword = handleChangePassword;
+window.quickActionStartCopyTrading = quickActionStartCopyTrading;
+window.quickActionDepositFunds = quickActionDepositFunds;
+window.quickActionBrowseTraders = quickActionBrowseTraders;
+window.toggleDepositPaymentFields = toggleDepositPaymentFields;
+window.copyCryptoAddress = copyCryptoAddress;
