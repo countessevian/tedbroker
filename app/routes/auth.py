@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 from bson import ObjectId
+from typing import Optional
 
 from app.schemas import UserRegister, UserLogin, Token, UserResponse, PasswordChange
 from app.auth import (
@@ -329,6 +330,77 @@ async def change_password(
     return {"message": "Password changed successfully"}
 
 
+class UpdateProfile(BaseModel):
+    """Schema for updating user profile"""
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    gender: Optional[str] = None
+    country: Optional[str] = None
+
+
+@router.put("/update-profile", response_model=UserResponse)
+async def update_profile(
+    profile_data: UpdateProfile,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """Update user profile information"""
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user from database
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Prepare update data
+    update_data = {"updated_at": datetime.utcnow()}
+
+    if profile_data.full_name is not None:
+        update_data["full_name"] = profile_data.full_name
+
+    if profile_data.phone is not None:
+        update_data["phone"] = profile_data.phone
+
+    if profile_data.gender is not None:
+        if profile_data.gender and profile_data.gender not in ['Male', 'Female', 'Others', '']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Gender must be Male, Female, or Others"
+            )
+        update_data["gender"] = profile_data.gender if profile_data.gender else None
+
+    if profile_data.country is not None:
+        update_data["country"] = profile_data.country
+
+    # Update user
+    users.update_one(
+        {"_id": ObjectId(current_user["user_id"])},
+        {"$set": update_data}
+    )
+
+    # Fetch updated user
+    updated_user = get_user_by_id(current_user["user_id"])
+
+    return UserResponse(
+        id=str(updated_user["_id"]),
+        email=updated_user["email"],
+        username=updated_user["username"],
+        full_name=updated_user.get("full_name"),
+        phone=updated_user.get("phone"),
+        gender=updated_user.get("gender"),
+        country=updated_user.get("country"),
+        account_types=updated_user.get("account_types", []),
+        wallet_balance=updated_user.get("wallet_balance", 0.0),
+        is_active=updated_user.get("is_active", True),
+        is_verified=updated_user.get("is_verified", False),
+        created_at=updated_user["created_at"],
+        updated_at=updated_user["updated_at"]
+    )
+
+
 @router.delete("/delete-account")
 async def delete_account(current_user: dict = Depends(get_current_user_token)):
     """Delete user account"""
@@ -370,6 +442,20 @@ async def verify_2fa(request: Request, verification_data: TwoFAVerify):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
+
+    # Mark user as verified if not already verified
+    users = get_collection(USERS_COLLECTION)
+    if not user.get("is_verified", False):
+        users.update_one(
+            {"_id": user["_id"]},
+            {
+                "$set": {
+                    "is_verified": True,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        print(f"User {user['email']} marked as verified")
 
     # Record successful login
     login_history_service.record_login_attempt(
