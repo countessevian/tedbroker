@@ -896,7 +896,7 @@
                 </a>
                 <a class="menu-item" data-tab="subscription">
                     <i class="fa-solid fa-crown"></i>
-                    <span>Subscription</span>
+                    <span>Plans</span>
                 </a>
                 <a class="menu-item" data-tab="portfolio">
                     <i class="fa-solid fa-chart-line"></i>
@@ -960,6 +960,17 @@
                         <button class="btn-primary-custom" onclick="quickActionDepositFunds()">Deposit Funds</button>
                         <button class="btn-primary-custom" onclick="quickActionBrowseTraders()">Browse Traders</button>
                     </div>
+                </div>
+
+                <!-- Active Investments Section -->
+                <div class="dashboard-card" id="active-investments-card" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0;">Active Investments</h3>
+                        <button class="btn-primary-custom" onclick="viewFullPortfolio()" style="padding: 8px 16px; font-size: 14px;">
+                            <i class="fa fa-chart-line"></i> View Portfolio
+                        </button>
+                    </div>
+                    <div id="dashboard-active-investments-container"></div>
                 </div>
 
                 <div class="dashboard-card">
