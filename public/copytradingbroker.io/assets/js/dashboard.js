@@ -157,10 +157,15 @@ function handleLogout() {
  * Load and display expert traders from API
  */
 let tradersLoaded = false; // Flag to prevent multiple loads
+let tradersCache = null; // Cache traders data
 
-async function loadExpertTraders() {
-    // Only load once
-    if (tradersLoaded) return;
+async function loadExpertTraders(forceReload = false) {
+    // Skip if already loaded and not forcing reload
+    if (tradersLoaded && !forceReload && tradersCache) {
+        // Display cached traders
+        displayTraders(tradersCache);
+        return;
+    }
 
     const container = document.getElementById('traders-container');
     container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading traders...</p>';
@@ -184,23 +189,34 @@ async function loadExpertTraders() {
 
         const traders = await response.json();
 
-        // Display traders
-        if (traders.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No expert traders available at the moment.</p>';
-            return;
-        }
-
-        container.innerHTML = '';
-        traders.forEach(trader => {
-            const traderCard = createTraderCard(trader);
-            container.appendChild(traderCard);
-        });
-
+        // Cache the traders
+        tradersCache = traders;
         tradersLoaded = true;
+
+        // Display traders
+        displayTraders(traders);
     } catch (error) {
         console.error('Error loading traders:', error);
         container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 0;">Failed to load traders. Please try again later.</p>';
     }
+}
+
+/**
+ * Display traders in the container
+ */
+function displayTraders(traders) {
+    const container = document.getElementById('traders-container');
+
+    if (traders.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No expert traders available at the moment.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    traders.forEach(trader => {
+        const traderCard = createTraderCard(trader);
+        container.appendChild(traderCard);
+    });
 }
 
 /**
@@ -278,11 +294,16 @@ function copyTrader(traderId, traderName) {
  * Load and display investment plans from API
  */
 let plansLoaded = false; // Flag to prevent multiple loads
+let plansCache = null; // Cache plans data
 let userWalletBalance = 0; // Store user's wallet balance
 
-async function loadInvestmentPlans() {
-    // Only load once
-    if (plansLoaded) return;
+async function loadInvestmentPlans(forceReload = false) {
+    // Skip if already loaded and not forcing reload
+    if (plansLoaded && !forceReload && plansCache) {
+        // Display cached plans
+        displayPlans(plansCache);
+        return;
+    }
 
     const container = document.getElementById('plans-container');
     container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading investment plans...</p>';
@@ -318,23 +339,34 @@ async function loadInvestmentPlans() {
 
         const plans = await response.json();
 
-        // Display plans
-        if (plans.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No investment plans available at the moment.</p>';
-            return;
-        }
-
-        container.innerHTML = '';
-        plans.forEach(plan => {
-            const planCard = createPlanCard(plan);
-            container.appendChild(planCard);
-        });
-
+        // Cache the plans
+        plansCache = plans;
         plansLoaded = true;
+
+        // Display plans
+        displayPlans(plans);
     } catch (error) {
         console.error('Error loading investment plans:', error);
         container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 0;">Failed to load investment plans. Please try again later.</p>';
     }
+}
+
+/**
+ * Display plans in the container
+ */
+function displayPlans(plans) {
+    const container = document.getElementById('plans-container');
+
+    if (plans.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No investment plans available at the moment.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    plans.forEach(plan => {
+        const planCard = createPlanCard(plan);
+        container.appendChild(planCard);
+    });
 }
 
 /**
