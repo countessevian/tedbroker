@@ -952,9 +952,9 @@
                 <div class="dashboard-card">
                     <h3 style="margin-bottom: 20px;">Quick Actions</h3>
                     <div class="quick-actions-grid">
-                        <button class="btn-primary-custom">Start Copy Trading</button>
-                        <button class="btn-primary-custom">Deposit Funds</button>
-                        <button class="btn-primary-custom">Browse Traders</button>
+                        <button class="btn-primary-custom" onclick="quickActionStartCopyTrading()">Start Copy Trading</button>
+                        <button class="btn-primary-custom" onclick="quickActionDepositFunds()">Deposit Funds</button>
+                        <button class="btn-primary-custom" onclick="quickActionBrowseTraders()">Browse Traders</button>
                     </div>
                 </div>
 
@@ -1071,8 +1071,8 @@
 
                 <div class="dashboard-card" style="margin-top: 20px;">
                     <h3 style="margin-bottom: 20px;">Account Settings</h3>
-                    <button class="btn-primary-custom" style="margin-right: 10px;">Change Password</button>
-                    <button class="btn-primary-custom">Update Profile</button>
+                    <button class="btn-primary-custom" style="margin-right: 10px;" onclick="showChangePasswordModal()">Change Password</button>
+                    <button class="btn-primary-custom" onclick="showUpdateProfileModal()">Update Profile</button>
                 </div>
             </div>
 
@@ -1144,7 +1144,7 @@
                 </div>
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Payment Method</label>
-                    <select id="deposit-payment-method" required
+                    <select id="deposit-payment-method" required onchange="toggleDepositPaymentFields()"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;">
                         <option value="">Select payment method</option>
                         <option value="Credit Card">Credit Card</option>
@@ -1153,6 +1153,134 @@
                         <option value="Cryptocurrency">Cryptocurrency</option>
                     </select>
                 </div>
+
+                <!-- Bank Transfer Fields -->
+                <div id="bank-transfer-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
+                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 16px;">Bank Transfer Details</h4>
+                    <p style="color: #8b93a7; font-size: 13px; margin-bottom: 15px;">Please transfer funds to the following bank account:</p>
+                    <div style="background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: #8b93a7; font-size: 13px;">Bank Name:</span>
+                            <span style="color: #000; font-weight: 600; font-size: 13px;">TED Brokers Bank</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: #8b93a7; font-size: 13px;">Account Number:</span>
+                            <span style="color: #000; font-weight: 600; font-size: 13px;">1234567890</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: #8b93a7; font-size: 13px;">SWIFT Code:</span>
+                            <span style="color: #000; font-weight: 600; font-size: 13px;">TEDBROKUS33</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #8b93a7; font-size: 13px;">Account Holder:</span>
+                            <span style="color: #000; font-weight: 600; font-size: 13px;">TED Brokers LLC</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Your Bank Name</label>
+                        <input type="text" id="bank-name"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
+                            placeholder="Enter your bank name">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Transaction Reference Number</label>
+                        <input type="text" id="bank-reference"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
+                            placeholder="Enter transaction reference">
+                    </div>
+                </div>
+
+                <!-- Cryptocurrency Fields -->
+                <div id="crypto-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
+                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 16px;">Cryptocurrency Details</h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Select Cryptocurrency</label>
+                        <select id="crypto-type"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
+                            <option value="">Select cryptocurrency</option>
+                            <option value="Bitcoin">Bitcoin (BTC)</option>
+                            <option value="Ethereum">Ethereum (ETH)</option>
+                            <option value="Tether">Tether (USDT)</option>
+                            <option value="USD Coin">USD Coin (USDC)</option>
+                        </select>
+                    </div>
+                    <div id="crypto-wallet-info" style="display: none; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+                        <p style="color: #8b93a7; font-size: 13px; margin-bottom: 8px;">Send payment to this wallet address:</p>
+                        <div style="background: rgba(123, 182, 218, 0.05); padding: 10px; border-radius: 6px; word-break: break-all; font-family: monospace; font-size: 12px; color: #000; margin-bottom: 8px;">
+                            <span id="crypto-wallet-address">-</span>
+                        </div>
+                        <button type="button" onclick="copyCryptoAddress()" style="background: #8b93a7; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                            <i class="fa-solid fa-copy"></i> Copy Address
+                        </button>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Transaction Hash</label>
+                        <input type="text" id="crypto-tx-hash"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
+                            placeholder="Enter transaction hash">
+                    </div>
+                </div>
+
+                <!-- Credit Card Fields -->
+                <div id="credit-card-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
+                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 16px;">Credit Card Details</h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Card Number</label>
+                        <input type="text" id="card-number" maxlength="19"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
+                            placeholder="1234 5678 9012 3456">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Expiry Date</label>
+                            <input type="text" id="card-expiry" maxlength="5" placeholder="MM/YY"
+                                style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
+                        </div>
+                        <div>
+                            <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">CVV</label>
+                            <input type="text" id="card-cvv" maxlength="4" placeholder="123"
+                                style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Cardholder Name</label>
+                        <input type="text" id="card-holder-name"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
+                            placeholder="Name on card">
+                    </div>
+                </div>
+
+                <!-- PayPal Fields -->
+                <div id="paypal-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
+                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 16px;">PayPal Details</h4>
+                    <p style="color: #8b93a7; font-size: 13px; margin-bottom: 15px;">You will be redirected to PayPal to complete the payment.</p>
+                    <div style="background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="color: #8b93a7; font-size: 13px;">PayPal Email:</span>
+                            <span style="color: #000; font-weight: 600; font-size: 13px;">payments@tedbroker.com</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Your PayPal Email</label>
+                        <input type="email" id="paypal-email"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
+                            placeholder="your-email@example.com">
+                    </div>
+                </div>
+
+                <!-- Password Confirmation (Required for all deposits) -->
+                <div style="margin-bottom: 20px; padding: 15px; background: rgba(255, 152, 0, 0.05); border: 1px solid rgba(255, 152, 0, 0.2); border-radius: 8px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">
+                        <i class="fa-solid fa-lock"></i> Confirm with Your Password
+                    </label>
+                    <input type="password" id="deposit-password" required
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
+                        placeholder="Enter your account password">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
+                        <i class="fa-solid fa-info-circle"></i> For security, please confirm this transaction with your password
+                    </p>
+                </div>
+
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
                     <i class="fa-solid fa-circle-check"></i> Complete Deposit
                 </button>
@@ -1249,6 +1377,87 @@
                     💡 You can only submit a referral code once. If you don't have one, you can skip this step.
                 </p>
             </div>
+        </div>
+    </div>
+
+    <!-- Update Profile Modal -->
+    <div id="update-profile-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 240, 240, 0.95); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #D32F2F;">Update Profile</h2>
+                <button onclick="closeUpdateProfileModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+            </div>
+            <form id="update-profile-form" onsubmit="handleUpdateProfile(event)">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Full Name</label>
+                    <input type="text" id="update-full-name"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;"
+                        placeholder="Enter your full name">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Phone Number</label>
+                    <input type="tel" id="update-phone"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;"
+                        placeholder="Enter your phone number">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Gender</label>
+                    <select id="update-gender"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;">
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Country</label>
+                    <input type="text" id="update-country"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;"
+                        placeholder="Enter your country">
+                </div>
+                <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
+                    <i class="fa-solid fa-circle-check"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="change-password-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 240, 240, 0.95); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #D32F2F;">Change Password</h2>
+                <button onclick="closeChangePasswordModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+            </div>
+            <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
+                    <i class="fa-solid fa-info-circle"></i> Password must be at least 8 characters long and contain uppercase, lowercase, and numbers.
+                </p>
+            </div>
+            <form id="change-password-form" onsubmit="handleChangePassword(event)">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Current Password</label>
+                    <input type="password" id="current-password" required
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;"
+                        placeholder="Enter your current password">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">New Password</label>
+                    <input type="password" id="new-password" required
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;"
+                        placeholder="Enter your new password">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Confirm New Password</label>
+                    <input type="password" id="confirm-new-password" required
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;"
+                        placeholder="Confirm your new password">
+                </div>
+                <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
+                    <i class="fa-solid fa-circle-check"></i> Change Password
+                </button>
+            </form>
         </div>
     </div>
 
