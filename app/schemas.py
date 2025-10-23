@@ -276,3 +276,71 @@ class DepositRequestResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class InvestInPlanRequest(BaseModel):
+    """Schema for investing in a plan"""
+    plan_id: str = Field(..., description="Investment plan ID")
+    amount: float = Field(..., gt=0, description="Investment amount in USD")
+
+    @field_validator('amount')
+    @classmethod
+    def validate_amount(cls, v):
+        if v < 0:
+            raise ValueError('Investment amount must be positive')
+        return v
+
+
+class UserInvestment(BaseModel):
+    """Schema for a user investment"""
+    id: str
+    user_id: str
+    plan_id: str
+    plan_name: str
+    amount_invested: float
+    expected_return_percent: float
+    holding_period_months: int
+    start_date: datetime
+    maturity_date: datetime
+    current_value: float
+    profit_loss: float
+    status: str  # active, matured, withdrawn
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserInvestmentResponse(BaseModel):
+    """Schema for user investment response"""
+    id: str
+    plan_id: str
+    plan_name: str
+    amount_invested: float
+    expected_return_percent: float
+    holding_period_months: int
+    start_date: datetime
+    maturity_date: datetime
+    current_value: float
+    profit_loss: float
+    profit_loss_percent: float
+    days_elapsed: int
+    days_remaining: int
+    status: str
+
+    class Config:
+        from_attributes = True
+
+
+class PortfolioSummary(BaseModel):
+    """Schema for portfolio summary"""
+    total_invested: float
+    current_value: float
+    total_profit_loss: float
+    total_profit_loss_percent: float
+    active_investments: int
+    investments: List[UserInvestmentResponse]
+
+    class Config:
+        from_attributes = True
