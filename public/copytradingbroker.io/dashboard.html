@@ -898,6 +898,10 @@
                     <i class="fa-solid fa-crown"></i>
                     <span>Subscription</span>
                 </a>
+                <a class="menu-item" data-tab="portfolio">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Portfolio</span>
+                </a>
                 <a class="menu-item" data-tab="account">
                     <i class="fa-solid fa-user-circle"></i>
                     <span>Account</span>
@@ -1018,6 +1022,42 @@
 
                 <div class="subscription-grid" id="plans-container">
                     <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading investment plans...</p>
+                </div>
+            </div>
+
+            <!-- Portfolio Performance Tab -->
+            <div class="tab-content-wrapper" id="tab-portfolio">
+                <div class="content-header">
+                    <h1>Portfolio Performance</h1>
+                    <p>Track your investment performance and returns</p>
+                </div>
+
+                <!-- Portfolio Summary -->
+                <div class="stat-grid" id="portfolio-summary">
+                    <div class="stat-box">
+                        <div class="stat-value" id="portfolio-total-invested">$0.00</div>
+                        <div class="stat-label">Total Invested</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="portfolio-current-value">$0.00</div>
+                        <div class="stat-label">Current Value</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="portfolio-profit-loss">$0.00</div>
+                        <div class="stat-label">Total Profit/Loss</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="portfolio-active-investments">0</div>
+                        <div class="stat-label">Active Investments</div>
+                    </div>
+                </div>
+
+                <!-- Investments List -->
+                <div class="dashboard-card">
+                    <h3 style="margin-bottom: 20px;">Your Investments</h3>
+                    <div id="investments-container">
+                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading your investments...</p>
+                    </div>
                 </div>
             </div>
 
