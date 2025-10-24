@@ -2451,18 +2451,31 @@ if (newsTab) {
  */
 async function loadNewsArticles() {
     try {
-        // For now, we'll use sample data. In production, integrate with:
-        // - NewsAPI.org for general financial news
-        // - CoinGecko API for crypto news
-        // - Alpha Vantage for stock market news
+        // Show loading state
+        document.getElementById('news-articles-container').innerHTML =
+            '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading news articles...</p>';
+        document.getElementById('featured-news-container').innerHTML =
+            '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading featured news...</p>';
 
-        newsArticles = generateSampleNewsData();
+        // Fetch real news from backend API
+        const response = await fetch('/api/news/articles?category=' + currentCategory);
+        const data = await response.json();
 
-        // Display featured news
-        displayFeaturedNews();
+        if (data.success && data.articles) {
+            // Convert publishedAt strings to Date objects for formatting
+            newsArticles = data.articles.map(article => ({
+                ...article,
+                publishedAt: new Date(article.publishedAt)
+            }));
 
-        // Display all news articles
-        displayNewsArticles(newsArticles);
+            // Display featured news
+            displayFeaturedNews();
+
+            // Display all news articles
+            displayNewsArticles(newsArticles);
+        } else {
+            throw new Error('Failed to fetch news articles');
+        }
 
     } catch (error) {
         console.error('Error loading news:', error);
@@ -2629,7 +2642,7 @@ function displayNewsArticles(articles) {
 /**
  * Filter news by category
  */
-function filterNewsByCategory(category) {
+async function filterNewsByCategory(category) {
     currentCategory = category;
 
     // Update active button
@@ -2638,13 +2651,8 @@ function filterNewsByCategory(category) {
     });
     document.querySelector(`.news-category-btn[data-category="${category}"]`).classList.add('active');
 
-    // Filter articles
-    let filteredArticles = category === 'all'
-        ? newsArticles
-        : newsArticles.filter(article => article.category === category);
-
-    // Display filtered articles
-    displayNewsArticles(filteredArticles);
+    // Reload news with selected category
+    await loadNewsArticles();
 }
 
 /**
