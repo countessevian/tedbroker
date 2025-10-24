@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load active investments on dashboard
     loadDashboardActiveInvestments();
 
+    // Load dashboard stats (portfolio value, active copies, total return)
+    loadDashboardStats();
+
     // Check if user is new and hasn't been referred yet
     checkAndShowReferralModal(userData);
 
@@ -154,6 +157,23 @@ function populateDashboard(userData) {
         const createdDate = new Date(userData.created_at);
         const formattedDate = formatDate(createdDate);
         document.getElementById('user-created').textContent = formattedDate;
+    }
+
+    // Wallet Balance - Display user's actual balance from database
+    const walletBalance = userData.wallet_balance || 0;
+    const walletBalanceDisplayElement = document.getElementById('wallet-balance-display');
+    if (walletBalanceDisplayElement) {
+        walletBalanceDisplayElement.textContent = `$${walletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+
+    const walletBalanceElement = document.getElementById('wallet-balance');
+    if (walletBalanceElement) {
+        walletBalanceElement.textContent = `$${walletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+
+    const withdrawBalanceElement = document.getElementById('withdraw-available-balance');
+    if (withdrawBalanceElement) {
+        withdrawBalanceElement.textContent = `$${walletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     }
 
     console.log('Dashboard populated with user data:', userData);
@@ -1842,6 +1862,57 @@ function viewFullPortfolio() {
     loadPortfolioPerformance(true);
 }
 
+/**
+ * Load and display dashboard statistics (portfolio value, active copies, total return)
+ */
+async function loadDashboardStats() {
+    try {
+        // Fetch portfolio data from API (same data as portfolio tab)
+        const response = await TED_AUTH.apiCall('/api/investments/portfolio', {
+            method: 'GET'
+        });
+
+        if (!response.ok) {
+            console.error('Failed to fetch portfolio for dashboard stats');
+            return;
+        }
+
+        const portfolio = await response.json();
+
+        // Update Portfolio Value stat box - use current_value from portfolio
+        const portfolioValueElement = document.getElementById('dashboard-portfolio-value');
+        if (portfolioValueElement) {
+            portfolioValueElement.textContent = `$${portfolio.current_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // Update Active Copies stat box - use active_investments count
+        const activeCopiesElement = document.getElementById('dashboard-active-copies');
+        if (activeCopiesElement) {
+            activeCopiesElement.textContent = portfolio.active_investments;
+        }
+
+        // Update Total Return stat box - use total_profit_loss_percent with color
+        const totalReturnElement = document.getElementById('dashboard-total-return');
+        if (totalReturnElement) {
+            const profitLossPercent = portfolio.total_profit_loss_percent || 0;
+            const profitLossColor = profitLossPercent >= 0 ? '#4caf50' : '#f44336';
+            const profitLossSign = profitLossPercent >= 0 ? '+' : '';
+
+            totalReturnElement.textContent = `${profitLossSign}${profitLossPercent.toFixed(2)}%`;
+            totalReturnElement.style.color = profitLossColor;
+        }
+
+        console.log('Dashboard stats updated:', {
+            portfolio_value: portfolio.current_value,
+            active_investments: portfolio.active_investments,
+            total_return: portfolio.total_profit_loss_percent
+        });
+
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+    }
+}
+
 // Export functions for use in HTML
 window.handleLogout = handleLogout;
 window.copyTrader = copyTrader;
@@ -2061,3 +2132,549 @@ window.handleUpdateEmail = handleUpdateEmail;
 window.showVerifyEmailUpdateModal = showVerifyEmailUpdateModal;
 window.closeVerifyEmailUpdateModal = closeVerifyEmailUpdateModal;
 window.handleVerifyEmailUpdate = handleVerifyEmailUpdate;
+
+/**
+ * Show Enable 2FA Modal
+ */
+function show2FAEnableModal() {
+    const modal = document.getElementById('enable-2fa-modal');
+    modal.style.display = 'flex';
+    document.getElementById('enable-2fa-form').reset();
+}
+
+/**
+ * Close Enable 2FA Modal
+ */
+function close2FAEnableModal() {
+    const modal = document.getElementById('enable-2fa-modal');
+    modal.style.display = 'none';
+}
+
+/**
+ * Handle Enable 2FA Form Submission
+ */
+async function handleEnable2FA(event) {
+    event.preventDefault();
+
+    const password = document.getElementById('enable-2fa-password').value;
+
+    if (!password) {
+        alert('Please enter your password');
+        return;
+    }
+
+    try {
+        TED_AUTH.showLoading('Sending verification code...');
+
+        const response = await TED_AUTH.apiCall('/api/auth/enable-2fa', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                password: password
+            })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to send verification code');
+        }
+
+        const result = await response.json();
+
+        // Close enable modal and show verify modal
+        close2FAEnableModal();
+        show2FAVerifyModal(result.email);
+
+        alert('Verification code sent to your email. Please check your inbox.');
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Enable 2FA error:', error);
+        alert(`Failed to enable 2FA: ${error.message}`);
+    }
+}
+
+/**
+ * Show 2FA Verify Modal
+ */
+function show2FAVerifyModal(email) {
+    const modal = document.getElementById('verify-2fa-modal');
+    modal.style.display = 'flex';
+    document.getElementById('verify-2fa-form').reset();
+
+    // Store email for verification
+    modal.setAttribute('data-email', email);
+}
+
+/**
+ * Close 2FA Verify Modal
+ */
+function close2FAVerifyModal() {
+    const modal = document.getElementById('verify-2fa-modal');
+    modal.style.display = 'none';
+    modal.removeAttribute('data-email');
+}
+
+/**
+ * Handle Verify 2FA Code Form Submission
+ */
+async function handleVerify2FA(event) {
+    event.preventDefault();
+
+    const modal = document.getElementById('verify-2fa-modal');
+    const email = modal.getAttribute('data-email');
+    const code = document.getElementById('verify-2fa-code').value.trim();
+
+    if (!code || code.length !== 6) {
+        alert('Please enter the 6-digit verification code');
+        return;
+    }
+
+    try {
+        TED_AUTH.showLoading('Verifying code and enabling 2FA...');
+
+        const response = await TED_AUTH.apiCall('/api/auth/verify-enable-2fa', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                code: code
+            })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Verification failed');
+        }
+
+        const result = await response.json();
+
+        // Update user data
+        const userData = TED_AUTH.getUser();
+        if (userData) {
+            userData.two_fa_enabled = true;
+            TED_AUTH.saveUser(userData);
+        }
+
+        // Update UI to show 2FA is enabled
+        update2FAStatus(true);
+
+        // Close modal
+        close2FAVerifyModal();
+
+        alert('2FA has been successfully enabled for your account!');
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('2FA verification error:', error);
+        alert(`Verification failed: ${error.message}`);
+    }
+}
+
+/**
+ * Show Disable 2FA Modal
+ */
+function show2FADisableModal() {
+    const modal = document.getElementById('disable-2fa-modal');
+    modal.style.display = 'flex';
+    document.getElementById('disable-2fa-form').reset();
+}
+
+/**
+ * Close Disable 2FA Modal
+ */
+function close2FADisableModal() {
+    const modal = document.getElementById('disable-2fa-modal');
+    modal.style.display = 'none';
+}
+
+/**
+ * Send 2FA Disable Code
+ */
+async function send2FADisableCode() {
+    try {
+        TED_AUTH.showLoading('Sending verification code...');
+
+        const response = await TED_AUTH.apiCall('/api/auth/send-2fa-disable-code', {
+            method: 'POST'
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to send verification code');
+        }
+
+        alert('Verification code sent to your email. Please check your inbox and enter the code below.');
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Send disable code error:', error);
+        alert(`Failed to send code: ${error.message}`);
+    }
+}
+
+/**
+ * Handle Disable 2FA Form Submission
+ */
+async function handleDisable2FA(event) {
+    event.preventDefault();
+
+    const password = document.getElementById('disable-2fa-password').value;
+    const code = document.getElementById('disable-2fa-code').value.trim();
+
+    if (!password || !code) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    if (code.length !== 6) {
+        alert('Please enter the 6-digit verification code');
+        return;
+    }
+
+    try {
+        TED_AUTH.showLoading('Disabling 2FA...');
+
+        const response = await TED_AUTH.apiCall('/api/auth/disable-2fa', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                password: password,
+                code: code
+            })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to disable 2FA');
+        }
+
+        const result = await response.json();
+
+        // Update user data
+        const userData = TED_AUTH.getUser();
+        if (userData) {
+            userData.two_fa_enabled = false;
+            TED_AUTH.saveUser(userData);
+        }
+
+        // Update UI to show 2FA is disabled
+        update2FAStatus(false);
+
+        // Close modal
+        close2FADisableModal();
+
+        alert('2FA has been successfully disabled for your account.');
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Disable 2FA error:', error);
+        alert(`Failed to disable 2FA: ${error.message}`);
+    }
+}
+
+/**
+ * Update 2FA Status in UI
+ */
+function update2FAStatus(enabled) {
+    const statusBadge = document.getElementById('twofa-status-badge');
+    const statusText = document.getElementById('twofa-status-text');
+    const enableBtn = document.getElementById('enable-2fa-btn');
+    const disableBtn = document.getElementById('disable-2fa-btn');
+
+    if (enabled) {
+        statusBadge.textContent = 'Enabled';
+        statusBadge.className = 'badge-status badge-active';
+        statusText.textContent = '2FA is currently enabled';
+        enableBtn.style.display = 'none';
+        disableBtn.style.display = 'block';
+    } else {
+        statusBadge.textContent = 'Disabled';
+        statusBadge.className = 'badge-status badge-inactive';
+        statusText.textContent = '2FA is currently disabled';
+        enableBtn.style.display = 'block';
+        disableBtn.style.display = 'none';
+    }
+}
+
+// Initialize 2FA status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit for user data to load
+    setTimeout(() => {
+        const userData = TED_AUTH.getUser();
+        if (userData) {
+            update2FAStatus(userData.two_fa_enabled || false);
+        }
+    }, 500);
+});
+
+// Export 2FA functions
+window.show2FAEnableModal = show2FAEnableModal;
+window.close2FAEnableModal = close2FAEnableModal;
+window.handleEnable2FA = handleEnable2FA;
+window.show2FAVerifyModal = show2FAVerifyModal;
+window.close2FAVerifyModal = close2FAVerifyModal;
+window.handleVerify2FA = handleVerify2FA;
+window.show2FADisableModal = show2FADisableModal;
+window.close2FADisableModal = close2FADisableModal;
+window.send2FADisableCode = send2FADisableCode;
+window.handleDisable2FA = handleDisable2FA;
+
+/**
+ * News Tab Functionality
+ */
+
+// Sample news data (in production, this would come from a real API)
+let newsArticles = [];
+let currentCategory = 'all';
+
+/**
+ * Load news articles when news tab is clicked
+ */
+const newsTab = document.querySelector('.menu-item[data-tab="news"]');
+if (newsTab) {
+    newsTab.addEventListener('click', loadNewsArticles);
+}
+
+/**
+ * Fetch news from API
+ */
+async function loadNewsArticles() {
+    try {
+        // For now, we'll use sample data. In production, integrate with:
+        // - NewsAPI.org for general financial news
+        // - CoinGecko API for crypto news
+        // - Alpha Vantage for stock market news
+
+        newsArticles = generateSampleNewsData();
+
+        // Display featured news
+        displayFeaturedNews();
+
+        // Display all news articles
+        displayNewsArticles(newsArticles);
+
+    } catch (error) {
+        console.error('Error loading news:', error);
+        document.getElementById('news-articles-container').innerHTML =
+            '<p style="text-align: center; color: #ff6b6b; padding: 40px 0;">Failed to load news. Please try again later.</p>';
+    }
+}
+
+/**
+ * Generate sample news data (replace with real API integration)
+ */
+function generateSampleNewsData() {
+    return [
+        {
+            id: 1,
+            title: 'Bitcoin Surges Past $50,000 as Institutional Interest Grows',
+            description: 'Major cryptocurrency Bitcoin has broken through the $50,000 barrier following increased institutional investment and growing mainstream adoption.',
+            category: 'crypto',
+            source: 'CryptoNews',
+            publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+            url: '#',
+            imageUrl: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=800&h=400&fit=crop',
+            featured: true
+        },
+        {
+            id: 2,
+            title: 'Federal Reserve Hints at Interest Rate Cuts',
+            description: 'The Federal Reserve has signaled potential interest rate reductions in the coming months as inflation continues to moderate.',
+            category: 'markets',
+            source: 'Financial Times',
+            publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+            url: '#',
+            imageUrl: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=400&fit=crop',
+            featured: true
+        },
+        {
+            id: 3,
+            title: 'Tech Stocks Rally on Strong Earnings Reports',
+            description: 'Major technology companies exceed earnings expectations, driving a broad rally in the tech sector.',
+            category: 'stocks',
+            source: 'Bloomberg',
+            publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+            url: '#',
+            imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=400&fit=crop'
+        },
+        {
+            id: 4,
+            title: 'EUR/USD Reaches Multi-Year High',
+            description: 'The Euro strengthens against the US Dollar, reaching its highest level in over three years amid improving European economic data.',
+            category: 'forex',
+            source: 'Reuters',
+            publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
+            url: '#',
+            imageUrl: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=400&fit=crop'
+        },
+        {
+            id: 5,
+            title: 'Gold Prices Soar on Economic Uncertainty',
+            description: 'Investors flock to gold as a safe haven amid global economic concerns, pushing prices to record highs.',
+            category: 'commodities',
+            source: 'MarketWatch',
+            publishedAt: new Date(Date.now() - 10 * 60 * 60 * 1000),
+            url: '#',
+            imageUrl: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=800&h=400&fit=crop'
+        },
+        {
+            id: 6,
+            title: 'Ethereum 2.0 Upgrade Shows Promising Results',
+            description: 'The Ethereum network\'s transition to proof-of-stake continues to show strong performance metrics and reduced energy consumption.',
+            category: 'crypto',
+            source: 'CoinDesk',
+            publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+            url: '#',
+            imageUrl: 'https://images.unsplash.com/photo-1622630998477-20aa696ecb05?w=800&h=400&fit=crop'
+        },
+        {
+            id: 7,
+            title: 'Oil Prices Stabilize After OPEC+ Meeting',
+            description: 'Crude oil prices find stability following OPEC+ production quota agreements.',
+            category: 'commodities',
+            source: 'Energy News',
+            publishedAt: new Date(Date.now() - 14 * 60 * 60 * 1000),
+            url: '#',
+            imageUrl: 'https://images.unsplash.com/photo-1541190240878-fa985258c6d5?w=800&h=400&fit=crop'
+        },
+        {
+            id: 8,
+            title: 'Emerging Markets See Record Capital Inflows',
+            description: 'Developing economies attract significant foreign investment as global risk appetite increases.',
+            category: 'markets',
+            source: 'Wall Street Journal',
+            publishedAt: new Date(Date.now() - 16 * 60 * 60 * 1000),
+            url: '#',
+            imageUrl: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=800&h=400&fit=crop'
+        }
+    ];
+}
+
+/**
+ * Display featured news
+ */
+function displayFeaturedNews() {
+    const container = document.getElementById('featured-news-container');
+    const featuredNews = newsArticles.filter(article => article.featured);
+
+    if (featuredNews.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 20px 0;">No featured stories available.</p>';
+        return;
+    }
+
+    container.innerHTML = featuredNews.map(article => `
+        <div class="featured-news-card" onclick="openNewsArticle('${article.url}')">
+            <span class="featured-news-badge">
+                <i class="fa-solid fa-star"></i> Featured
+            </span>
+            <h3 class="news-article-title" style="font-size: 20px; margin-bottom: 12px;">${article.title}</h3>
+            <p class="news-article-description">${article.description}</p>
+            <div class="news-article-meta">
+                <span class="news-article-source">
+                    <i class="fa-solid fa-newspaper"></i>
+                    ${article.source}
+                </span>
+                <span class="news-article-date">
+                    <i class="fa-solid fa-clock"></i>
+                    ${formatNewsDate(article.publishedAt)}
+                </span>
+            </div>
+        </div>
+    `).join('');
+}
+
+/**
+ * Display news articles
+ */
+function displayNewsArticles(articles) {
+    const container = document.getElementById('news-articles-container');
+
+    if (articles.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No articles found for this category.</p>';
+        return;
+    }
+
+    container.innerHTML = `<div class="news-grid">` + articles.map(article => `
+        <div class="news-article-card" onclick="openNewsArticle('${article.url}')">
+            <img src="${article.imageUrl}" alt="${article.title}" class="news-article-image"
+                onerror="this.src='https://images.unsplash.com/photo-1642790106117-e829e14a795f?w=800&h=400&fit=crop'">
+            <span class="news-article-category">${article.category}</span>
+            <h4 class="news-article-title">${article.title}</h4>
+            <p class="news-article-description">${article.description}</p>
+            <div class="news-article-meta">
+                <span class="news-article-source">
+                    <i class="fa-solid fa-newspaper"></i>
+                    ${article.source}
+                </span>
+                <span class="news-article-date">
+                    <i class="fa-solid fa-clock"></i>
+                    ${formatNewsDate(article.publishedAt)}
+                </span>
+            </div>
+        </div>
+    `).join('') + `</div>`;
+}
+
+/**
+ * Filter news by category
+ */
+function filterNewsByCategory(category) {
+    currentCategory = category;
+
+    // Update active button
+    document.querySelectorAll('.news-category-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`.news-category-btn[data-category="${category}"]`).classList.add('active');
+
+    // Filter articles
+    let filteredArticles = category === 'all'
+        ? newsArticles
+        : newsArticles.filter(article => article.category === category);
+
+    // Display filtered articles
+    displayNewsArticles(filteredArticles);
+}
+
+/**
+ * Format news date to relative time
+ */
+function formatNewsDate(date) {
+    const now = new Date();
+    const diff = now - date;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor(diff / (1000 * 60));
+
+    if (minutes < 60) {
+        return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    } else if (hours < 24) {
+        return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    } else {
+        const days = Math.floor(hours / 24);
+        return `${days} day${days !== 1 ? 's' : ''} ago`;
+    }
+}
+
+/**
+ * Open news article in new tab
+ */
+function openNewsArticle(url) {
+    if (url && url !== '#') {
+        window.open(url, '_blank');
+    }
+}
+
+// Export news functions
+window.filterNewsByCategory = filterNewsByCategory;
+window.openNewsArticle = openNewsArticle;
