@@ -1,8 +1,13 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import RedirectResponse
 from datetime import datetime, timedelta
 from bson import ObjectId
 from typing import Optional
+import os
+import requests
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 from app.schemas import UserRegister, UserLogin, Token, UserResponse, PasswordChange
 from app.auth import (
@@ -89,6 +94,11 @@ async def register(request: Request, user_data: UserRegister):
         "wallet_balance": 0.0,  # New users start with zero balance
         "is_active": True,
         "is_verified": False,
+        "two_fa_enabled": False,  # 2FA disabled by default
+        "auth_provider": "local",  # Local registration
+        "google_id": None,
+        "profile_picture": None,
+        "selected_traders": [],  # New users start with no traders selected
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
@@ -182,6 +192,34 @@ async def login(request: Request, user_credentials: UserLogin):
             detail="User account is inactive"
         )
 
+    # Check if 2FA is enabled for this user
+    two_fa_enabled = user.get("two_fa_enabled", False)
+
+    # If 2FA is not enabled, log them in directly
+    if not two_fa_enabled:
+        # Record successful login
+        login_history_service.record_login_attempt(
+            email=user["email"],
+            user_id=str(user["_id"]),
+            request=request,
+            success=True
+        )
+
+        # Create access token immediately
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user["email"], "user_id": str(user["_id"])},
+            expires_delta=access_token_expires
+        )
+
+        return {
+            "message": "Login successful",
+            "requires_2fa": False,
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
+
+    # If 2FA is enabled, proceed with 2FA flow
     # Check for suspicious activity
     suspicious_activity = login_history_service.check_suspicious_activity(
         email=user["email"],
@@ -287,6 +325,9 @@ async def get_current_user(current_user: dict = Depends(get_current_user_token))
         wallet_balance=user.get("wallet_balance", 0.0),
         is_active=user.get("is_active", True),
         is_verified=user.get("is_verified", False),
+        two_fa_enabled=user.get("two_fa_enabled", False),
+        auth_provider=user.get("auth_provider", "local"),
+        selected_traders=user.get("selected_traders", []),
         created_at=user["created_at"],
         updated_at=user["updated_at"]
     )
@@ -396,6 +437,9 @@ async def update_profile(
         wallet_balance=updated_user.get("wallet_balance", 0.0),
         is_active=updated_user.get("is_active", True),
         is_verified=updated_user.get("is_verified", False),
+        two_fa_enabled=updated_user.get("two_fa_enabled", False),
+        auth_provider=updated_user.get("auth_provider", "local"),
+        selected_traders=updated_user.get("selected_traders", []),
         created_at=updated_user["created_at"],
         updated_at=updated_user["updated_at"]
     )
@@ -552,3 +596,393 @@ async def get_login_statistics(
     )
 
     return stats
+
+
+class Enable2FARequest(BaseModel):
+    """Schema for enabling 2FA"""
+    password: str
+
+
+class Disable2FARequest(BaseModel):
+    """Schema for disabling 2FA"""
+    password: str
+    code: str
+
+
+@router.post("/enable-2fa")
+async def enable_2fa(
+    request_data: Enable2FARequest,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """Enable 2FA for the user account - sends verification code"""
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user from database
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Verify password
+    if not verify_password(request_data.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+
+    # Check if 2FA is already enabled
+    if user.get("two_fa_enabled", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA is already enabled for your account"
+        )
+
+    # Generate 2FA verification code
+    code = twofa_service.create_2fa_session(
+        email=user["email"],
+        user_id=str(user["_id"])
+    )
+
+    # Send verification code via email
+    username = user.get("full_name", user.get("username", "User"))
+    email_sent = email_service.send_2fa_code(
+        to_email=user["email"],
+        code=code,
+        username=username
+    )
+
+    if not email_sent:
+        print(f"2FA Enable Code for {user['email']}: {code}")
+
+    return {
+        "message": "Verification code sent to your email. Please verify to enable 2FA.",
+        "email": user["email"]
+    }
+
+
+@router.post("/verify-enable-2fa")
+async def verify_enable_2fa(
+    verification_data: TwoFAVerify,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """Verify code and enable 2FA"""
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Verify the code
+    result = twofa_service.verify_code(
+        email=user["email"],
+        code=verification_data.code
+    )
+
+    if not result["success"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"]
+        )
+
+    # Enable 2FA for the user
+    users.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "two_fa_enabled": True,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # Clean up 2FA session
+    twofa_service.delete_session(user["email"])
+
+    return {
+        "message": "2FA has been successfully enabled for your account",
+        "two_fa_enabled": True
+    }
+
+
+@router.post("/disable-2fa")
+async def disable_2fa(
+    request_data: Disable2FARequest,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """Disable 2FA for the user account - requires password and current 2FA code"""
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user from database
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Verify password
+    if not verify_password(request_data.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+
+    # Check if 2FA is enabled
+    if not user.get("two_fa_enabled", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA is not enabled for your account"
+        )
+
+    # First, create a 2FA session to verify they have access to their email
+    code = twofa_service.create_2fa_session(
+        email=user["email"],
+        user_id=str(user["_id"])
+    )
+
+    # Verify the provided code
+    result = twofa_service.verify_code(
+        email=user["email"],
+        code=request_data.code
+    )
+
+    if not result["success"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code"
+        )
+
+    # Disable 2FA
+    users.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "two_fa_enabled": False,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # Clean up 2FA session
+    twofa_service.delete_session(user["email"])
+
+    return {
+        "message": "2FA has been successfully disabled for your account",
+        "two_fa_enabled": False
+    }
+
+
+@router.post("/send-2fa-disable-code")
+async def send_2fa_disable_code(
+    current_user: dict = Depends(get_current_user_token)
+):
+    """Send verification code to disable 2FA"""
+    # Get user
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Check if 2FA is enabled
+    if not user.get("two_fa_enabled", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA is not enabled for your account"
+        )
+
+    # Generate verification code
+    code = twofa_service.create_2fa_session(
+        email=user["email"],
+        user_id=str(user["_id"])
+    )
+
+    # Send code via email
+    username = user.get("full_name", user.get("username", "User"))
+    email_sent = email_service.send_2fa_code(
+        to_email=user["email"],
+        code=code,
+        username=username
+    )
+
+    if not email_sent:
+        print(f"2FA Disable Code for {user['email']}: {code}")
+
+    return {
+        "message": "Verification code sent to your email",
+        "email": user["email"]
+    }
+
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
+
+
+@router.get("/google/login")
+async def google_login():
+    """Initiate Google OAuth flow"""
+    google_auth_url = (
+        f"https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={GOOGLE_CLIENT_ID}&"
+        f"redirect_uri={GOOGLE_REDIRECT_URI}&"
+        f"response_type=code&"
+        f"scope=openid%20email%20profile&"
+        f"access_type=offline&"
+        f"prompt=consent"
+    )
+    return RedirectResponse(url=google_auth_url)
+
+
+@router.get("/google/callback")
+async def google_callback(code: str, request: Request):
+    """Handle Google OAuth callback"""
+    try:
+        # Exchange code for tokens
+        token_url = "https://oauth2.googleapis.com/token"
+        token_data = {
+            "code": code,
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "redirect_uri": GOOGLE_REDIRECT_URI,
+            "grant_type": "authorization_code"
+        }
+
+        token_response = requests.post(token_url, data=token_data)
+        token_response.raise_for_status()
+        tokens = token_response.json()
+
+        # Verify ID token and get user info
+        id_info = id_token.verify_oauth2_token(
+            tokens["id_token"],
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID
+        )
+
+        # Extract user information
+        google_id = id_info["sub"]
+        email = id_info["email"]
+        full_name = id_info.get("name")
+        profile_picture = id_info.get("picture")
+
+        # Check if user exists
+        users = get_collection(USERS_COLLECTION)
+        user = users.find_one({"$or": [{"email": email}, {"google_id": google_id}]})
+
+        if user:
+            # User exists - log them in
+            # Update Google info if needed
+            update_data = {
+                "updated_at": datetime.utcnow()
+            }
+
+            if not user.get("google_id"):
+                update_data["google_id"] = google_id
+                update_data["auth_provider"] = "google"
+
+            if profile_picture:
+                update_data["profile_picture"] = profile_picture
+
+            users.update_one(
+                {"_id": user["_id"]},
+                {"$set": update_data}
+            )
+
+            # Record successful login
+            login_history_service.record_login_attempt(
+                email=user["email"],
+                user_id=str(user["_id"]),
+                request=request,
+                success=True
+            )
+
+            # Create access token
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = create_access_token(
+                data={"sub": user["email"], "user_id": str(user["_id"])},
+                expires_delta=access_token_expires
+            )
+
+            # Redirect to dashboard with token
+            redirect_url = f"/copytradingbroker.io/dashboard.html?token={access_token}"
+            return RedirectResponse(url=redirect_url)
+        else:
+            # New user - create account
+            username = email.split("@")[0]  # Use email prefix as username
+
+            # Check if username exists and make it unique
+            base_username = username
+            counter = 1
+            while get_user_by_username(username):
+                username = f"{base_username}{counter}"
+                counter += 1
+
+            # Create new user
+            user_dict = {
+                "email": email,
+                "username": username,
+                "hashed_password": None,  # No password for OAuth users
+                "full_name": full_name,
+                "phone": None,
+                "gender": None,
+                "country": None,
+                "account_types": [],
+                "wallet_balance": 0.0,
+                "is_active": True,
+                "is_verified": True,  # Google accounts are pre-verified
+                "two_fa_enabled": False,
+                "auth_provider": "google",
+                "google_id": google_id,
+                "profile_picture": profile_picture,
+                "selected_traders": [],
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+
+            # Insert user
+            result = users.insert_one(user_dict)
+            user_dict["_id"] = result.inserted_id
+
+            # Generate referral code
+            try:
+                referral_code = referrals_service.create_referral_link(str(user_dict["_id"]))
+                print(f"Generated referral code for Google user {username}: {referral_code}")
+            except Exception as e:
+                print(f"Failed to generate referral code: {e}")
+
+            # Record successful login
+            login_history_service.record_login_attempt(
+                email=user_dict["email"],
+                user_id=str(user_dict["_id"]),
+                request=request,
+                success=True
+            )
+
+            # Create access token
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = create_access_token(
+                data={"sub": user_dict["email"], "user_id": str(user_dict["_id"])},
+                expires_delta=access_token_expires
+            )
+
+            # Redirect to dashboard with token
+            redirect_url = f"/copytradingbroker.io/dashboard.html?token={access_token}"
+            return RedirectResponse(url=redirect_url)
+
+    except Exception as e:
+        print(f"Google OAuth error: {e}")
+        # Redirect to login page with error
+        redirect_url = "/copytradingbroker.io/login.html?error=oauth_failed"
+        return RedirectResponse(url=redirect_url)

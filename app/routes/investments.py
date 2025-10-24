@@ -91,6 +91,14 @@ async def invest_in_plan(
                 detail=f"Investment amount must be at least ${plan['minimum_investment']}"
             )
 
+        # Check if user has selected at least 1 trader for copy trading
+        selected_traders = user.get("selected_traders", [])
+        if not selected_traders or len(selected_traders) < 1:
+            raise HTTPException(
+                status_code=400,
+                detail="You must select at least 1 trader before activating a copy trading plan"
+            )
+
         # Check wallet balance
         wallet_balance = user.get("wallet_balance", 0.0)
         if wallet_balance < request.amount:

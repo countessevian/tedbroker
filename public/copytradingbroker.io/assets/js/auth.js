@@ -74,6 +74,28 @@ const TED_AUTH = {
             headers
         });
 
+        // Handle authentication errors - redirect to login if token is invalid
+        if (response.status === 401 || response.status === 403) {
+            // Check if we're not already on a login/register page to prevent redirect loops
+            const currentPath = window.location.pathname;
+            const isAuthPage = currentPath.includes('/login') ||
+                              currentPath.includes('/register') ||
+                              currentPath.includes('/forgot-password');
+
+            if (!isAuthPage) {
+                // Clear stored authentication data
+                this.removeToken();
+
+                // Show error message
+                this.showError('Your session has expired. Please login again.');
+
+                // Redirect to login page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            }
+        }
+
         return response;
     },
 
@@ -128,11 +150,19 @@ const TED_AUTH = {
                 throw new Error(data.detail || 'Login failed');
             }
 
-            // Save token
-            this.saveToken(data.access_token);
+            // Check if 2FA is required
+            if (data.requires_2fa) {
+                // 2FA is enabled, return data without saving token
+                return { success: true, data };
+            }
 
-            // Get and save user data
-            await this.fetchCurrentUser();
+            // No 2FA required, save token and proceed
+            if (data.access_token) {
+                this.saveToken(data.access_token);
+
+                // Get and save user data
+                await this.fetchCurrentUser();
+            }
 
             return { success: true, data };
         } catch (error) {

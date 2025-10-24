@@ -74,6 +74,9 @@ class UserResponse(BaseModel):
     wallet_balance: float = 0.0
     is_active: bool = True
     is_verified: bool = False
+    two_fa_enabled: bool = False
+    auth_provider: str = "local"  # "local" or "google"
+    selected_traders: List[str] = Field(default=[], description="List of trader IDs selected for copy trading")
     created_at: datetime
     updated_at: datetime
 
@@ -85,7 +88,7 @@ class UserInDB(BaseModel):
     """Schema for user in database"""
     email: EmailStr
     username: str
-    hashed_password: str
+    hashed_password: Optional[str] = None  # Optional for OAuth users
     full_name: Optional[str] = None
     phone: Optional[str] = None
     gender: Optional[str] = None
@@ -94,6 +97,11 @@ class UserInDB(BaseModel):
     wallet_balance: float = 0.0
     is_active: bool = True
     is_verified: bool = False
+    two_fa_enabled: bool = False
+    auth_provider: str = "local"  # "local" or "google"
+    google_id: Optional[str] = None  # Google OAuth ID
+    profile_picture: Optional[str] = None  # Profile picture URL
+    selected_traders: List[str] = []
     created_at: datetime
     updated_at: datetime
 
