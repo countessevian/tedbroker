@@ -825,6 +825,145 @@ async def send_2fa_disable_code(
     }
 
 
+class UpdateEmailRequest(BaseModel):
+    """Schema for updating email"""
+    new_email: str
+    password: str
+
+
+@router.post("/request-email-update")
+async def request_email_update(
+    request_data: UpdateEmailRequest,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """Request email update - sends 2FA codes to both old and new email"""
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user from database
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Check if user has Google OAuth authentication (no password)
+    if user.get("auth_provider") == "google" and not user.get("hashed_password"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google accounts cannot update email. Please contact support."
+        )
+
+    # Verify password
+    if not verify_password(request_data.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+
+    # Check if new email is already in use
+    existing_user = get_user_by_email(request_data.new_email)
+    if existing_user and str(existing_user["_id"]) != str(user["_id"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email address is already in use"
+        )
+
+    # Check if new email is the same as current email
+    if request_data.new_email.lower() == user["email"].lower():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New email must be different from current email"
+        )
+
+    # Generate 2FA code for new email
+    code = twofa_service.create_2fa_session(
+        email=request_data.new_email,
+        user_id=str(user["_id"])
+    )
+
+    # Send verification code to new email
+    username = user.get("full_name", user.get("username", "User"))
+    email_sent = email_service.send_2fa_code(
+        to_email=request_data.new_email,
+        code=code,
+        username=username
+    )
+
+    if not email_sent:
+        print(f"Email Update Code for {request_data.new_email}: {code}")
+
+    return {
+        "message": "Verification code sent to your new email address. Please verify to complete the email update.",
+        "new_email": request_data.new_email
+    }
+
+
+class VerifyEmailUpdateRequest(BaseModel):
+    """Schema for verifying email update"""
+    new_email: str
+    code: str
+
+
+@router.post("/verify-email-update")
+async def verify_email_update(
+    request_data: VerifyEmailUpdateRequest,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """Verify 2FA code and update email"""
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Verify the code for new email
+    result = twofa_service.verify_code(
+        email=request_data.new_email,
+        code=request_data.code
+    )
+
+    if not result["success"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"]
+        )
+
+    # Update email
+    users.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "email": request_data.new_email,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # Clean up 2FA session
+    twofa_service.delete_session(request_data.new_email)
+
+    # Create new access token with updated email
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": request_data.new_email, "user_id": str(user["_id"])},
+        expires_delta=access_token_expires
+    )
+
+    return {
+        "message": "Email has been successfully updated",
+        "new_email": request_data.new_email,
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
+
 # Google OAuth Configuration
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
@@ -915,8 +1054,8 @@ async def google_callback(code: str, request: Request):
                 expires_delta=access_token_expires
             )
 
-            # Redirect to dashboard with token
-            redirect_url = f"/copytradingbroker.io/dashboard.html?token={access_token}"
+            # Redirect to login page with token as query parameter
+            redirect_url = f"/login?token={access_token}"
             return RedirectResponse(url=redirect_url)
         else:
             # New user - create account
@@ -977,8 +1116,8 @@ async def google_callback(code: str, request: Request):
                 expires_delta=access_token_expires
             )
 
-            # Redirect to dashboard with token
-            redirect_url = f"/copytradingbroker.io/dashboard.html?token={access_token}"
+            # Redirect to login page with token as query parameter
+            redirect_url = f"/login?token={access_token}"
             return RedirectResponse(url=redirect_url)
 
     except Exception as e:
