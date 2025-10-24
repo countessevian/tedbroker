@@ -484,6 +484,156 @@
             font-size: 14px;
         }
 
+        /* News Tab Styles */
+        .news-category-btn {
+            background: rgba(123, 182, 218, 0.1);
+            border: 1px solid rgba(123, 182, 218, 0.2);
+            color: #8b93a7;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .news-category-btn:hover {
+            background: rgba(123, 182, 218, 0.2);
+            border-color: rgba(123, 182, 218, 0.3);
+            color: #D32F2F;
+            transform: translateY(-2px);
+        }
+
+        .news-category-btn.active {
+            background: #D32F2F;
+            border-color: #D32F2F;
+            color: #fff;
+        }
+
+        .news-category-btn i {
+            font-size: 16px;
+        }
+
+        .news-article-card {
+            background: #f5f5f5;
+            border: 1px solid rgba(123, 182, 218, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .news-article-card:hover {
+            border-color: rgba(123, 182, 218, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .news-article-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .news-article-category {
+            display: inline-block;
+            background: rgba(211, 47, 47, 0.1);
+            color: #D32F2F;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .news-article-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .news-article-description {
+            color: #8b93a7;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .news-article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #8b93a7;
+            font-size: 13px;
+        }
+
+        .news-article-source {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .news-article-date {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .featured-news-card {
+            background: linear-gradient(135deg, rgba(211, 47, 47, 0.05), rgba(90, 154, 191, 0.05));
+            border: 2px solid rgba(211, 47, 47, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .featured-news-card:hover {
+            border-color: #D32F2F;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(211, 47, 47, 0.2);
+        }
+
+        .featured-news-badge {
+            display: inline-block;
+            background: #D32F2F;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .news-article-image {
+                height: 180px;
+            }
+        }
+
         /* Mobile App Bar */
         .mobile-app-bar {
             position: fixed;
@@ -526,6 +676,13 @@
         .tradingview-widget-container__widget {
             height: 100%;
             width: 100%;
+        }
+
+        /* TradingView Chart Responsive */
+        .tradingview-chart-wrapper {
+            height: 400px;
+            width: 100%;
+            overflow: hidden;
         }
 
         .mobile-user-info {
@@ -658,6 +815,10 @@
 
             .dashboard-card {
                 padding: 20px;
+            }
+
+            .tradingview-chart-wrapper {
+                height: 350px;
             }
         }
 
@@ -792,6 +953,64 @@
                 width: 100%;
                 margin: 8px 0 !important;
             }
+
+            /* TradingView responsive on mobile */
+            .tradingview-chart-wrapper {
+                height: 300px;
+            }
+
+            .tradingview-ticker-container {
+                height: 40px;
+            }
+
+            /* Modals responsive */
+            #deposit-modal > div,
+            #withdraw-modal > div,
+            #update-profile-modal > div,
+            #change-password-modal > div,
+            #update-email-modal > div,
+            #verify-email-update-modal > div,
+            #enable-2fa-modal > div,
+            #verify-2fa-modal > div,
+            #disable-2fa-modal > div {
+                max-width: 95%;
+                width: 95%;
+                padding: 20px;
+            }
+
+            /* Info rows on mobile */
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .info-label, .info-value {
+                width: 100%;
+            }
+
+            /* Investment and transaction cards responsive */
+            .trader-card, .plan-card, .news-article-card {
+                padding: 15px;
+            }
+
+            /* Trader profile on mobile */
+            .trader-profile {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            /* News category buttons responsive */
+            .news-category-btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            /* Portfolio stats on mobile */
+            #portfolio-summary {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
         }
 
         /* Small Mobile Styles */
@@ -822,9 +1041,48 @@
                 font-size: 12px;
             }
 
+            /* TradingView extra small screens */
+            .tradingview-chart-wrapper {
+                height: 250px;
+            }
+
+            .tradingview-ticker-container {
+                height: 35px;
+            }
+
             .btn-primary-custom {
                 padding: 10px 20px;
                 font-size: 14px;
+            }
+
+            /* Portfolio summary grid on small screens */
+            #portfolio-summary {
+                grid-template-columns: 1fr;
+            }
+
+            /* Dashboard cards spacing */
+            .dashboard-card {
+                padding: 14px;
+                margin-bottom: 14px;
+            }
+
+            /* News articles on small screens */
+            .news-article-title {
+                font-size: 16px;
+            }
+
+            .news-article-description {
+                font-size: 13px;
+            }
+
+            /* Featured news on small screens */
+            .featured-news-card {
+                padding: 16px;
+            }
+
+            .news-category-btn {
+                padding: 6px 10px;
+                font-size: 12px;
             }
 
             .trader-card h3 {
@@ -1010,6 +1268,10 @@
                     <i class="fa-solid fa-share-nodes"></i>
                     <span>Referrals</span>
                 </a>
+                <a class="menu-item" data-tab="news">
+                    <i class="fa-solid fa-newspaper"></i>
+                    <span>News</span>
+                </a>
                 <a class="menu-item logout-btn" onclick="handleLogout()">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Log Out</span>
@@ -1028,15 +1290,15 @@
 
                 <div class="stat-grid">
                     <div class="stat-box">
-                        <div class="stat-value">$0.00</div>
+                        <div class="stat-value" id="dashboard-portfolio-value">$0.00</div>
                         <div class="stat-label">Portfolio Value</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value">0</div>
+                        <div class="stat-value" id="dashboard-active-copies">0</div>
                         <div class="stat-label">Active Copies</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value">0%</div>
+                        <div class="stat-value" id="dashboard-total-return">0%</div>
                         <div class="stat-label">Total Return</div>
                     </div>
                 </div>
@@ -1044,7 +1306,7 @@
                 <!-- Market Overview Chart -->
                 <div class="dashboard-card">
                     <h3 style="margin-bottom: 20px;">Market Overview</h3>
-                    <div class="tradingview-widget-container" style="height: 400px; width: 100%;">
+                    <div class="tradingview-chart-wrapper">
                         <div id="tradingview_chart" style="height: 100%; width: 100%;"></div>
                     </div>
                 </div>
@@ -1250,12 +1512,12 @@
                             </p>
                         </div>
                         <div id="twofa-disabled-actions">
-                            <button class="btn-primary-custom" onclick="show2FAEnableModal()">
+                            <button class="btn-primary-custom" id="enable-2fa-btn" onclick="show2FAEnableModal()">
                                 <i class="fa-solid fa-shield-halved"></i> Enable 2FA
                             </button>
                         </div>
                         <div id="twofa-enabled-actions" style="display: none;">
-                            <button class="btn-primary-custom" style="background: #ff6b6b;" onclick="show2FADisableModal()">
+                            <button class="btn-primary-custom" id="disable-2fa-btn" style="background: #ff6b6b; display: none;" onclick="show2FADisableModal()">
                                 <i class="fa-solid fa-shield-slash"></i> Disable 2FA
                             </button>
                         </div>
@@ -1367,6 +1629,55 @@
                 <div class="dashboard-card">
                     <h3 style="margin-bottom: 20px;">Your Referrals</h3>
                     <p style="text-align: center; color: #8b93a7; padding: 40px 0;">You haven't referred anyone yet. Start sharing your referral link to earn rewards!</p>
+                </div>
+            </div>
+
+            <!-- News Tab -->
+            <div class="tab-content-wrapper" id="tab-news">
+                <div class="content-header">
+                    <h1>Market News & Updates</h1>
+                    <p>Stay informed with the latest trading news and market insights</p>
+                </div>
+
+                <!-- Featured News -->
+                <div class="dashboard-card" style="margin-bottom: 30px;">
+                    <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-star" style="color: #D32F2F;"></i>
+                        Featured Stories
+                    </h3>
+                    <div id="featured-news-container">
+                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading featured news...</p>
+                    </div>
+                </div>
+
+                <!-- News Categories Filter -->
+                <div class="dashboard-card" style="margin-bottom: 30px;">
+                    <h3 style="margin-bottom: 15px;">Categories</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="news-category-btn active" data-category="all" onclick="filterNewsByCategory('all')">
+                            <i class="fa-solid fa-globe"></i> All News
+                        </button>
+                        <button class="news-category-btn" data-category="markets" onclick="filterNewsByCategory('markets')">
+                            <i class="fa-solid fa-chart-line"></i> Markets
+                        </button>
+                        <button class="news-category-btn" data-category="crypto" onclick="filterNewsByCategory('crypto')">
+                            <i class="fa-brands fa-bitcoin"></i> Crypto
+                        </button>
+                        <button class="news-category-btn" data-category="stocks" onclick="filterNewsByCategory('stocks')">
+                            <i class="fa-solid fa-building-columns"></i> Stocks
+                        </button>
+                        <button class="news-category-btn" data-category="forex" onclick="filterNewsByCategory('forex')">
+                            <i class="fa-solid fa-dollar-sign"></i> Forex
+                        </button>
+                        <button class="news-category-btn" data-category="commodities" onclick="filterNewsByCategory('commodities')">
+                            <i class="fa-solid fa-oil-can"></i> Commodities
+                        </button>
+                    </div>
+                </div>
+
+                <!-- News Articles Grid -->
+                <div id="news-articles-container">
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading news articles...</p>
                 </div>
             </div>
         </main>
@@ -1775,6 +2086,101 @@
         </div>
     </div>
 
+    <!-- Enable 2FA Modal -->
+    <div id="enable-2fa-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 240, 240, 0.95); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #D32F2F;">Enable Two-Factor Authentication</h2>
+                <button onclick="close2FAEnableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+            </div>
+            <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
+                    <i class="fa-solid fa-shield-halved"></i> Enable 2FA to add an extra layer of security. You'll receive a verification code via email each time you log in.
+                </p>
+            </div>
+            <form id="enable-2fa-form" onsubmit="handleEnable2FA(event)">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px;">Password</label>
+                    <input type="password" id="enable-2fa-password" required
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000;"
+                        placeholder="Enter your password to confirm">
+                </div>
+                <button type="submit" class="btn-primary-custom" style="width: 100%;">
+                    <i class="fa-solid fa-shield-halved"></i> Send Verification Code
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Verify 2FA Enable Modal -->
+    <div id="verify-2fa-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 240, 240, 0.95); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #D32F2F;">Verify 2FA Code</h2>
+                <button onclick="close2FAVerifyModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+            </div>
+            <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
+                    <i class="fa-solid fa-envelope"></i> We've sent a 6-digit verification code to your email.
+                </p>
+            </div>
+            <form id="verify-2fa-form" onsubmit="handleVerify2FA(event)">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Verification Code</label>
+                    <input type="text" id="verify-2fa-code" required maxlength="6" pattern="[0-9]{6}"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 24px; text-align: center; letter-spacing: 8px;"
+                        placeholder="000000">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px; text-align: center;">
+                        Enter the 6-digit code sent to your email
+                    </p>
+                </div>
+                <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
+                    <i class="fa-solid fa-check-circle"></i> Verify and Enable 2FA
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Disable 2FA Modal -->
+    <div id="disable-2fa-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 240, 240, 0.95); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #D32F2F;">Disable Two-Factor Authentication</h2>
+                <button onclick="close2FADisableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+            </div>
+            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <p style="color: #ff6b6b; margin: 0; font-size: 13px; line-height: 1.5;">
+                    <i class="fa-solid fa-exclamation-triangle"></i> Disabling 2FA will make your account less secure. We recommend keeping 2FA enabled.
+                </p>
+            </div>
+            <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
+                    <i class="fa-solid fa-info-circle"></i> Click the button below to receive a verification code, then enter your password and the code to disable 2FA.
+                </p>
+            </div>
+            <button onclick="send2FADisableCode()" class="btn-primary-custom" style="width: 100%; margin-bottom: 20px; background: #5a9abf;">
+                <i class="fa-solid fa-envelope"></i> Send Verification Code
+            </button>
+            <form id="disable-2fa-form" onsubmit="handleDisable2FA(event)">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px;">Password</label>
+                    <input type="password" id="disable-2fa-password" required
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000;"
+                        placeholder="Enter your password">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px;">Verification Code</label>
+                    <input type="text" id="disable-2fa-code" required maxlength="6" pattern="[0-9]{6}"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 20px; text-align: center; letter-spacing: 6px;"
+                        placeholder="000000">
+                </div>
+                <button type="submit" class="btn-primary-custom" style="width: 100%; background: #ff6b6b;">
+                    <i class="fa-solid fa-shield-slash"></i> Disable 2FA
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- JS -->
     <script src="assets/templates/copytradingbroker/frontend/js/plugins.js"></script>
     <script src="assets/templates/copytradingbroker/frontend/js/main.js"></script>
@@ -1888,10 +2294,12 @@
             sidebarOverlay.classList.remove('active');
         });
 
-        // Close mobile sidebar when clicking menu item
+        // Close mobile sidebar when clicking menu item (but not dropdown parents)
         document.querySelectorAll('.menu-item').forEach(item => {
             item.addEventListener('click', function() {
-                if (window.innerWidth <= 768) {
+                // Only close sidebar on mobile if the menu item has a data-tab attribute
+                // (i.e., it's an actual tab, not a dropdown parent)
+                if (window.innerWidth <= 768 && this.hasAttribute('data-tab')) {
                     sidebar.classList.remove('mobile-open');
                     hamburgerBtn.classList.remove('active');
                     sidebarOverlay.classList.remove('active');
