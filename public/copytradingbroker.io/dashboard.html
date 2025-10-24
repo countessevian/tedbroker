@@ -129,6 +129,71 @@
             border-left-color: #ff6b6b;
         }
 
+        /* Dropdown Submenu Styles */
+        .menu-item-parent {
+            position: relative;
+        }
+
+        .menu-item-parent .submenu-arrow {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+            font-size: 14px;
+        }
+
+        .menu-item-parent.expanded .submenu-arrow {
+            transform: rotate(90deg);
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(123, 182, 218, 0.05);
+        }
+
+        .submenu.expanded {
+            max-height: 200px;
+        }
+
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px 12px 48px;
+            color: #8b93a7;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            font-size: 14px;
+        }
+
+        .submenu-item:hover {
+            background: rgba(123, 182, 218, 0.1);
+            color: #D32F2F;
+            border-left-color: #D32F2F;
+        }
+
+        .submenu-item.active {
+            background: rgba(123, 182, 218, 0.15);
+            color: #D32F2F;
+            border-left-color: #D32F2F;
+            font-weight: 600;
+        }
+
+        .submenu-item i {
+            font-size: 16px;
+            margin-right: 12px;
+            width: 20px;
+        }
+
+        .sidebar.collapsed .submenu {
+            display: none;
+        }
+
+        .sidebar.collapsed .menu-item-parent .submenu-arrow {
+            display: none;
+        }
+
         /* Main Content */
         .main-content {
             margin-left: 260px;
@@ -894,18 +959,49 @@
                     <i class="fa-solid fa-wallet"></i>
                     <span>Wallet</span>
                 </a>
-                <a class="menu-item" data-tab="subscription">
-                    <i class="fa-solid fa-crown"></i>
-                    <span>Plans</span>
-                </a>
                 <a class="menu-item" data-tab="portfolio">
                     <i class="fa-solid fa-chart-line"></i>
                     <span>Portfolio</span>
                 </a>
-                <a class="menu-item" data-tab="account">
-                    <i class="fa-solid fa-user-circle"></i>
-                    <span>Account</span>
-                </a>
+
+                <!-- Explore Parent with Submenu -->
+                <div class="menu-item-parent">
+                    <a class="menu-item" id="explore-menu">
+                        <i class="fa-solid fa-compass"></i>
+                        <span>Explore</span>
+                        <i class="fa-solid fa-chevron-right submenu-arrow"></i>
+                    </a>
+                    <div class="submenu" id="explore-submenu">
+                        <a class="submenu-item" data-tab="subscription">
+                            <i class="fa-solid fa-crown"></i>
+                            <span>Plans</span>
+                        </a>
+                        <a class="submenu-item" data-tab="staking">
+                            <i class="fa-solid fa-coins"></i>
+                            <span>Staking</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Account Parent with Submenu -->
+                <div class="menu-item-parent">
+                    <a class="menu-item" id="account-menu">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span>Account</span>
+                        <i class="fa-solid fa-chevron-right submenu-arrow"></i>
+                    </a>
+                    <div class="submenu" id="account-submenu">
+                        <a class="submenu-item" data-tab="account-personal">
+                            <i class="fa-solid fa-user"></i>
+                            <span>Personal Details</span>
+                        </a>
+                        <a class="submenu-item" data-tab="account-security">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Security</span>
+                        </a>
+                    </div>
+                </div>
+
                 <a class="menu-item" data-tab="traders">
                     <i class="fa-solid fa-users-line"></i>
                     <span>Traders</span>
@@ -1072,20 +1168,11 @@
                 </div>
             </div>
 
-            <!-- Account Tab -->
-            <div class="tab-content-wrapper" id="tab-account">
+            <!-- Personal Details Tab -->
+            <div class="tab-content-wrapper" id="tab-account-personal">
                 <div class="content-header">
-                    <h1>Account</h1>
-                    <p>Manage your account information and security settings</p>
-                </div>
-
-                <!-- Account Section Selector -->
-                <div class="dashboard-card" style="margin-bottom: 20px;">
-                    <select id="account-section-selector" onchange="switchAccountSection(this.value)"
-                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px; font-weight: 600; cursor: pointer;">
-                        <option value="personal">Personal Details</option>
-                        <option value="security">Security</option>
-                    </select>
+                    <h1>Personal Details</h1>
+                    <p>View and manage your personal information</p>
                 </div>
 
                 <!-- Personal Details Section -->
@@ -1137,8 +1224,17 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Security Tab -->
+            <div class="tab-content-wrapper" id="tab-account-security">
+                <div class="content-header">
+                    <h1>Security Settings</h1>
+                    <p>Manage your account security and authentication</p>
+                </div>
+
                 <!-- Security Section -->
-                <div id="account-security-section" class="account-section" style="display: none;">
+                <div id="account-security-section" class="account-section">
                     <div class="dashboard-card">
                         <h3 style="margin-bottom: 20px;">Two-Factor Authentication (2FA)</h3>
                         <div style="background: rgba(123, 182, 218, 0.05); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
@@ -1180,7 +1276,13 @@
                             <span class="info-value" id="security-user-email">loading@example.com</span>
                         </div>
                         <p style="color: #8b93a7; margin: 15px 0; font-size: 13px;">
-                            <i class="fa-solid fa-info-circle"></i> Contact support to change your email address.
+                            <i class="fa-solid fa-info-circle"></i> Update your email address with 2FA verification.
+                        </p>
+                        <button class="btn-primary-custom" onclick="showUpdateEmailModal()" id="update-email-btn">
+                            <i class="fa-solid fa-envelope"></i> Change Email
+                        </button>
+                        <p style="color: #8b93a7; margin: 15px 0 0 0; font-size: 12px; display: none;" id="google-oauth-email-notice">
+                            <i class="fa-solid fa-lock"></i> Email cannot be changed for Google sign-in accounts.
                         </p>
                     </div>
                 </div>
@@ -1195,6 +1297,39 @@
 
                 <div id="traders-container">
                     <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading traders...</p>
+                </div>
+            </div>
+
+            <!-- Staking Tab -->
+            <div class="tab-content-wrapper" id="tab-staking">
+                <div class="content-header">
+                    <h1>Staking</h1>
+                    <p>Stake your crypto assets and earn rewards</p>
+                </div>
+
+                <div class="dashboard-card">
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #D32F2F, #5a9abf); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
+                            <i class="fa-solid fa-coins" style="font-size: 48px; color: white;"></i>
+                        </div>
+                        <h2 style="color: #D32F2F; margin-bottom: 15px; font-size: 28px;">Staking Coming Soon</h2>
+                        <p style="color: #8b93a7; font-size: 16px; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+                            We're working on bringing you an amazing staking experience. Soon you'll be able to stake your cryptocurrency assets and earn passive rewards.
+                        </p>
+                        <div style="margin-top: 40px; padding: 20px; background: rgba(123, 182, 218, 0.05); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 12px; max-width: 500px; margin: 40px auto 0;">
+                            <h3 style="color: #000; margin-bottom: 15px; font-size: 18px;">What to Expect:</h3>
+                            <ul style="text-align: left; color: #8b93a7; line-height: 2; list-style: none; padding: 0;">
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Competitive staking rewards</li>
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Multiple cryptocurrency options</li>
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Flexible staking periods</li>
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Real-time rewards tracking</li>
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Secure staking infrastructure</li>
+                            </ul>
+                        </div>
+                        <p style="color: #8b93a7; font-size: 14px; margin-top: 30px;">
+                            <i class="fa-solid fa-info-circle"></i> Stay tuned for updates!
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -1571,6 +1706,75 @@
         </div>
     </div>
 
+    <!-- Update Email Modal -->
+    <div id="update-email-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 240, 240, 0.95); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #D32F2F;">Change Email Address</h2>
+                <button onclick="closeUpdateEmailModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+            </div>
+            <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
+                    <i class="fa-solid fa-info-circle"></i> You'll receive a verification code at your new email address to confirm the change.
+                </p>
+            </div>
+            <form id="update-email-form" onsubmit="handleUpdateEmail(event)">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Current Email</label>
+                    <input type="email" id="current-email-display" disabled
+                        style="width: 100%; padding: 12px; background: rgba(123, 182, 218, 0.05); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #8b93a7; font-size: 16px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">New Email Address</label>
+                    <input type="email" id="new-email" required
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;"
+                        placeholder="Enter your new email address">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Confirm Password</label>
+                    <input type="password" id="email-update-password" required
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px;"
+                        placeholder="Enter your password to confirm">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
+                        <i class="fa-solid fa-lock"></i> For security, please confirm with your password
+                    </p>
+                </div>
+                <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
+                    <i class="fa-solid fa-paper-plane"></i> Send Verification Code
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Verify Email Update Modal -->
+    <div id="verify-email-update-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 240, 240, 0.95); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #D32F2F;">Verify New Email</h2>
+                <button onclick="closeVerifyEmailUpdateModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+            </div>
+            <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
+                    <i class="fa-solid fa-envelope"></i> We've sent a 6-digit verification code to <strong id="verification-email-display" style="color: #D32F2F;"></strong>
+                </p>
+            </div>
+            <form id="verify-email-update-form" onsubmit="handleVerifyEmailUpdate(event)">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Verification Code</label>
+                    <input type="text" id="email-verification-code" required maxlength="6" pattern="[0-9]{6}"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 24px; text-align: center; letter-spacing: 8px;"
+                        placeholder="000000">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px; text-align: center;">
+                        Enter the 6-digit code sent to your new email
+                    </p>
+                </div>
+                <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
+                    <i class="fa-solid fa-check-circle"></i> Verify and Update Email
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- JS -->
     <script src="assets/templates/copytradingbroker/frontend/js/plugins.js"></script>
     <script src="assets/templates/copytradingbroker/frontend/js/main.js"></script>
@@ -1578,13 +1782,36 @@
     <script src="assets/js/dashboard.js"></script>
 
     <script>
-        // Tab switching functionality
+        // Explore submenu dropdown toggle
+        const exploreMenu = document.getElementById('explore-menu');
+        const exploreSubmenu = document.getElementById('explore-submenu');
+        const exploreParent = exploreMenu.closest('.menu-item-parent');
+
+        exploreMenu.addEventListener('click', function(e) {
+            e.preventDefault();
+            exploreParent.classList.toggle('expanded');
+            exploreSubmenu.classList.toggle('expanded');
+        });
+
+        // Account submenu dropdown toggle
+        const accountMenu = document.getElementById('account-menu');
+        const accountSubmenu = document.getElementById('account-submenu');
+        const accountParent = accountMenu.closest('.menu-item-parent');
+
+        accountMenu.addEventListener('click', function(e) {
+            e.preventDefault();
+            accountParent.classList.toggle('expanded');
+            accountSubmenu.classList.toggle('expanded');
+        });
+
+        // Tab switching functionality for regular menu items
         document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
             item.addEventListener('click', function() {
                 const tabName = this.getAttribute('data-tab');
 
-                // Remove active class from all menu items
+                // Remove active class from all menu items and submenu items
                 document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+                document.querySelectorAll('.submenu-item').forEach(si => si.classList.remove('active'));
 
                 // Add active class to clicked item
                 this.classList.add('active');
@@ -1594,6 +1821,33 @@
 
                 // Show selected tab content
                 document.getElementById('tab-' + tabName).classList.add('active');
+            });
+        });
+
+        // Tab switching functionality for submenu items
+        document.querySelectorAll('.submenu-item[data-tab]').forEach(item => {
+            item.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+
+                // Remove active class from all menu items and submenu items
+                document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+                document.querySelectorAll('.submenu-item').forEach(si => si.classList.remove('active'));
+
+                // Add active class to clicked submenu item
+                this.classList.add('active');
+
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
+
+                // Show selected tab content
+                document.getElementById('tab-' + tabName).classList.add('active');
+
+                // Close mobile sidebar if open
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('mobile-open');
+                    hamburgerBtn.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                }
             });
         });
 

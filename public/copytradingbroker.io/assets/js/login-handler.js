@@ -9,7 +9,7 @@ function signInWithGoogle() {
 }
 
 // Handle token from OAuth redirect
-function handleOAuthRedirect() {
+async function handleOAuthRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const error = urlParams.get('error');
@@ -21,8 +21,16 @@ function handleOAuthRedirect() {
         // Remove error from URL
         window.history.replaceState({}, document.title, window.location.pathname);
     } else if (token) {
-        // Save token and redirect to dashboard
+        // Save token
         TED_AUTH.saveToken(token);
+
+        // Fetch user data
+        await TED_AUTH.fetchCurrentUser();
+
+        // Remove token from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        // Show success and redirect to dashboard
         TED_AUTH.showSuccess('Login successful! Redirecting...');
         setTimeout(() => {
             window.location.href = '/dashboard';

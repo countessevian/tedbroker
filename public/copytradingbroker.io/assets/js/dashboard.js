@@ -98,6 +98,12 @@ function populateDashboard(userData) {
     // Email
     document.getElementById('user-email').textContent = userData.email;
 
+    // Email in security section
+    const securityEmailElement = document.getElementById('security-user-email');
+    if (securityEmailElement) {
+        securityEmailElement.textContent = userData.email;
+    }
+
     // Phone (show only if provided)
     if (userData.phone) {
         document.getElementById('user-phone').textContent = userData.phone;
@@ -1863,3 +1869,195 @@ window.quickActionDepositFunds = quickActionDepositFunds;
 window.quickActionBrowseTraders = quickActionBrowseTraders;
 window.toggleDepositPaymentFields = toggleDepositPaymentFields;
 window.copyCryptoAddress = copyCryptoAddress;
+
+/**
+ * Show update email modal
+ */
+function showUpdateEmailModal() {
+    const userData = TED_AUTH.getUser();
+
+    // Check if user signed in with Google OAuth
+    if (userData && userData.oauth_provider === 'google') {
+        document.getElementById('google-oauth-email-notice').style.display = 'block';
+        document.getElementById('update-email-btn').disabled = true;
+        return;
+    }
+
+    const modal = document.getElementById('update-email-modal');
+    modal.style.display = 'flex';
+
+    // Pre-fill current email
+    if (userData) {
+        document.getElementById('current-email-display').value = userData.email;
+    }
+
+    // Reset form
+    document.getElementById('update-email-form').reset();
+    document.getElementById('current-email-display').value = userData.email;
+}
+
+/**
+ * Close update email modal
+ */
+function closeUpdateEmailModal() {
+    const modal = document.getElementById('update-email-modal');
+    modal.style.display = 'none';
+}
+
+/**
+ * Handle update email form submission
+ */
+async function handleUpdateEmail(event) {
+    event.preventDefault();
+
+    const newEmail = document.getElementById('new-email').value.trim();
+    const password = document.getElementById('email-update-password').value;
+
+    if (!newEmail || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+        alert('Please enter a valid email address');
+        return;
+    }
+
+    try {
+        TED_AUTH.showLoading('Sending verification code...');
+
+        const response = await TED_AUTH.apiCall('/api/auth/request-email-update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                new_email: newEmail,
+                password: password
+            })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to send verification code');
+        }
+
+        // Store new email for verification step
+        sessionStorage.setItem('pending_new_email', newEmail);
+
+        // Close current modal and show verification modal
+        closeUpdateEmailModal();
+        showVerifyEmailUpdateModal(newEmail);
+
+        alert('Verification code sent to your new email address. Please check your inbox.');
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Email update request error:', error);
+        alert(`Email update failed: ${error.message}`);
+    }
+}
+
+/**
+ * Show verify email update modal
+ */
+function showVerifyEmailUpdateModal(newEmail) {
+    const modal = document.getElementById('verify-email-update-modal');
+    modal.style.display = 'flex';
+
+    // Display the email being verified
+    document.getElementById('verification-email-display').textContent = newEmail;
+
+    // Reset form
+    document.getElementById('verify-email-update-form').reset();
+}
+
+/**
+ * Close verify email update modal
+ */
+function closeVerifyEmailUpdateModal() {
+    const modal = document.getElementById('verify-email-update-modal');
+    modal.style.display = 'none';
+    sessionStorage.removeItem('pending_new_email');
+}
+
+/**
+ * Handle verify email update form submission
+ */
+async function handleVerifyEmailUpdate(event) {
+    event.preventDefault();
+
+    const code = document.getElementById('email-verification-code').value.trim();
+    const newEmail = sessionStorage.getItem('pending_new_email');
+
+    if (!code || code.length !== 6) {
+        alert('Please enter the 6-digit verification code');
+        return;
+    }
+
+    if (!newEmail) {
+        alert('Session expired. Please start the email update process again.');
+        closeVerifyEmailUpdateModal();
+        return;
+    }
+
+    try {
+        TED_AUTH.showLoading('Verifying code and updating email...');
+
+        const response = await TED_AUTH.apiCall('/api/auth/verify-email-update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                new_email: newEmail,
+                code: code
+            })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Verification failed');
+        }
+
+        const result = await response.json();
+
+        // Save new token if provided
+        if (result.access_token) {
+            TED_AUTH.saveToken(result.access_token);
+        }
+
+        // Update user data with new email
+        const userData = TED_AUTH.getUser();
+        if (userData) {
+            userData.email = newEmail;
+            TED_AUTH.saveUser(userData);
+        }
+
+        // Update email displays on page
+        document.getElementById('user-email').textContent = newEmail;
+        document.getElementById('security-user-email').textContent = newEmail;
+
+        // Close modal
+        closeVerifyEmailUpdateModal();
+
+        alert('Email address updated successfully! You can now use your new email to log in.');
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Email verification error:', error);
+        alert(`Email verification failed: ${error.message}`);
+    }
+}
+
+// Export email update functions
+window.showUpdateEmailModal = showUpdateEmailModal;
+window.closeUpdateEmailModal = closeUpdateEmailModal;
+window.handleUpdateEmail = handleUpdateEmail;
+window.showVerifyEmailUpdateModal = showVerifyEmailUpdateModal;
+window.closeVerifyEmailUpdateModal = closeVerifyEmailUpdateModal;
+window.handleVerifyEmailUpdate = handleVerifyEmailUpdate;
