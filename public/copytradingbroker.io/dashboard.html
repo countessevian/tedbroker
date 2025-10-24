@@ -1075,55 +1075,114 @@
             <!-- Account Tab -->
             <div class="tab-content-wrapper" id="tab-account">
                 <div class="content-header">
-                    <h1>Account Details</h1>
-                    <p>View and manage your account information</p>
+                    <h1>Account</h1>
+                    <p>Manage your account information and security settings</p>
                 </div>
 
-                <div class="account-info-grid">
-                    <div class="dashboard-card" style="text-align: center;">
-                        <div class="user-avatar" id="user-avatar">U</div>
-                        <h3 id="user-fullname">Loading...</h3>
-                        <p style="color: #8b93a7;" id="user-username">@username</p>
-                        <span class="badge-status badge-active" id="user-status">Active</span>
+                <!-- Account Section Selector -->
+                <div class="dashboard-card" style="margin-bottom: 20px;">
+                    <select id="account-section-selector" onchange="switchAccountSection(this.value)"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 16px; font-weight: 600; cursor: pointer;">
+                        <option value="personal">Personal Details</option>
+                        <option value="security">Security</option>
+                    </select>
+                </div>
+
+                <!-- Personal Details Section -->
+                <div id="account-personal-section" class="account-section">
+                    <div class="account-info-grid">
+                        <div class="dashboard-card" style="text-align: center;">
+                            <div class="user-avatar" id="user-avatar">U</div>
+                            <h3 id="user-fullname">Loading...</h3>
+                            <p style="color: #8b93a7;" id="user-username">@username</p>
+                            <span class="badge-status badge-active" id="user-status">Active</span>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <h3 style="margin-bottom: 20px;">Personal Information</h3>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value" id="user-email">loading@example.com</span>
+                            </div>
+                            <div class="info-row" id="user-phone-row" style="display: none;">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value" id="user-phone">-</span>
+                            </div>
+                            <div class="info-row" id="user-gender-row" style="display: none;">
+                                <span class="info-label">Gender:</span>
+                                <span class="info-value" id="user-gender">-</span>
+                            </div>
+                            <div class="info-row" id="user-country-row" style="display: none;">
+                                <span class="info-label">Country:</span>
+                                <span class="info-value" id="user-country">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Member Since:</span>
+                                <span class="info-value" id="user-created">Loading...</span>
+                            </div>
+                            <div class="info-row" id="user-account-types-row" style="display: none;">
+                                <span class="info-label">Trading Interests:</span>
+                                <span class="info-value" id="user-account-types">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Verification:</span>
+                                <span class="badge-status badge-pending" id="user-verification">Pending</span>
+                            </div>
+                        </div>
                     </div>
 
+                    <div class="dashboard-card" style="margin-top: 20px;">
+                        <h3 style="margin-bottom: 20px;">Profile Actions</h3>
+                        <button class="btn-primary-custom" onclick="showUpdateProfileModal()">Update Profile</button>
+                    </div>
+                </div>
+
+                <!-- Security Section -->
+                <div id="account-security-section" class="account-section" style="display: none;">
                     <div class="dashboard-card">
-                        <h3 style="margin-bottom: 20px;">Personal Information</h3>
-                        <div class="info-row">
-                            <span class="info-label">Email:</span>
-                            <span class="info-value" id="user-email">loading@example.com</span>
+                        <h3 style="margin-bottom: 20px;">Two-Factor Authentication (2FA)</h3>
+                        <div style="background: rgba(123, 182, 218, 0.05); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <div>
+                                    <p style="margin: 0; color: #000; font-weight: 600; font-size: 16px;">Status</p>
+                                    <p style="margin: 5px 0 0 0; color: #8b93a7; font-size: 14px;" id="twofa-status-text">2FA is currently disabled</p>
+                                </div>
+                                <span class="badge-status badge-pending" id="twofa-status-badge">Disabled</span>
+                            </div>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
+                                <i class="fa-solid fa-shield-halved"></i> Two-factor authentication adds an extra layer of security by requiring a verification code sent to your email when you log in.
+                            </p>
                         </div>
-                        <div class="info-row" id="user-phone-row" style="display: none;">
-                            <span class="info-label">Phone:</span>
-                            <span class="info-value" id="user-phone">-</span>
+                        <div id="twofa-disabled-actions">
+                            <button class="btn-primary-custom" onclick="show2FAEnableModal()">
+                                <i class="fa-solid fa-shield-halved"></i> Enable 2FA
+                            </button>
                         </div>
-                        <div class="info-row" id="user-gender-row" style="display: none;">
-                            <span class="info-label">Gender:</span>
-                            <span class="info-value" id="user-gender">-</span>
-                        </div>
-                        <div class="info-row" id="user-country-row" style="display: none;">
-                            <span class="info-label">Country:</span>
-                            <span class="info-value" id="user-country">-</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Member Since:</span>
-                            <span class="info-value" id="user-created">Loading...</span>
-                        </div>
-                        <div class="info-row" id="user-account-types-row" style="display: none;">
-                            <span class="info-label">Trading Interests:</span>
-                            <span class="info-value" id="user-account-types">-</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Verification:</span>
-                            <span class="badge-status badge-pending" id="user-verification">Pending</span>
+                        <div id="twofa-enabled-actions" style="display: none;">
+                            <button class="btn-primary-custom" style="background: #ff6b6b;" onclick="show2FADisableModal()">
+                                <i class="fa-solid fa-shield-slash"></i> Disable 2FA
+                            </button>
                         </div>
                     </div>
-                </div>
 
-                <div class="dashboard-card" style="margin-top: 20px;">
-                    <h3 style="margin-bottom: 20px;">Account Settings</h3>
-                    <button class="btn-primary-custom" style="margin-right: 10px;" onclick="showChangePasswordModal()">Change Password</button>
-                    <button class="btn-primary-custom" onclick="showUpdateProfileModal()">Update Profile</button>
+                    <div class="dashboard-card" style="margin-top: 20px;">
+                        <h3 style="margin-bottom: 20px;">Password Management</h3>
+                        <p style="color: #8b93a7; margin-bottom: 15px; font-size: 14px;">Change your password to keep your account secure.</p>
+                        <button class="btn-primary-custom" onclick="showChangePasswordModal()">
+                            <i class="fa-solid fa-key"></i> Change Password
+                        </button>
+                    </div>
+
+                    <div class="dashboard-card" style="margin-top: 20px;">
+                        <h3 style="margin-bottom: 20px;">Email Management</h3>
+                        <div class="info-row">
+                            <span class="info-label">Current Email:</span>
+                            <span class="info-value" id="security-user-email">loading@example.com</span>
+                        </div>
+                        <p style="color: #8b93a7; margin: 15px 0; font-size: 13px;">
+                            <i class="fa-solid fa-info-circle"></i> Contact support to change your email address.
+                        </p>
+                    </div>
                 </div>
             </div>
 

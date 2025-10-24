@@ -4,6 +4,17 @@
  */
 
 document.addEventListener('DOMContentLoaded', async function() {
+    // Check for OAuth token in URL (from redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+        // Save token from OAuth redirect
+        TED_AUTH.saveToken(token);
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     // Protect the page - redirect to login if not authenticated
     TED_AUTH.protectPage();
 
@@ -236,6 +247,14 @@ function createTraderCard(trader) {
     const returnColor = trader.ytd_return > 0 ? '#4caf50' : '#f44336';
     const returnSign = trader.ytd_return > 0 ? '+' : '';
 
+    // Check if trader is selected
+    const userData = TED_AUTH.getUser();
+    const selectedTraders = userData?.selected_traders || [];
+    const isSelected = selectedTraders.includes(trader.id);
+
+    const buttonText = isSelected ? 'Stop Copying' : 'Copy Trader';
+    const buttonStyle = isSelected ? 'background: #ff6b6b;' : '';
+
     // Create trades HTML
     const tradesHTML = trader.trades && trader.trades.length > 0 ? `
         <div class="trader-trades">
@@ -256,7 +275,7 @@ function createTraderCard(trader) {
         <div class="trader-profile">
             <img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-profile-photo" />
             <div>
-                <h3 style="margin: 0;">${trader.full_name}</h3>
+                <h3 style="margin: 0;">${trader.full_name}${isSelected ? ' <span style="color: #4caf50; font-size: 14px;"><i class="fa fa-check-circle"></i> Selected</span>' : ''}</h3>
                 <p style="color: #8b93a7; margin: 5px 0 0 0; font-size: 14px;">${trader.specialization}</p>
             </div>
         </div>
@@ -278,7 +297,7 @@ function createTraderCard(trader) {
                     <div style="color: #8b93a7; font-size: 12px;">Copiers</div>
                 </div>
             </div>
-            <button class="btn-primary-custom" onclick="copyTrader('${trader.id}', '${trader.full_name}')">Copy Trader</button>
+            <button class="btn-primary-custom" style="${buttonStyle}" onclick="copyTrader('${trader.id}', '${trader.full_name}')">${buttonText}</button>
         </div>
 
         ${tradesHTML}
@@ -288,12 +307,85 @@ function createTraderCard(trader) {
 }
 
 /**
- * Handle copy trader action
+ * Handle copy trader action - select/unselect trader for copying
  */
-function copyTrader(traderId, traderName) {
-    // For now, just show an alert. In production, this would start the copy trading process
-    alert(`You are about to copy ${traderName}. This feature will be available soon!`);
-    console.log('Copy trader:', traderId);
+async function copyTrader(traderId, traderName) {
+    try {
+        // Get current user data to check if trader is already selected
+        const userData = TED_AUTH.getUser();
+        const selectedTraders = userData?.selected_traders || [];
+        const isSelected = selectedTraders.includes(traderId);
+
+        if (isSelected) {
+            // Unselect trader
+            if (!confirm(`Stop copying ${traderName}?`)) {
+                return;
+            }
+
+            TED_AUTH.showLoading('Unselecting trader...');
+
+            const response = await TED_AUTH.apiCall(`/api/traders/unselect/${traderId}`, {
+                method: 'DELETE'
+            });
+
+            TED_AUTH.closeLoading();
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to unselect trader');
+            }
+
+            const result = await response.json();
+
+            // Update user data
+            const freshUserData = await TED_AUTH.fetchCurrentUser();
+            if (freshUserData.success) {
+                TED_AUTH.saveUser(freshUserData.data);
+            }
+
+            // Reload traders to update button state
+            await loadExpertTraders(true);
+
+            alert(`Successfully stopped copying ${traderName}.\nYou now have ${result.selected_traders_count} trader(s) selected.`);
+
+        } else {
+            // Select trader
+            if (!confirm(`Start copying ${traderName}?`)) {
+                return;
+            }
+
+            TED_AUTH.showLoading('Selecting trader...');
+
+            const response = await TED_AUTH.apiCall(`/api/traders/select/${traderId}`, {
+                method: 'POST'
+            });
+
+            TED_AUTH.closeLoading();
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to select trader');
+            }
+
+            const result = await response.json();
+
+            // Update user data
+            const freshUserData = await TED_AUTH.fetchCurrentUser();
+            if (freshUserData.success) {
+                TED_AUTH.saveUser(freshUserData.data);
+            }
+
+            // Reload traders to update button state
+            await loadExpertTraders(true);
+
+            alert(`Successfully started copying ${traderName}!\nYou now have ${result.selected_traders_count} trader(s) selected.`);
+        }
+
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Error copying/uncopying trader:', error);
+        alert(`Error: ${error.message}`);
+    }
 }
 
 /**
@@ -485,6 +577,22 @@ async function investInPlan(planId, planName, minimumInvestment) {
 
         if (!response.ok) {
             const error = await response.json();
+            TED_AUTH.closeLoading();
+
+            // Check if error is about trader selection
+            if (error.detail && error.detail.includes('select at least 1 trader')) {
+                alert(`Unable to invest: ${error.detail}\n\nPlease go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`);
+
+                // Navigate to traders tab
+                document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+                const tradersTab = document.querySelector('.menu-item[data-tab="traders"]');
+                if (tradersTab) {
+                    tradersTab.classList.add('active');
+                    tradersTab.click();
+                }
+                return;
+            }
+
             throw new Error(error.detail || 'Investment failed');
         }
 

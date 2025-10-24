@@ -2,7 +2,37 @@
  * Registration Form Handler
  */
 
+// Google Sign-In Handler
+function signInWithGoogle() {
+    // Redirect to Google OAuth endpoint
+    window.location.href = '/api/auth/google/login';
+}
+
+// Handle token from OAuth redirect
+function handleOAuthRedirect() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const error = urlParams.get('error');
+
+    if (error) {
+        if (error === 'oauth_failed') {
+            TED_AUTH.showError('Google sign-up failed. Please try again.');
+        }
+        // Remove error from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (token) {
+        // Save token and redirect to dashboard
+        TED_AUTH.saveToken(token);
+        TED_AUTH.showSuccess('Registration successful! Redirecting...');
+        setTimeout(() => {
+            window.location.href = '/dashboard';
+        }, 1000);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Check for OAuth redirect
+    handleOAuthRedirect();
     // Redirect if already logged in
     TED_AUTH.redirectIfAuthenticated();
 
