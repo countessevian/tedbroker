@@ -510,6 +510,86 @@ async def get_statistics(current_admin: dict = Depends(get_current_admin)):
 # TRADERS MANAGEMENT
 # ============================================================
 
+@router.get("/traders")
+async def get_all_traders(
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get all traders (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+
+    Returns:
+        list: All traders
+    """
+    traders = get_collection(TRADERS_COLLECTION)
+
+    traders_list = []
+    for trader in traders.find().sort("created_at", -1):
+        traders_list.append({
+            "id": str(trader["_id"]),
+            "full_name": trader["full_name"],
+            "profile_photo": trader["profile_photo"],
+            "description": trader["description"],
+            "specialization": trader["specialization"],
+            "ytd_return": trader["ytd_return"],
+            "win_rate": trader["win_rate"],
+            "copiers": trader.get("copiers", 0),
+            "trades": trader.get("trades", []),
+            "created_at": trader["created_at"].isoformat() if trader.get("created_at") else None,
+            "updated_at": trader["updated_at"].isoformat() if trader.get("updated_at") else None
+        })
+
+    return traders_list
+
+
+@router.get("/traders/{trader_id}")
+async def get_trader_details(
+    trader_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get details of a specific trader (admin only)
+
+    Args:
+        trader_id: Trader ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Trader details
+    """
+    traders = get_collection(TRADERS_COLLECTION)
+
+    try:
+        trader = traders.find_one({"_id": ObjectId(trader_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid trader ID"
+        )
+
+    if not trader:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trader not found"
+        )
+
+    return {
+        "id": str(trader["_id"]),
+        "full_name": trader["full_name"],
+        "profile_photo": trader["profile_photo"],
+        "description": trader["description"],
+        "specialization": trader["specialization"],
+        "ytd_return": trader["ytd_return"],
+        "win_rate": trader["win_rate"],
+        "copiers": trader.get("copiers", 0),
+        "trades": trader.get("trades", []),
+        "created_at": trader["created_at"].isoformat() if trader.get("created_at") else None,
+        "updated_at": trader["updated_at"].isoformat() if trader.get("updated_at") else None
+    }
+
+
 @router.post("/traders")
 async def create_trader(
     trader_data: CreateTrader,
@@ -559,9 +639,190 @@ async def create_trader(
     }
 
 
+@router.put("/traders/{trader_id}")
+async def update_trader(
+    trader_id: str,
+    trader_data: CreateTrader,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Update an existing trader (admin only)
+
+    Args:
+        trader_id: Trader ID
+        trader_data: Updated trader information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Updated trader data
+    """
+    traders = get_collection(TRADERS_COLLECTION)
+
+    try:
+        trader = traders.find_one({"_id": ObjectId(trader_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid trader ID"
+        )
+
+    if not trader:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trader not found"
+        )
+
+    # Update trader document
+    update_dict = {
+        "full_name": trader_data.full_name,
+        "profile_photo": trader_data.profile_photo,
+        "description": trader_data.description,
+        "specialization": trader_data.specialization,
+        "ytd_return": trader_data.ytd_return,
+        "win_rate": trader_data.win_rate,
+        "copiers": trader_data.copiers,
+        "updated_at": datetime.utcnow()
+    }
+
+    # Update trader in database
+    traders.update_one(
+        {"_id": ObjectId(trader_id)},
+        {"$set": update_dict}
+    )
+
+    # Get updated trader
+    updated_trader = traders.find_one({"_id": ObjectId(trader_id)})
+
+    return {
+        "id": str(updated_trader["_id"]),
+        "full_name": updated_trader["full_name"],
+        "profile_photo": updated_trader["profile_photo"],
+        "description": updated_trader["description"],
+        "specialization": updated_trader["specialization"],
+        "ytd_return": updated_trader["ytd_return"],
+        "win_rate": updated_trader["win_rate"],
+        "copiers": updated_trader.get("copiers", 0),
+        "trades": updated_trader.get("trades", []),
+        "created_at": updated_trader["created_at"].isoformat() if updated_trader.get("created_at") else None,
+        "updated_at": updated_trader["updated_at"].isoformat()
+    }
+
+
+@router.delete("/traders/{trader_id}")
+async def delete_trader(
+    trader_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Delete a trader (admin only)
+
+    Args:
+        trader_id: Trader ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    traders = get_collection(TRADERS_COLLECTION)
+
+    try:
+        result = traders.delete_one({"_id": ObjectId(trader_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid trader ID"
+        )
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trader not found"
+        )
+
+    return {"message": "Trader deleted successfully"}
+
+
 # ============================================================
 # INVESTMENT PLANS MANAGEMENT
 # ============================================================
+
+@router.get("/plans")
+async def get_all_plans(
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get all investment plans (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+
+    Returns:
+        list: All investment plans
+    """
+    plans = get_collection(INVESTMENT_PLANS_COLLECTION)
+
+    plans_list = []
+    for plan in plans.find().sort("created_at", -1):
+        plans_list.append({
+            "id": str(plan["_id"]),
+            "name": plan["name"],
+            "description": plan["description"],
+            "minimum_investment": plan["minimum_investment"],
+            "expected_return_percent": plan["expected_return_percent"],
+            "holding_period_months": plan["holding_period_months"],
+            "current_subscribers": plan.get("current_subscribers", 0),
+            "is_active": plan.get("is_active", True),
+            "created_at": plan["created_at"].isoformat() if plan.get("created_at") else None,
+            "updated_at": plan["updated_at"].isoformat() if plan.get("updated_at") else None
+        })
+
+    return plans_list
+
+
+@router.get("/plans/{plan_id}")
+async def get_plan_details(
+    plan_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get details of a specific investment plan (admin only)
+
+    Args:
+        plan_id: Plan ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Plan details
+    """
+    plans = get_collection(INVESTMENT_PLANS_COLLECTION)
+
+    try:
+        plan = plans.find_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Investment plan not found"
+        )
+
+    return {
+        "id": str(plan["_id"]),
+        "name": plan["name"],
+        "description": plan["description"],
+        "minimum_investment": plan["minimum_investment"],
+        "expected_return_percent": plan["expected_return_percent"],
+        "holding_period_months": plan["holding_period_months"],
+        "current_subscribers": plan.get("current_subscribers", 0),
+        "is_active": plan.get("is_active", True),
+        "created_at": plan["created_at"].isoformat() if plan.get("created_at") else None,
+        "updated_at": plan["updated_at"].isoformat() if plan.get("updated_at") else None
+    }
+
 
 @router.post("/plans")
 async def create_plan(
@@ -587,6 +848,7 @@ async def create_plan(
         "minimum_investment": plan_data.minimum_investment,
         "expected_return_percent": plan_data.expected_return_percent,
         "holding_period_months": plan_data.holding_period_months,
+        "current_subscribers": 0,
         "is_active": plan_data.is_active,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
@@ -603,9 +865,111 @@ async def create_plan(
         "minimum_investment": plan_dict["minimum_investment"],
         "expected_return_percent": plan_dict["expected_return_percent"],
         "holding_period_months": plan_dict["holding_period_months"],
+        "current_subscribers": plan_dict["current_subscribers"],
         "is_active": plan_dict["is_active"],
         "created_at": plan_dict["created_at"].isoformat()
     }
+
+
+@router.put("/plans/{plan_id}")
+async def update_plan(
+    plan_id: str,
+    plan_data: CreatePlan,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Update an existing investment plan (admin only)
+
+    Args:
+        plan_id: Plan ID
+        plan_data: Updated plan information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Updated plan data
+    """
+    plans = get_collection(INVESTMENT_PLANS_COLLECTION)
+
+    try:
+        plan = plans.find_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Investment plan not found"
+        )
+
+    # Update plan document
+    update_dict = {
+        "name": plan_data.name,
+        "description": plan_data.description,
+        "minimum_investment": plan_data.minimum_investment,
+        "expected_return_percent": plan_data.expected_return_percent,
+        "holding_period_months": plan_data.holding_period_months,
+        "is_active": plan_data.is_active,
+        "updated_at": datetime.utcnow()
+    }
+
+    # Update plan in database
+    plans.update_one(
+        {"_id": ObjectId(plan_id)},
+        {"$set": update_dict}
+    )
+
+    # Get updated plan
+    updated_plan = plans.find_one({"_id": ObjectId(plan_id)})
+
+    return {
+        "id": str(updated_plan["_id"]),
+        "name": updated_plan["name"],
+        "description": updated_plan["description"],
+        "minimum_investment": updated_plan["minimum_investment"],
+        "expected_return_percent": updated_plan["expected_return_percent"],
+        "holding_period_months": updated_plan["holding_period_months"],
+        "current_subscribers": updated_plan.get("current_subscribers", 0),
+        "is_active": updated_plan["is_active"],
+        "created_at": updated_plan["created_at"].isoformat() if updated_plan.get("created_at") else None,
+        "updated_at": updated_plan["updated_at"].isoformat()
+    }
+
+
+@router.delete("/plans/{plan_id}")
+async def delete_plan(
+    plan_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Delete an investment plan (admin only)
+
+    Args:
+        plan_id: Plan ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    plans = get_collection(INVESTMENT_PLANS_COLLECTION)
+
+    try:
+        result = plans.delete_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Investment plan not found"
+        )
+
+    return {"message": "Investment plan deleted successfully"}
 
 
 # ============================================================

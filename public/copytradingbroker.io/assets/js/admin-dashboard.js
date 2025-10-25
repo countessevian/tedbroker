@@ -306,16 +306,16 @@ async function deleteTrader(traderId) {
 async function loadPlans() {
     const container = document.getElementById('plans-container');
     container.innerHTML = 'Loading...';
-    
+
     try {
-        const response = await adminFetch('/api/plans/');
+        const response = await adminFetch('/api/admin/plans');
         const plans = await response.json();
-        
+
         if (plans.length === 0) {
             container.innerHTML = '<p>No plans found. <button class="btn btn-primary" onclick="showAddPlanModal()">Add First Plan</button></p>';
             return;
         }
-        
+
         let html = '<div style="display: grid; gap: 20px;">';
         plans.forEach(plan => {
             html += `
@@ -324,8 +324,12 @@ async function loadPlans() {
                     <p>${plan.description}</p>
                     <p><strong>Min Investment:</strong> $${plan.minimum_investment.toLocaleString()}</p>
                     <p><strong>Return:</strong> ${plan.expected_return_percent}% | <strong>Period:</strong> ${plan.holding_period_months} months</p>
+                    <p><strong>Subscribers:</strong> ${plan.current_subscribers || 0}</p>
                     <p><span class="badge badge-${plan.is_active ? 'active' : 'inactive'}">${plan.is_active ? 'Active' : 'Inactive'}</span></p>
-                    <button class="btn btn-secondary" onclick="deletePlan('${plan.id}')">Delete</button>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-primary" style="padding: 8px 16px;" onclick="showEditPlanModal('${plan.id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deletePlan('${plan.id}')">Delete</button>
+                    </div>
                 </div>
             `;
         });
@@ -385,16 +389,92 @@ async function submitNewPlan(event) {
     }
 }
 
+// Show edit plan modal
+async function showEditPlanModal(planId) {
+    try {
+        // Fetch plan details
+        const response = await adminFetch(`/api/admin/plans/${planId}`);
+        const plan = await response.json();
+
+        // Populate form fields
+        document.getElementById('edit-plan-id').value = plan.id;
+        document.getElementById('edit-plan-name').value = plan.name;
+        document.getElementById('edit-plan-description').value = plan.description;
+        document.getElementById('edit-plan-min-investment').value = plan.minimum_investment;
+        document.getElementById('edit-plan-return').value = plan.expected_return_percent;
+        document.getElementById('edit-plan-period').value = plan.holding_period_months;
+        document.getElementById('edit-plan-active').checked = plan.is_active;
+
+        // Show modal
+        const modal = document.getElementById('edit-plan-modal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    } catch (error) {
+        alert('Error loading plan details');
+        console.error(error);
+    }
+}
+
+// Hide edit plan modal
+function hideEditPlanModal() {
+    const modal = document.getElementById('edit-plan-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('edit-plan-form').reset();
+    }
+}
+
+// Submit edited plan
+async function submitEditedPlan(event) {
+    event.preventDefault();
+
+    const planId = document.getElementById('edit-plan-id').value;
+    const planData = {
+        name: document.getElementById('edit-plan-name').value,
+        description: document.getElementById('edit-plan-description').value,
+        minimum_investment: parseFloat(document.getElementById('edit-plan-min-investment').value),
+        expected_return_percent: parseFloat(document.getElementById('edit-plan-return').value),
+        holding_period_months: parseInt(document.getElementById('edit-plan-period').value),
+        is_active: document.getElementById('edit-plan-active').checked
+    };
+
+    try {
+        const response = await adminFetch(`/api/admin/plans/${planId}`, {
+            method: 'PUT',
+            body: JSON.stringify(planData)
+        });
+
+        if (response.ok) {
+            alert('Investment plan updated successfully!');
+            hideEditPlanModal();
+            loadPlans();
+        } else {
+            const error = await response.json();
+            alert(`Error: ${error.detail || 'Failed to update plan'}`);
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
 // Delete plan
 async function deletePlan(planId) {
-    if (!confirm('Delete this plan?')) return;
-    
+    if (!confirm('Are you sure you want to delete this investment plan? This action cannot be undone.')) return;
+
     try {
-        await adminFetch(`/api/plans/${planId}`, { method: 'DELETE' });
-        alert('Plan deleted');
-        loadPlans();
+        const response = await adminFetch(`/api/admin/plans/${planId}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Investment plan deleted successfully');
+            loadPlans();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to delete plan'));
+        }
     } catch (error) {
-        alert('Error deleting plan');
+        alert('Network error. Please try again.');
+        console.error(error);
     }
 }
 

@@ -1513,28 +1513,71 @@ function toggleDepositPaymentFields() {
 }
 
 /**
- * Cryptocurrency wallet addresses (managed by admin)
+ * Cryptocurrency wallets cache
  */
-const cryptoWallets = {
-    'Bitcoin': 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-    'Ethereum': '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
-    'Tether': 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-    'USD Coin': '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d'
-};
+let cryptoWallets = {};
+let cryptoWalletsData = [];
 
 /**
- * Handle crypto type selection to show wallet address
+ * Load crypto wallets from API
+ */
+async function loadCryptoWallets() {
+    try {
+        const response = await TED_AUTH.apiCall('/api/crypto-wallets/', {
+            method: 'GET'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.wallets) {
+                cryptoWalletsData = data.wallets;
+
+                // Create a map for easy lookup
+                cryptoWallets = {};
+                data.wallets.forEach(wallet => {
+                    // Map currency names to match the select options
+                    const currencyMap = {
+                        'BTC': 'Bitcoin',
+                        'ETH': 'Ethereum',
+                        'USDT': 'Tether',
+                        'USDC': 'USD Coin'
+                    };
+                    const displayName = currencyMap[wallet.currency] || wallet.currency;
+                    cryptoWallets[displayName] = {
+                        address: wallet.wallet_address,
+                        network: wallet.network,
+                        qr_code_url: wallet.qr_code_url,
+                        id: wallet.id
+                    };
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading crypto wallets:', error);
+    }
+}
+
+/**
+ * Handle crypto type selection to show wallet address with QR code
  */
 document.addEventListener('DOMContentLoaded', function() {
+    // Load crypto wallets on page load
+    loadCryptoWallets();
+
     const cryptoTypeSelect = document.getElementById('crypto-type');
     if (cryptoTypeSelect) {
-        cryptoTypeSelect.addEventListener('change', function() {
+        cryptoTypeSelect.addEventListener('change', async function() {
             const selectedCrypto = this.value;
             const walletInfo = document.getElementById('crypto-wallet-info');
             const walletAddress = document.getElementById('crypto-wallet-address');
 
             if (selectedCrypto && cryptoWallets[selectedCrypto]) {
-                walletAddress.textContent = cryptoWallets[selectedCrypto];
+                const wallet = cryptoWallets[selectedCrypto];
+                walletAddress.textContent = wallet.address;
+
+                // Display QR code
+                await displayWalletQRCode(wallet.id);
+
                 walletInfo.style.display = 'block';
             } else {
                 walletInfo.style.display = 'none';
@@ -1542,6 +1585,57 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/**
+ * Display QR code for wallet
+ */
+async function displayWalletQRCode(walletId) {
+    try {
+        // Check if QR code container exists, if not create it
+        let qrContainer = document.getElementById('crypto-qr-container');
+        if (!qrContainer) {
+            const walletInfo = document.getElementById('crypto-wallet-info');
+            qrContainer = document.createElement('div');
+            qrContainer.id = 'crypto-qr-container';
+            qrContainer.style.cssText = 'margin-top: 15px; text-align: center;';
+
+            // Insert after the copy button
+            const copyButton = walletInfo.querySelector('button');
+            copyButton.parentNode.insertBefore(qrContainer, copyButton.nextSibling);
+        }
+
+        // Show loading
+        qrContainer.innerHTML = '<p style="color: #8b93a7; font-size: 12px;">Loading QR code...</p>';
+
+        // Fetch QR code as base64
+        const response = await TED_AUTH.apiCall(`/api/crypto-wallets/${walletId}/qr/base64`, {
+            method: 'GET'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.qr_code) {
+                qrContainer.innerHTML = `
+                    <p style="color: #8b93a7; font-size: 12px; margin-bottom: 8px;">Scan QR Code to Pay:</p>
+                    <img src="${data.qr_code}"
+                         alt="Wallet QR Code"
+                         style="max-width: 200px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px; background: white;">
+                    <p style="color: #8b93a7; font-size: 11px; margin-top: 8px;">
+                        ${data.network ? `Network: ${data.network}` : ''}
+                    </p>
+                `;
+            }
+        } else {
+            qrContainer.innerHTML = '<p style="color: #ff6b6b; font-size: 12px;">Failed to load QR code</p>';
+        }
+    } catch (error) {
+        console.error('Error displaying QR code:', error);
+        const qrContainer = document.getElementById('crypto-qr-container');
+        if (qrContainer) {
+            qrContainer.innerHTML = '<p style="color: #ff6b6b; font-size: 12px;">Error loading QR code</p>';
+        }
+    }
+}
 
 /**
  * Copy crypto wallet address to clipboard
