@@ -71,17 +71,185 @@
 
 		/* AOS Animation Initialization */
 		[data-aos].aos-init {
-			pointer-events: none;
+			opacity: 0;
+			transform: translateY(50px);
+			transition-property: opacity, transform;
+			transition-duration: 800ms;
+			transition-timing-function: ease-out;
 		}
 
 		[data-aos].aos-init.aos-animate {
-			pointer-events: auto;
+			opacity: 1;
+			transform: translateY(0);
 		}
 
-		/* Ensure smooth transitions */
-		[data-aos] {
-			transition-duration: 400ms;
-			transition-timing-function: ease-in-out;
+		/* Animation variants */
+		[data-aos="fade-up"].aos-init {
+			opacity: 0;
+			transform: translateY(30px);
+		}
+
+		[data-aos="fade-up"].aos-animate {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		[data-aos="fade-up-sm"].aos-init {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+
+		[data-aos="fade-up-sm"].aos-animate {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		/* News Section Styles */
+		.news-section {
+			background: linear-gradient(180deg, rgba(248, 249, 250, 1) 0%, rgba(255, 255, 255, 1) 100%);
+		}
+
+		.news-card {
+			background: white;
+			border-radius: 12px;
+			overflow: hidden;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+			transition: transform 0.3s ease, box-shadow 0.3s ease;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.news-card:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+		}
+
+		.news-card-image {
+			position: relative;
+			width: 100%;
+			height: 200px;
+			overflow: hidden;
+		}
+
+		.news-card-image img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform 0.3s ease;
+		}
+
+		.news-card:hover .news-card-image img {
+			transform: scale(1.05);
+		}
+
+		.news-category-badge {
+			position: absolute;
+			top: 12px;
+			right: 12px;
+			padding: 4px 12px;
+			border-radius: 20px;
+			font-size: 12px;
+			font-weight: 600;
+			text-transform: uppercase;
+			color: white;
+		}
+
+		.badge-markets { background-color: #007bff; }
+		.badge-crypto { background-color: #f7931a; }
+		.badge-forex { background-color: #17a2b8; }
+		.badge-stocks { background-color: #28a745; }
+		.badge-commodities { background-color: #ffc107; }
+
+		.news-card-content {
+			padding: 20px;
+			flex-grow: 1;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.news-meta {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			color: #6c757d;
+			font-size: 12px;
+		}
+
+		.news-source {
+			font-weight: 600;
+			color: #D32F2F;
+		}
+
+		.news-date {
+			color: #adb5bd;
+		}
+
+		.news-title {
+			font-size: 18px;
+			font-weight: 600;
+			line-height: 1.4;
+			margin-bottom: 12px;
+		}
+
+		.news-title a {
+			color: #2c3e50;
+			text-decoration: none;
+			transition: color 0.3s ease;
+		}
+
+		.news-title a:hover {
+			color: #D32F2F;
+		}
+
+		.news-description {
+			color: #6c757d;
+			font-size: 14px;
+			line-height: 1.6;
+			margin-bottom: 16px;
+			flex-grow: 1;
+		}
+
+		.news-read-more {
+			color: #D32F2F;
+			font-weight: 600;
+			font-size: 14px;
+			text-decoration: none;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			transition: gap 0.3s ease;
+		}
+
+		.news-read-more:hover {
+			gap: 10px;
+			color: #B71C1C;
+		}
+
+		.news-category-btn {
+			margin: 0 4px;
+			border-radius: 20px;
+			padding: 8px 20px;
+			font-size: 14px;
+			font-weight: 500;
+			transition: all 0.3s ease;
+		}
+
+		.news-category-btn.active {
+			background-color: #D32F2F !important;
+			color: white !important;
+			border-color: #D32F2F !important;
+		}
+
+		@media (max-width: 768px) {
+			.news-category-btn {
+				margin: 4px;
+				font-size: 12px;
+				padding: 6px 16px;
+			}
+
+			.news-card-image {
+				height: 180px;
+			}
 		}
 	</style>
 
@@ -310,10 +478,10 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-12">
-					<h2 class="text-dark mb-4">Live Market Updates</h2>
+					<h2 class="text-dark mb-4" data-aos="fade-up" data-aos-delay="100">Live Market Updates</h2>
 
 					<!-- Ticker Tape Widget -->
-					<div class="tradingview-widget-container mb-6">
+					<div class="tradingview-widget-container mb-6" data-aos="fade-up" data-aos-delay="200">
 						<div class="tradingview-widget-container__widget"></div>
 						<script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
 						{
@@ -367,8 +535,8 @@
 					<!-- Candlestick Chart Display -->
 					<div class="row mt-6">
 						<div class="col-lg-12">
-							<h4 class="text-dark mb-4">Real-Time Market Chart</h4>
-							<div class="tradingview-widget-container" style="height:500px;">
+							<h4 class="text-dark mb-4" data-aos="fade-up" data-aos-delay="100">Real-Time Market Chart</h4>
+							<div class="tradingview-widget-container" style="height:500px;" data-aos="fade-up" data-aos-delay="200">
 								<div id="tradingview_live_chart" style="height:100%;"></div>
 								<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 								<script type="text/javascript">
@@ -406,9 +574,9 @@
 
 	<section class="market-overview-section bg-white py-10">
 		<div class="container">
-			<h2 class="text-dark mb-8">Market Overview</h2>
+			<h2 class="text-dark mb-8" data-aos="fade-up" data-aos-delay="100">Market Overview</h2>
 			<div class="row">
-				<div class="col-md-6">
+				<div class="col-md-6" data-aos="fade-up" data-aos-delay="150">
 					<div class="market-card">
 						<h4 class="text-primary">Rapid Market Growth</h4>
 						<p>The copy trading industry has experienced exponential growth, with platforms like TED Brokers playing a
@@ -416,7 +584,7 @@
 							2028, driven by increased retail investor participation and demand for passive income strategies.</p>
 					</div>
 				</div>
-				<div class="col-md-6">
+				<div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
 					<div class="market-card">
 						<h4 class="text-primary">User-Centric Investment Models</h4>
 						<p>TED Brokers capitalizes on a shift towards user-friendly, low-barrier investment models. Modern traders
@@ -424,7 +592,7 @@
 							making social and copy trading a preferred entry point for beginners in forex, crypto, and stock trading.</p>
 					</div>
 				</div>
-				<div class="col-md-6">
+				<div class="col-md-6" data-aos="fade-up" data-aos-delay="250">
 					<div class="market-card">
 						<h4 class="text-primary">Technology & Automation</h4>
 						<p>Automation, AI, and advanced analytics are shaping the future of copy trading. TED Brokers leverages these
@@ -432,7 +600,7 @@
 							real-time market opportunities with greater efficiency and transparency.</p>
 					</div>
 				</div>
-				<div class="col-md-6">
+				<div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
 					<div class="market-card">
 						<h4 class="text-primary">Global Adoption & Reach</h4>
 						<p>With increased internet penetration and mobile accessibility, TED Brokers is reaching new markets across
@@ -444,19 +612,19 @@
 
 			<br><br>
 			<div class="row">
-				<div class="col-md-4">
+				<div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
 					<div class="stat-card text-center">
 						<h3 class="text-primary-dark">+50%</h3>
 						<p class="">Average Annual Return</p>
 					</div>
 				</div>
-				<div class="col-md-4">
+				<div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
 					<div class="stat-card text-center">
 						<h3 class="text-primary-dark">95%</h3>
 						<p class="">Customer Satisfaction</p>
 					</div>
 				</div>
-				<div class="col-md-4">
+				<div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
 					<div class="stat-card text-center">
 						<h3 class="text-primary-dark">100K+</h3>
 						<p class="">Active Users</p>
@@ -492,30 +660,65 @@
 
 
 
+	<!-- Latest News Section -->
+	<section class="news-section py-10 bg-light">
+		<div class="container">
+			<h2 class="text-dark text-center mb-8" data-aos="fade-up" data-aos-delay="100">Latest Market News</h2>
+			<p class="text-center text-muted mb-6" data-aos="fade-up" data-aos-delay="150">Stay informed with the latest updates from global financial markets</p>
+
+			<!-- News Categories -->
+			<div class="text-center mb-6" data-aos="fade-up" data-aos-delay="200">
+				<div class="btn-group" role="group">
+					<button class="btn btn-outline-primary-dark news-category-btn active" data-category="all">All</button>
+					<button class="btn btn-outline-primary-dark news-category-btn" data-category="markets">Markets</button>
+					<button class="btn btn-outline-primary-dark news-category-btn" data-category="crypto">Crypto</button>
+					<button class="btn btn-outline-primary-dark news-category-btn" data-category="forex">Forex</button>
+					<button class="btn btn-outline-primary-dark news-category-btn" data-category="stocks">Stocks</button>
+				</div>
+			</div>
+
+			<!-- News Grid -->
+			<div id="homepage-news-container" class="row" data-aos="fade-up" data-aos-delay="250">
+				<!-- Loading state -->
+				<div class="col-12 text-center py-5">
+					<div class="spinner-border text-primary-dark" role="status">
+						<span class="visually-hidden">Loading...</span>
+					</div>
+					<p class="mt-3 text-muted">Loading latest news...</p>
+				</div>
+			</div>
+
+			<!-- View All News Button -->
+			<div class="text-center mt-6" data-aos="fade-up" data-aos-delay="300">
+				<a href="dashboard#news" class="btn btn-primary-dark px-6 py-3">View All News</a>
+			</div>
+		</div>
+	</section>
+
 	<section class="benefits-section py-10 bg-white">
 		<div class="container">
-			<h2 class="text-dark mb-8">Benefits of Copy Trading</h2>
+			<h2 class="text-dark mb-8" data-aos="fade-up" data-aos-delay="100">Benefits of Copy Trading</h2>
 			<div class="row">
-				<div class="col-md-6">
+				<div class="col-md-6" data-aos="fade-up" data-aos-delay="150">
 					<div class="benefit-card">
 						<h4 class="text-primary">Passive Income</h4>
 						<p>Earn passive income by copying successful traders without needing to actively manage your investments.</p>
 					</div>
 				</div>
-				<div class="col-md-6">
+				<div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
 					<div class="benefit-card">
 						<h4 class="text-primary">Diverse Portfolio</h4>
 						<p>Diversify your investment portfolio by following multiple traders across different markets and asset classes.
 						</p>
 					</div>
 				</div>
-				<div class="col-md-6">
+				<div class="col-md-6" data-aos="fade-up" data-aos-delay="250">
 					<div class="benefit-card">
 						<h4 class="text-primary">Expert Strategies</h4>
 						<p>Access expert trading strategies and insights from top-performing traders in the industry.</p>
 					</div>
 				</div>
-				<div class="col-md-6">
+				<div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
 					<div class="benefit-card">
 						<h4 class="text-primary">Risk Management</h4>
 						<p>Benefit from advanced risk management tools and techniques to protect your investments.</p>
@@ -528,9 +731,9 @@
 	<!-- How It Works Section -->
 	<section id="how-it-works" class="how-it-works-section py-10 bg-light">
 		<div class="container">
-			<h2 class="text-dark text-center mb-8">How Copy Trading Works</h2>
+			<h2 class="text-dark text-center mb-8" data-aos="fade-up" data-aos-delay="100">How Copy Trading Works</h2>
 			<div class="row">
-				<div class="col-md-3 text-center mb-4">
+				<div class="col-md-3 text-center mb-4" data-aos="fade-up" data-aos-delay="150">
 					<div class="step-card p-4">
 						<div class="step-number text-primary-dark mb-3">
 							<h1>1</h1>
@@ -539,7 +742,7 @@
 						<p>Sign up and complete your profile in minutes. No complicated verification process.</p>
 					</div>
 				</div>
-				<div class="col-md-3 text-center mb-4">
+				<div class="col-md-3 text-center mb-4" data-aos="fade-up" data-aos-delay="200">
 					<div class="step-card p-4">
 						<div class="step-number text-primary-dark mb-3">
 							<h1>2</h1>
@@ -548,7 +751,7 @@
 						<p>Browse our verified traders and select the ones that match your risk profile and goals.</p>
 					</div>
 				</div>
-				<div class="col-md-3 text-center mb-4">
+				<div class="col-md-3 text-center mb-4" data-aos="fade-up" data-aos-delay="250">
 					<div class="step-card p-4">
 						<div class="step-number text-primary-dark mb-3">
 							<h1>3</h1>
@@ -557,7 +760,7 @@
 						<p>Deposit funds and allocate them to your selected traders with customizable risk settings.</p>
 					</div>
 				</div>
-				<div class="col-md-3 text-center mb-4">
+				<div class="col-md-3 text-center mb-4" data-aos="fade-up" data-aos-delay="300">
 					<div class="step-card p-4">
 						<div class="step-number text-primary-dark mb-3">
 							<h1>4</h1>
@@ -573,9 +776,9 @@
 	<!-- Testimonials Section -->
 	<section class="testimonials-section py-10 bg-white">
 		<div class="container">
-			<h2 class="text-dark text-center mb-8">What Our Clients Say</h2>
+			<h2 class="text-dark text-center mb-8" data-aos="fade-up" data-aos-delay="100">What Our Clients Say</h2>
 			<div class="row">
-				<div class="col-md-4 mb-4">
+				<div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="150">
 					<div class="testimonial-card p-4 border rounded">
 						<div class="rating mb-3">
 							<span class="text-primary-dark">★★★★★</span>
@@ -587,7 +790,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="col-md-4 mb-4">
+				<div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
 					<div class="testimonial-card p-4 border rounded">
 						<div class="rating mb-3">
 							<span class="text-primary-dark">★★★★★</span>
@@ -599,7 +802,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="col-md-4 mb-4">
+				<div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="250">
 					<div class="testimonial-card p-4 border rounded">
 						<div class="rating mb-3">
 							<span class="text-primary-dark">★★★★★</span>
@@ -618,9 +821,9 @@
 	<!-- CTA Section -->
 	<section class="cta-section py-10" style="background-color: #D32F2F;">
 		<div class="container text-center">
-			<h2 class="text-white mb-4">Ready to Start Your Copy Trading Journey?</h2>
-			<p class="text-white mb-6">Join thousands of successful traders on TED Brokers today</p>
-			<div class="d-flex justify-center gap-4">
+			<h2 class="text-white mb-4" data-aos="fade-up" data-aos-delay="100">Ready to Start Your Copy Trading Journey?</h2>
+			<p class="text-white mb-6" data-aos="fade-up" data-aos-delay="150">Join thousands of successful traders on TED Brokers today</p>
+			<div class="d-flex justify-center gap-4" data-aos="fade-up" data-aos-delay="200">
 				<a href="register" class="btn btn-light btn-lg px-6 py-3">Get Started Now</a>
 				<a href="contact-us" class="btn btn-outline-light btn-lg px-6 py-3">Contact Us</a>
 			</div>
@@ -805,8 +1008,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Intersection Observer for scroll animations
 	const observerOptions = {
 		root: null,
-		rootMargin: '0px',
-		threshold: 0.1
+		rootMargin: '-50px',
+		threshold: 0.15
 	};
 
 	const observer = new IntersectionObserver((entries) => {
@@ -816,8 +1019,8 @@ document.addEventListener('DOMContentLoaded', function() {
 				setTimeout(() => {
 					entry.target.classList.add('aos-animate');
 				}, delay);
-				// Optionally unobserve after animation to improve performance
-				// observer.unobserve(entry.target);
+				// Unobserve after animation to improve performance
+				observer.unobserve(entry.target);
 			}
 		});
 	}, observerOptions);
@@ -825,6 +1028,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Observe all elements with data-aos attribute
 	document.querySelectorAll('[data-aos]').forEach(element => {
 		element.classList.add('aos-init');
+		// Remove any existing animations
+		element.classList.remove('aos-animate');
 		observer.observe(element);
 	});
 
@@ -838,5 +1043,171 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	});
+});
+</script>
+
+<!-- News Section JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	let currentNewsCategory = 'all';
+
+	// Fetch and display news on page load
+	loadHomepageNews();
+
+	// News category filter handlers
+	document.querySelectorAll('.news-category-btn').forEach(btn => {
+		btn.addEventListener('click', function() {
+			currentNewsCategory = this.getAttribute('data-category');
+
+			// Update active button
+			document.querySelectorAll('.news-category-btn').forEach(b => b.classList.remove('active'));
+			this.classList.add('active');
+
+			// Reload news
+			loadHomepageNews();
+		});
+	});
+
+	/**
+	 * Fetch and display news articles
+	 */
+	async function loadHomepageNews() {
+		const container = document.getElementById('homepage-news-container');
+
+		try {
+			// Show loading state
+			container.innerHTML = `
+				<div class="col-12 text-center py-5">
+					<div class="spinner-border text-primary-dark" role="status">
+						<span class="visually-hidden">Loading...</span>
+					</div>
+					<p class="mt-3 text-muted">Loading latest news...</p>
+				</div>
+			`;
+
+			// Fetch news from API
+			const response = await fetch('/api/news/articles?category=' + currentNewsCategory);
+			const data = await response.json();
+
+			if (data.success && data.articles && data.articles.length > 0) {
+				// Display only first 6 articles for homepage
+				displayNewsArticles(data.articles.slice(0, 6));
+			} else {
+				throw new Error('No articles found');
+			}
+
+		} catch (error) {
+			console.error('Error loading news:', error);
+			container.innerHTML = `
+				<div class="col-12 text-center py-5">
+					<p class="text-muted">Unable to load news at this time. Please try again later.</p>
+				</div>
+			`;
+		}
+	}
+
+	/**
+	 * Display news articles in grid
+	 */
+	function displayNewsArticles(articles) {
+		const container = document.getElementById('homepage-news-container');
+
+		if (!articles || articles.length === 0) {
+			container.innerHTML = `
+				<div class="col-12 text-center py-5">
+					<p class="text-muted">No news articles available for this category.</p>
+				</div>
+			`;
+			return;
+		}
+
+		container.innerHTML = articles.map(article => `
+			<div class="col-md-6 col-lg-4 mb-4">
+				<div class="news-card h-100">
+					<div class="news-card-image">
+						<img src="${article.imageUrl || 'https://via.placeholder.com/400x200?text=News'}"
+							 alt="${escapeHtml(article.title)}"
+							 onerror="this.src='https://via.placeholder.com/400x200?text=News'">
+						<span class="news-category-badge badge-${article.category || 'markets'}">
+							${formatCategory(article.category)}
+						</span>
+					</div>
+					<div class="news-card-content">
+						<div class="news-meta mb-2">
+							<span class="news-source">${escapeHtml(article.source)}</span>
+							<span class="news-date">${formatNewsDate(article.publishedAt)}</span>
+						</div>
+						<h5 class="news-title mb-2">
+							<a href="${article.url}" target="_blank" rel="noopener noreferrer">
+								${escapeHtml(article.title)}
+							</a>
+						</h5>
+						<p class="news-description">
+							${escapeHtml(truncateText(article.description, 120))}
+						</p>
+						<a href="${article.url}" target="_blank" rel="noopener noreferrer" class="news-read-more">
+							Read More <i class="fas fa-arrow-right"></i>
+						</a>
+					</div>
+				</div>
+			</div>
+		`).join('');
+	}
+
+	/**
+	 * Format category name
+	 */
+	function formatCategory(category) {
+		const categoryMap = {
+			'markets': 'Markets',
+			'crypto': 'Crypto',
+			'forex': 'Forex',
+			'stocks': 'Stocks',
+			'commodities': 'Commodities'
+		};
+		return categoryMap[category] || 'News';
+	}
+
+	/**
+	 * Format news date to relative time
+	 */
+	function formatNewsDate(dateString) {
+		try {
+			const date = new Date(dateString);
+			const now = new Date();
+			const diffMs = now - date;
+			const diffMins = Math.floor(diffMs / 60000);
+			const diffHours = Math.floor(diffMs / 3600000);
+			const diffDays = Math.floor(diffMs / 86400000);
+
+			if (diffMins < 1) return 'Just now';
+			if (diffMins < 60) return `${diffMins}m ago`;
+			if (diffHours < 24) return `${diffHours}h ago`;
+			if (diffDays < 7) return `${diffDays}d ago`;
+
+			return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+		} catch (e) {
+			return 'Recently';
+		}
+	}
+
+	/**
+	 * Truncate text to specified length
+	 */
+	function truncateText(text, maxLength) {
+		if (!text) return '';
+		if (text.length <= maxLength) return text;
+		return text.substring(0, maxLength).trim() + '...';
+	}
+
+	/**
+	 * Escape HTML to prevent XSS
+	 */
+	function escapeHtml(text) {
+		if (!text) return '';
+		const div = document.createElement('div');
+		div.textContent = text;
+		return div.innerHTML;
+	}
 });
 </script>
