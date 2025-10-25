@@ -206,16 +206,16 @@ async function deactivateUser(userId) {
 async function loadTraders() {
     const container = document.getElementById('traders-container');
     container.innerHTML = 'Loading...';
-    
+
     try {
-        const response = await adminFetch('/api/traders/');
+        const response = await adminFetch('/api/admin/traders');
         const traders = await response.json();
-        
+
         if (traders.length === 0) {
             container.innerHTML = '<p>No traders found. <button class="btn btn-primary" onclick="showAddTraderModal()">Add First Trader</button></p>';
             return;
         }
-        
+
         let html = '<div style="display: grid; gap: 20px;">';
         traders.forEach(trader => {
             html += `
@@ -224,7 +224,11 @@ async function loadTraders() {
                     <p>${trader.description}</p>
                     <p><strong>Specialization:</strong> ${trader.specialization}</p>
                     <p><strong>YTD Return:</strong> ${trader.ytd_return}% | <strong>Win Rate:</strong> ${trader.win_rate}%</p>
-                    <button class="btn btn-secondary" onclick="deleteTrader('${trader.id}')">Delete</button>
+                    <p><strong>Copiers:</strong> ${trader.copiers || 0}</p>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-primary" style="padding: 8px 16px;" onclick="showEditTraderModal('${trader.id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deleteTrader('${trader.id}')">Delete</button>
+                    </div>
                 </div>
             `;
         });
@@ -289,16 +293,94 @@ async function handleAddTraderSubmit(e) {
     }
 }
 
+// Show edit trader modal
+async function showEditTraderModal(traderId) {
+    try {
+        // Fetch trader details
+        const response = await adminFetch(`/api/admin/traders/${traderId}`);
+        const trader = await response.json();
+
+        // Populate form fields
+        document.getElementById('edit-trader-id').value = trader.id;
+        document.getElementById('edit-trader-full-name').value = trader.full_name;
+        document.getElementById('edit-trader-profile-photo').value = trader.profile_photo;
+        document.getElementById('edit-trader-description').value = trader.description;
+        document.getElementById('edit-trader-specialization').value = trader.specialization;
+        document.getElementById('edit-trader-ytd-return').value = trader.ytd_return;
+        document.getElementById('edit-trader-win-rate').value = trader.win_rate;
+        document.getElementById('edit-trader-copiers').value = trader.copiers || 0;
+
+        // Show modal
+        const modal = document.getElementById('edit-trader-modal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    } catch (error) {
+        alert('Error loading trader details');
+        console.error(error);
+    }
+}
+
+// Hide edit trader modal
+function hideEditTraderModal() {
+    const modal = document.getElementById('edit-trader-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('edit-trader-form').reset();
+    }
+}
+
+// Submit edited trader
+async function submitEditedTrader(event) {
+    event.preventDefault();
+
+    const traderId = document.getElementById('edit-trader-id').value;
+    const traderData = {
+        full_name: document.getElementById('edit-trader-full-name').value,
+        profile_photo: document.getElementById('edit-trader-profile-photo').value,
+        description: document.getElementById('edit-trader-description').value,
+        specialization: document.getElementById('edit-trader-specialization').value,
+        ytd_return: parseFloat(document.getElementById('edit-trader-ytd-return').value),
+        win_rate: parseFloat(document.getElementById('edit-trader-win-rate').value),
+        copiers: parseInt(document.getElementById('edit-trader-copiers').value) || 0
+    };
+
+    try {
+        const response = await adminFetch(`/api/admin/traders/${traderId}`, {
+            method: 'PUT',
+            body: JSON.stringify(traderData)
+        });
+
+        if (response.ok) {
+            alert('Trader updated successfully!');
+            hideEditTraderModal();
+            loadTraders();
+        } else {
+            const error = await response.json();
+            alert(`Error: ${error.detail || 'Failed to update trader'}`);
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
 // Delete trader
 async function deleteTrader(traderId) {
-    if (!confirm('Delete this trader?')) return;
-    
+    if (!confirm('Are you sure you want to delete this trader? This action cannot be undone.')) return;
+
     try {
-        await adminFetch(`/api/traders/${traderId}`, { method: 'DELETE' });
-        alert('Trader deleted');
-        loadTraders();
+        const response = await adminFetch(`/api/admin/traders/${traderId}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Trader deleted successfully');
+            loadTraders();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to delete trader'));
+        }
     } catch (error) {
-        alert('Error deleting trader');
+        alert('Network error. Please try again.');
+        console.error(error);
     }
 }
 
