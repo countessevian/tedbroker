@@ -68,6 +68,21 @@
 		.text-center {
 			text-align: center;
 		}
+
+		/* AOS Animation Initialization */
+		[data-aos].aos-init {
+			pointer-events: none;
+		}
+
+		[data-aos].aos-init.aos-animate {
+			pointer-events: auto;
+		}
+
+		/* Ensure smooth transitions */
+		[data-aos] {
+			transition-duration: 400ms;
+			transition-timing-function: ease-in-out;
+		}
 	</style>
 
 				<link rel="stylesheet"
@@ -787,8 +802,31 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Initial update
 	updateParallax();
 
-	// Intersection Observer animations disabled
-	// All content is now visible by default with only parallax scrolling active
+	// Intersection Observer for scroll animations
+	const observerOptions = {
+		root: null,
+		rootMargin: '0px',
+		threshold: 0.1
+	};
+
+	const observer = new IntersectionObserver((entries) => {
+		entries.forEach(entry => {
+			if (entry.isIntersecting) {
+				const delay = entry.target.getAttribute('data-aos-delay') || 0;
+				setTimeout(() => {
+					entry.target.classList.add('aos-animate');
+				}, delay);
+				// Optionally unobserve after animation to improve performance
+				// observer.unobserve(entry.target);
+			}
+		});
+	}, observerOptions);
+
+	// Observe all elements with data-aos attribute
+	document.querySelectorAll('[data-aos]').forEach(element => {
+		element.classList.add('aos-init');
+		observer.observe(element);
+	});
 
 	// Smooth scroll for anchor links
 	document.querySelectorAll('a[href^="#"]').forEach(anchor => {
