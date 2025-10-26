@@ -84,6 +84,12 @@ function switchTab(tab) {
     if (tab === 'deposits') loadDepositRequests();
     if (tab === 'bank-accounts') loadBankAccounts();
     if (tab === 'crypto-wallets') loadCryptoWallets();
+    if (tab === 'chats') {
+        // Initialize chat manager if not already initialized
+        if (typeof adminChatManager !== 'undefined') {
+            adminChatManager.init();
+        }
+    }
 }
 
 // Load dashboard statistics

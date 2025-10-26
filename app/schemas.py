@@ -352,3 +352,169 @@ class PortfolioSummary(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class BankAccountCreate(BaseModel):
+    """Schema for creating a withdrawal bank account"""
+    account_name: str = Field(..., min_length=1, max_length=100, description="Account holder name")
+    account_number: str = Field(..., min_length=1, max_length=50, description="Bank account number")
+    bank_name: str = Field(..., min_length=1, max_length=100, description="Bank name")
+    bank_branch: Optional[str] = Field(None, max_length=100, description="Bank branch")
+    swift_code: Optional[str] = Field(None, max_length=20, description="SWIFT/BIC code")
+    routing_number: Optional[str] = Field(None, max_length=20, description="Routing number")
+    iban: Optional[str] = Field(None, max_length=50, description="IBAN")
+    bank_address: Optional[str] = Field(None, max_length=200, description="Bank address")
+    account_type: Optional[str] = Field(None, max_length=20, description="Account type (savings/checking)")
+
+    @field_validator('account_type')
+    @classmethod
+    def validate_account_type(cls, v):
+        if v and v not in ['savings', 'checking']:
+            raise ValueError('Account type must be either "savings" or "checking"')
+        return v
+
+
+class BankAccountResponse(BaseModel):
+    """Schema for bank account response"""
+    id: str
+    user_id: str
+    account_name: str
+    account_number: str
+    bank_name: str
+    bank_branch: Optional[str]
+    swift_code: Optional[str]
+    routing_number: Optional[str]
+    iban: Optional[str]
+    bank_address: Optional[str]
+    account_type: Optional[str]
+    is_primary: bool
+    is_verified: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CryptoWithdrawalAddressCreate(BaseModel):
+    """Schema for creating a crypto withdrawal address"""
+    currency: str = Field(..., min_length=2, max_length=10, description="Cryptocurrency code (e.g., BTC, ETH, USDT)")
+    wallet_address: str = Field(..., min_length=10, max_length=100, description="Cryptocurrency wallet address")
+    network: Optional[str] = Field(None, max_length=50, description="Network (e.g., ERC20, TRC20, BEP20)")
+    label: Optional[str] = Field(None, max_length=50, description="Custom label for the address")
+
+    @field_validator('currency')
+    @classmethod
+    def validate_currency(cls, v):
+        # Common cryptocurrencies
+        allowed_currencies = ['BTC', 'ETH', 'USDT', 'USDC', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE', 'TRX']
+        if v.upper() not in allowed_currencies:
+            raise ValueError(f'Currency must be one of: {", ".join(allowed_currencies)}')
+        return v.upper()
+
+
+class CryptoWithdrawalAddressResponse(BaseModel):
+    """Schema for crypto withdrawal address response"""
+    id: str
+    user_id: str
+    currency: str
+    wallet_address: str
+    network: Optional[str]
+    label: Optional[str]
+    is_primary: bool
+    is_verified: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class WithdrawalRequest(BaseModel):
+    """Schema for creating a withdrawal request"""
+    amount: float = Field(..., gt=0, description="Withdrawal amount in USD")
+    withdrawal_method: str = Field(..., description="Withdrawal method: 'bank' or 'crypto'")
+    account_id: str = Field(..., description="ID of the withdrawal account (bank account or crypto address)")
+    notes: Optional[str] = Field(None, max_length=500, description="Additional notes")
+
+    @field_validator('withdrawal_method')
+    @classmethod
+    def validate_withdrawal_method(cls, v):
+        if v not in ['bank', 'crypto']:
+            raise ValueError('Withdrawal method must be either "bank" or "crypto"')
+        return v
+
+
+class WithdrawalRequestResponse(BaseModel):
+    """Schema for withdrawal request response"""
+    id: str
+    user_id: str
+    username: str
+    email: str
+    amount: float
+    withdrawal_method: str
+    account_id: str
+    account_details: dict
+    notes: Optional[str]
+    status: str  # pending, approved, rejected, processing, completed
+    created_at: datetime
+    updated_at: datetime
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ChatMessageCreate(BaseModel):
+    """Schema for creating a chat message"""
+    message: str = Field(..., min_length=1, max_length=2000, description="Message content")
+    conversation_id: Optional[str] = Field(None, description="Conversation ID (optional for first message)")
+
+
+class ChatMessageResponse(BaseModel):
+    """Schema for chat message response"""
+    id: str
+    conversation_id: str
+    sender_id: str
+    sender_type: str  # "user" or "admin"
+    sender_name: str
+    message: str
+    is_read: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ChatConversationResponse(BaseModel):
+    """Schema for chat conversation response"""
+    id: str
+    user_id: str
+    user_name: str
+    user_email: str
+    status: str  # "active", "closed"
+    unread_count: int
+    last_message: Optional[str]
+    last_message_time: Optional[datetime]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ChatConversationDetail(BaseModel):
+    """Schema for detailed chat conversation with messages"""
+    id: str
+    user_id: str
+    user_name: str
+    user_email: str
+    status: str
+    messages: List[ChatMessageResponse]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
