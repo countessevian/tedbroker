@@ -6,7 +6,7 @@ from bson import ObjectId
 
 from app.admin_service import admin_service
 from app.auth import create_access_token, get_current_user_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, TRANSACTIONS_COLLECTION, CRYPTO_WALLETS_COLLECTION, BANK_ACCOUNTS_COLLECTION
+from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, TRANSACTIONS_COLLECTION, CRYPTO_WALLETS_COLLECTION, BANK_ACCOUNTS_COLLECTION, USER_BANK_ACCOUNTS_COLLECTION, USER_CRYPTO_ADDRESSES_COLLECTION, WITHDRAWAL_REQUESTS_COLLECTION, CHAT_CONVERSATIONS_COLLECTION, CHAT_MESSAGES_COLLECTION
 from app.schemas import Token, Trade
 import secrets
 
@@ -1408,3 +1408,722 @@ async def delete_bank_account(
         )
 
     return {"message": "Bank account deleted successfully"}
+
+
+# ============================================================
+# WITHDRAWAL REQUESTS MANAGEMENT
+# ============================================================
+
+@router.get("/withdrawal-requests")
+async def get_all_withdrawal_requests(
+    current_admin: dict = Depends(get_current_admin),
+    status_filter: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0
+):
+    """
+    Get all withdrawal requests (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+        status_filter: Filter by status (pending, approved, rejected, processing, completed)
+        limit: Maximum number of requests to return
+        offset: Number of requests to skip
+
+    Returns:
+        dict: Withdrawal requests list and count
+    """
+    withdrawal_requests = get_collection(WITHDRAWAL_REQUESTS_COLLECTION)
+
+    # Build query
+    query = {}
+    if status_filter:
+        query["status"] = status_filter
+
+    # Get total count
+    total_count = withdrawal_requests.count_documents(query)
+
+    # Get requests
+    cursor = withdrawal_requests.find(query).sort("created_at", -1).skip(offset).limit(limit)
+
+    requests_list = []
+    for req in cursor:
+        requests_list.append({
+            "id": str(req["_id"]),
+            "user_id": req["user_id"],
+            "username": req.get("username", ""),
+            "email": req.get("email", ""),
+            "amount": req["amount"],
+            "withdrawal_method": req["withdrawal_method"],
+            "account_details": req["account_details"],
+            "notes": req.get("notes"),
+            "status": req["status"],
+            "created_at": req["created_at"].isoformat(),
+            "updated_at": req["updated_at"].isoformat(),
+            "reviewed_by": req.get("reviewed_by"),
+            "reviewed_at": req["reviewed_at"].isoformat() if req.get("reviewed_at") else None,
+            "completed_at": req["completed_at"].isoformat() if req.get("completed_at") else None
+        })
+
+    return {
+        "requests": requests_list,
+        "total": total_count,
+        "limit": limit,
+        "offset": offset
+    }
+
+
+@router.put("/withdrawal-requests/{request_id}/approve")
+async def approve_withdrawal_request(
+    request_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Approve a withdrawal request and deduct from user wallet
+
+    Args:
+        request_id: Withdrawal request ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    withdrawal_requests = get_collection(WITHDRAWAL_REQUESTS_COLLECTION)
+    users = get_collection(USERS_COLLECTION)
+    transactions = get_collection(TRANSACTIONS_COLLECTION)
+
+    # Get withdrawal request
+    try:
+        withdrawal_request = withdrawal_requests.find_one({"_id": ObjectId(request_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid request ID"
+        )
+
+    if not withdrawal_request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Withdrawal request not found"
+        )
+
+    if withdrawal_request["status"] != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Request already {withdrawal_request['status']}"
+        )
+
+    # Get user and verify balance
+    user_id = withdrawal_request["user_id"]
+    amount = withdrawal_request["amount"]
+
+    try:
+        user = users.find_one({"_id": ObjectId(user_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID"
+        )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    current_balance = user.get("wallet_balance", 0.0)
+    if current_balance < amount:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Insufficient user balance. Current: ${current_balance:.2f}, Requested: ${amount:.2f}"
+        )
+
+    # Deduct from user wallet balance
+    users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$inc": {"wallet_balance": -amount}}
+    )
+
+    # Create transaction record
+    transaction = {
+        "user_id": user_id,
+        "transaction_type": "withdrawal",
+        "amount": amount,
+        "status": "completed",
+        "payment_method": withdrawal_request["withdrawal_method"],
+        "reference_number": secrets.token_hex(16),
+        "description": f"Withdrawal approved by admin - {withdrawal_request['withdrawal_method']}",
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    transactions.insert_one(transaction)
+
+    # Update withdrawal request status
+    withdrawal_requests.update_one(
+        {"_id": ObjectId(request_id)},
+        {
+            "$set": {
+                "status": "completed",
+                "reviewed_by": current_admin["user_id"],
+                "reviewed_at": datetime.utcnow(),
+                "completed_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "message": "Withdrawal request approved and completed successfully",
+        "amount": amount,
+        "user_id": user_id
+    }
+
+
+@router.put("/withdrawal-requests/{request_id}/reject")
+async def reject_withdrawal_request(
+    request_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Reject a withdrawal request
+
+    Args:
+        request_id: Withdrawal request ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    withdrawal_requests = get_collection(WITHDRAWAL_REQUESTS_COLLECTION)
+
+    # Get withdrawal request
+    try:
+        withdrawal_request = withdrawal_requests.find_one({"_id": ObjectId(request_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid request ID"
+        )
+
+    if not withdrawal_request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Withdrawal request not found"
+        )
+
+    if withdrawal_request["status"] != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Request already {withdrawal_request['status']}"
+        )
+
+    # Update withdrawal request status
+    result = withdrawal_requests.update_one(
+        {"_id": ObjectId(request_id)},
+        {
+            "$set": {
+                "status": "rejected",
+                "reviewed_by": current_admin["user_id"],
+                "reviewed_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "message": "Withdrawal request rejected successfully",
+        "request_id": request_id
+    }
+
+
+# ============================================================
+# USER WITHDRAWAL ACCOUNTS VERIFICATION
+# ============================================================
+
+@router.get("/user-bank-accounts")
+async def get_all_user_bank_accounts(
+    current_admin: dict = Depends(get_current_admin),
+    verified_only: bool = False
+):
+    """
+    Get all user bank accounts for verification
+
+    Args:
+        current_admin: Current authenticated admin
+        verified_only: Only return verified accounts
+
+    Returns:
+        list: User bank accounts
+    """
+    bank_accounts = get_collection(USER_BANK_ACCOUNTS_COLLECTION)
+
+    query = {}
+    if verified_only:
+        query["is_verified"] = True
+
+    accounts = list(bank_accounts.find(query).sort("created_at", -1))
+
+    return [
+        {
+            "id": str(acc["_id"]),
+            "user_id": acc["user_id"],
+            "account_name": acc["account_name"],
+            "account_number": acc["account_number"],
+            "bank_name": acc["bank_name"],
+            "bank_branch": acc.get("bank_branch"),
+            "swift_code": acc.get("swift_code"),
+            "iban": acc.get("iban"),
+            "is_primary": acc["is_primary"],
+            "is_verified": acc["is_verified"],
+            "created_at": acc["created_at"].isoformat()
+        }
+        for acc in accounts
+    ]
+
+
+@router.put("/user-bank-accounts/{account_id}/verify")
+async def verify_user_bank_account(
+    account_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Verify a user's bank account
+
+    Args:
+        account_id: Bank account ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    bank_accounts = get_collection(USER_BANK_ACCOUNTS_COLLECTION)
+
+    try:
+        result = bank_accounts.update_one(
+            {"_id": ObjectId(account_id)},
+            {"$set": {"is_verified": True, "updated_at": datetime.utcnow()}}
+        )
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid account ID"
+        )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bank account not found"
+        )
+
+    return {"message": "Bank account verified successfully"}
+
+
+@router.get("/user-crypto-addresses")
+async def get_all_user_crypto_addresses(
+    current_admin: dict = Depends(get_current_admin),
+    verified_only: bool = False
+):
+    """
+    Get all user crypto addresses for verification
+
+    Args:
+        current_admin: Current authenticated admin
+        verified_only: Only return verified addresses
+
+    Returns:
+        list: User crypto addresses
+    """
+    crypto_addresses = get_collection(USER_CRYPTO_ADDRESSES_COLLECTION)
+
+    query = {}
+    if verified_only:
+        query["is_verified"] = True
+
+    addresses = list(crypto_addresses.find(query).sort("created_at", -1))
+
+    return [
+        {
+            "id": str(addr["_id"]),
+            "user_id": addr["user_id"],
+            "currency": addr["currency"],
+            "wallet_address": addr["wallet_address"],
+            "network": addr.get("network"),
+            "label": addr.get("label"),
+            "is_primary": addr["is_primary"],
+            "is_verified": addr["is_verified"],
+            "created_at": addr["created_at"].isoformat()
+        }
+        for addr in addresses
+    ]
+
+
+@router.put("/user-crypto-addresses/{address_id}/verify")
+async def verify_user_crypto_address(
+    address_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Verify a user's crypto address
+
+    Args:
+        address_id: Crypto address ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    crypto_addresses = get_collection(USER_CRYPTO_ADDRESSES_COLLECTION)
+
+    try:
+        result = crypto_addresses.update_one(
+            {"_id": ObjectId(address_id)},
+            {"$set": {"is_verified": True, "updated_at": datetime.utcnow()}}
+        )
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid address ID"
+        )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Crypto address not found"
+        )
+
+    return {"message": "Crypto address verified successfully"}
+
+
+# ============================================================
+# CHAT SUPPORT MANAGEMENT
+# ============================================================
+
+@router.get("/chat/conversations")
+async def get_all_chat_conversations(
+    current_admin: dict = Depends(get_current_admin),
+    status_filter: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    """
+    Get all chat conversations (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+        status_filter: Filter by status (active, closed)
+        limit: Maximum number of conversations to return
+        offset: Number of conversations to skip
+
+    Returns:
+        dict: Conversations list and count
+    """
+    conversations = get_collection(CHAT_CONVERSATIONS_COLLECTION)
+
+    # Build query
+    query = {}
+    if status_filter:
+        query["status"] = status_filter
+
+    # Get total count
+    total_count = conversations.count_documents(query)
+
+    # Get conversations
+    cursor = conversations.find(query).sort("updated_at", -1).skip(offset).limit(limit)
+
+    conversations_list = []
+    for conv in cursor:
+        conversations_list.append({
+            "id": str(conv["_id"]),
+            "user_id": conv["user_id"],
+            "user_name": conv["user_name"],
+            "user_email": conv["user_email"],
+            "status": conv["status"],
+            "unread_count": conv.get("unread_admin_count", 0),
+            "last_message": conv.get("last_message"),
+            "last_message_time": conv["last_message_time"].isoformat() if conv.get("last_message_time") else None,
+            "created_at": conv["created_at"].isoformat(),
+            "updated_at": conv["updated_at"].isoformat()
+        })
+
+    return {
+        "conversations": conversations_list,
+        "total": total_count,
+        "limit": limit,
+        "offset": offset
+    }
+
+
+@router.get("/chat/conversations/{conversation_id}")
+async def get_conversation_detail(
+    conversation_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get detailed conversation with all messages
+
+    Args:
+        conversation_id: Conversation ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Conversation details with messages
+    """
+    conversations = get_collection(CHAT_CONVERSATIONS_COLLECTION)
+    messages = get_collection(CHAT_MESSAGES_COLLECTION)
+
+    # Get conversation
+    try:
+        conversation = conversations.find_one({"_id": ObjectId(conversation_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid conversation ID"
+        )
+
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversation not found"
+        )
+
+    # Get all messages
+    message_list = list(messages.find(
+        {"conversation_id": conversation_id}
+    ).sort("created_at", 1))
+
+    # Mark user messages as read by admin
+    messages.update_many(
+        {
+            "conversation_id": conversation_id,
+            "sender_type": "user",
+            "is_read": False
+        },
+        {"$set": {"is_read": True}}
+    )
+
+    # Reset unread count for admin
+    conversations.update_one(
+        {"_id": ObjectId(conversation_id)},
+        {"$set": {"unread_admin_count": 0}}
+    )
+
+    return {
+        "id": str(conversation["_id"]),
+        "user_id": conversation["user_id"],
+        "user_name": conversation["user_name"],
+        "user_email": conversation["user_email"],
+        "status": conversation["status"],
+        "created_at": conversation["created_at"].isoformat(),
+        "updated_at": conversation["updated_at"].isoformat(),
+        "messages": [
+            {
+                "id": str(msg["_id"]),
+                "conversation_id": msg["conversation_id"],
+                "sender_id": msg["sender_id"],
+                "sender_type": msg["sender_type"],
+                "sender_name": msg["sender_name"],
+                "message": msg["message"],
+                "is_read": msg["is_read"],
+                "created_at": msg["created_at"].isoformat()
+            }
+            for msg in message_list
+        ]
+    }
+
+
+@router.post("/chat/conversations/{conversation_id}/reply")
+async def reply_to_conversation(
+    conversation_id: str,
+    message: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Send a reply to a conversation
+
+    Args:
+        conversation_id: Conversation ID
+        message: Message content
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Created message
+    """
+    conversations = get_collection(CHAT_CONVERSATIONS_COLLECTION)
+    messages_col = get_collection(CHAT_MESSAGES_COLLECTION)
+
+    # Get conversation
+    try:
+        conversation = conversations.find_one({"_id": ObjectId(conversation_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid conversation ID"
+        )
+
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversation not found"
+        )
+
+    # Get admin details
+    admin = admin_service.get_admin_by_id(current_admin["user_id"])
+    if not admin:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Admin not found"
+        )
+
+    # Create message
+    new_message = {
+        "conversation_id": conversation_id,
+        "sender_id": current_admin["user_id"],
+        "sender_type": "admin",
+        "sender_name": admin.get("full_name", "Support Team"),
+        "message": message,
+        "is_read": False,
+        "created_at": datetime.utcnow()
+    }
+
+    result = messages_col.insert_one(new_message)
+    new_message["_id"] = result.inserted_id
+
+    # Update conversation
+    conversations.update_one(
+        {"_id": ObjectId(conversation_id)},
+        {
+            "$set": {
+                "last_message": message[:100],
+                "last_message_time": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+                "status": "active"  # Reopen if closed
+            },
+            "$inc": {"unread_user_count": 1}
+        }
+    )
+
+    return {
+        "id": str(new_message["_id"]),
+        "conversation_id": new_message["conversation_id"],
+        "sender_id": new_message["sender_id"],
+        "sender_type": new_message["sender_type"],
+        "sender_name": new_message["sender_name"],
+        "message": new_message["message"],
+        "is_read": new_message["is_read"],
+        "created_at": new_message["created_at"].isoformat()
+    }
+
+
+@router.put("/chat/conversations/{conversation_id}/close")
+async def close_conversation(
+    conversation_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Close a conversation
+
+    Args:
+        conversation_id: Conversation ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    conversations = get_collection(CHAT_CONVERSATIONS_COLLECTION)
+
+    try:
+        result = conversations.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {
+                "$set": {
+                    "status": "closed",
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid conversation ID"
+        )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversation not found"
+        )
+
+    return {"message": "Conversation closed successfully"}
+
+
+@router.post("/chat/conversations/{conversation_id}/mark-read")
+async def mark_conversation_read(
+    conversation_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Mark a conversation as read by admin
+
+    Args:
+        conversation_id: Conversation ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    conversations = get_collection(CHAT_CONVERSATIONS_COLLECTION)
+    messages = get_collection(CHAT_MESSAGES_COLLECTION)
+
+    try:
+        # Mark user messages as read by admin
+        messages.update_many(
+            {
+                "conversation_id": conversation_id,
+                "sender_type": "user",
+                "is_read": False
+            },
+            {"$set": {"is_read": True}}
+        )
+
+        # Reset unread count for admin
+        result = conversations.update_one(
+            {"_id": ObjectId(conversation_id)},
+            {"$set": {"unread_admin_count": 0}}
+        )
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid conversation ID"
+        )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversation not found"
+        )
+
+    return {"message": "Conversation marked as read"}
+
+
+@router.get("/chat/unread-count")
+async def get_admin_unread_count(current_admin: dict = Depends(get_current_admin)):
+    """
+    Get total count of unread messages across all conversations
+
+    Args:
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Unread count
+    """
+    conversations = get_collection(CHAT_CONVERSATIONS_COLLECTION)
+
+    pipeline = [
+        {"$match": {"status": "active"}},
+        {"$group": {"_id": None, "total": {"$sum": "$unread_admin_count"}}}
+    ]
+
+    result = list(conversations.aggregate(pipeline))
+    total_unread = result[0]["total"] if result else 0
+
+    return {"unread_count": total_unread}
