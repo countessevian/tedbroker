@@ -7,7 +7,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.database import connect_to_mongo, close_mongo_connection
-from app.routes import auth, traders, plans, wallet, referrals, admin, deposits, investments, news, crypto_wallets, withdrawals, chat
+from app.routes import auth, traders, plans, wallet, referrals, admin, deposits, investments, news, crypto_wallets, withdrawals, chat, onboarding
 from app.rate_limiter import limiter
 
 app = FastAPI(
@@ -53,6 +53,8 @@ app.include_router(crypto_wallets.router)
 app.include_router(withdrawals.router)
 # Include chat routes
 app.include_router(chat.router)
+# Include onboarding routes
+app.include_router(onboarding.router)
 
 
 @app.on_event("startup")
@@ -83,6 +85,9 @@ if (SITE_DIR / "assets").exists():
 
 if (SITE_DIR / "temp").exists():
     app.mount("/temp", StaticFiles(directory=str(SITE_DIR / "temp")), name="temp")
+
+if (SITE_DIR / "uploads").exists():
+    app.mount("/uploads", StaticFiles(directory=str(SITE_DIR / "uploads")), name="uploads")
 
 # Handle translate.google.com assets
 if (SITE_DIR / "translate.google.com").exists():
@@ -186,6 +191,13 @@ async def forgot_password():
 async def verify_2fa_page():
     """Serve the 2FA verification page"""
     return read_html_file(SITE_DIR / "verify-2fa.html")
+
+
+@app.get("/onboarding", response_class=HTMLResponse)
+@app.get("/onboarding.html", response_class=HTMLResponse)
+async def onboarding_page():
+    """Serve the onboarding wizard page"""
+    return read_html_file(SITE_DIR / "onboarding.html")
 
 
 @app.get("/privacy-policy", response_class=HTMLResponse)
