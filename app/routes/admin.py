@@ -1931,10 +1931,15 @@ async def get_conversation_detail(
     }
 
 
+class AdminMessageReply(BaseModel):
+    """Schema for admin message reply"""
+    message: str = Field(..., min_length=1, max_length=2000)
+
+
 @router.post("/chat/conversations/{conversation_id}/reply")
 async def reply_to_conversation(
     conversation_id: str,
-    message: str,
+    reply_data: AdminMessageReply,
     current_admin: dict = Depends(get_current_admin)
 ):
     """
@@ -1942,7 +1947,7 @@ async def reply_to_conversation(
 
     Args:
         conversation_id: Conversation ID
-        message: Message content
+        reply_data: Reply message data
         current_admin: Current authenticated admin
 
     Returns:
@@ -1980,7 +1985,7 @@ async def reply_to_conversation(
         "sender_id": current_admin["user_id"],
         "sender_type": "admin",
         "sender_name": admin.get("full_name", "Support Team"),
-        "message": message,
+        "message": reply_data.message,
         "is_read": False,
         "created_at": datetime.utcnow()
     }
@@ -1993,7 +1998,7 @@ async def reply_to_conversation(
         {"_id": ObjectId(conversation_id)},
         {
             "$set": {
-                "last_message": message[:100],
+                "last_message": reply_data.message[:100],
                 "last_message_time": datetime.utcnow(),
                 "updated_at": datetime.utcnow(),
                 "status": "active"  # Reopen if closed
