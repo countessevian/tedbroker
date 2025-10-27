@@ -29,8 +29,8 @@ class ChatWidget {
             }
 
             .chat-bubble {
-                width: 60px;
-                height: 60px;
+                width: 70px;
+                height: 70px;
                 background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
                 border-radius: 50%;
                 display: flex;
@@ -48,14 +48,14 @@ class ChatWidget {
             }
 
             .chat-bubble svg {
-                width: 28px;
-                height: 28px;
+                width: 32px;
+                height: 32px;
                 fill: white;
             }
 
             .chat-bubble-text {
                 position: absolute;
-                bottom: 70px;
+                bottom: 80px;
                 right: 0;
                 background: #1f2937;
                 color: white;
