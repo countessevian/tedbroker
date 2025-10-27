@@ -518,3 +518,39 @@ class ChatConversationDetail(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class OnboardingPersonalInfo(BaseModel):
+    """Schema for onboarding personal information step"""
+    first_name: str = Field(..., min_length=1, max_length=50, description="First name")
+    last_name: str = Field(..., min_length=1, max_length=50, description="Last name")
+    gender: str = Field(..., description="Gender: Male, Female, or Others")
+
+    @field_validator('gender')
+    @classmethod
+    def validate_gender(cls, v):
+        if v not in ['Male', 'Female', 'Others']:
+            raise ValueError('Gender must be Male, Female, or Others')
+        return v
+
+
+class OnboardingAddress(BaseModel):
+    """Schema for onboarding address step"""
+    street: str = Field(..., min_length=1, max_length=200, description="Street address")
+    city: str = Field(..., min_length=1, max_length=100, description="City")
+    state: str = Field(..., min_length=1, max_length=100, description="State/Province")
+    zip_code: str = Field(..., min_length=1, max_length=20, description="ZIP/Postal code")
+    country: str = Field(..., min_length=1, max_length=100, description="Country")
+
+
+class OnboardingKYC(BaseModel):
+    """Schema for onboarding KYC document step"""
+    document_number: str = Field(..., min_length=1, max_length=50, description="ID document number")
+    document_photo: str = Field(..., description="Base64 encoded document photo or file path")
+
+
+class OnboardingStatus(BaseModel):
+    """Schema for checking onboarding completion status"""
+    is_onboarding_complete: bool
+    current_step: Optional[str] = None
+    completed_steps: List[str] = []

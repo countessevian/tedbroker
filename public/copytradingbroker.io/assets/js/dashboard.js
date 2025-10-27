@@ -3,6 +3,25 @@
  * Manages user dashboard data display and authentication
  */
 
+/**
+ * Check if user has completed onboarding
+ */
+async function checkOnboardingStatus() {
+    try {
+        const response = await TED_AUTH.apiCall('/api/onboarding/status');
+        const data = await response.json();
+
+        if (!data.is_onboarding_complete) {
+            // Redirect to onboarding if not complete
+            window.location.href = '/onboarding';
+            return;
+        }
+    } catch (error) {
+        console.error('Error checking onboarding status:', error);
+        // Continue to dashboard even if check fails
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     // Check for OAuth token in URL (from redirect)
     const urlParams = new URLSearchParams(window.location.search);
@@ -17,6 +36,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Protect the page - redirect to login if not authenticated
     TED_AUTH.protectPage();
+
+    // Check onboarding status - redirect if incomplete
+    await checkOnboardingStatus();
 
     // Get user data from localStorage
     let userData = TED_AUTH.getUser();

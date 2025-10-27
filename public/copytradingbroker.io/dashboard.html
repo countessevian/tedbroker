@@ -26,10 +26,25 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             background: #ffffff;
             color: #000;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        /* Performance optimization - use GPU acceleration */
+        .stat-box,
+        .dashboard-card,
+        .trader-card,
+        .plan-card,
+        .btn-primary-custom,
+        .user-avatar,
+        .menu-item {
+            will-change: transform;
         }
 
         .dashboard-wrapper {
@@ -49,6 +64,8 @@
             overflow-y: auto;
             z-index: 1000;
             transition: all 0.3s ease;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08),
+                        2px 0 10px rgba(0, 0, 0, 0.04);
         }
 
         .sidebar.collapsed {
@@ -93,15 +110,36 @@
             padding: 14px 24px;
             color: #8b93a7;
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             border-left: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #D32F2F, #5a9abf);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover::after {
+            transform: scaleX(1);
         }
 
         .menu-item:hover {
             background: rgba(123, 182, 218, 0.1);
             color: #D32F2F;
             border-left-color: #D32F2F;
+            box-shadow: inset 4px 0 8px rgba(211, 47, 47, 0.1);
+            transform: translateX(4px);
         }
 
         .menu-item.active {
@@ -109,6 +147,7 @@
             color: #D32F2F;
             border-left-color: #D32F2F;
             font-weight: 600;
+            box-shadow: inset 4px 0 12px rgba(211, 47, 47, 0.15);
         }
 
         .menu-item i {
@@ -161,16 +200,38 @@
             padding: 12px 24px 12px 48px;
             color: #8b93a7;
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             border-left: 3px solid transparent;
             font-size: 14px;
+            position: relative;
+        }
+
+        .submenu-item::before {
+            content: '';
+            position: absolute;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #D32F2F;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .submenu-item:hover::before {
+            opacity: 1;
+            left: 32px;
         }
 
         .submenu-item:hover {
             background: rgba(123, 182, 218, 0.1);
             color: #D32F2F;
             border-left-color: #D32F2F;
+            transform: translateX(4px);
+            box-shadow: inset 4px 0 6px rgba(211, 47, 47, 0.08);
         }
 
         .submenu-item.active {
@@ -178,6 +239,11 @@
             color: #D32F2F;
             border-left-color: #D32F2F;
             font-weight: 600;
+            box-shadow: inset 4px 0 8px rgba(211, 47, 47, 0.12);
+        }
+
+        .submenu-item.active::before {
+            opacity: 1;
         }
 
         .submenu-item i {
@@ -211,18 +277,53 @@
 
         .content-header {
             margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(123, 182, 218, 0.1);
+            position: relative;
+        }
+
+        .content-header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, #D32F2F, #5a9abf);
         }
 
         .content-header h1 {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: 700;
             margin-bottom: 8px;
             color: #000;
+            position: relative;
+            display: inline-block;
+        }
+
+        .content-header h1::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #D32F2F, #5a9abf);
+            transition: width 0.5s ease;
+        }
+
+        .content-header:hover h1::after {
+            width: 100%;
         }
 
         .content-header p {
             color: #8b93a7;
             font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .content-header:hover p {
+            color: #5a9abf;
         }
 
         /* Tab Content */
@@ -240,12 +341,85 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Pulse Animation for Stats */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Glow Animation */
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 2px 8px rgba(211, 47, 47, 0.1), 0 4px 16px rgba(211, 47, 47, 0.05); }
+            50% { box-shadow: 0 4px 16px rgba(211, 47, 47, 0.2), 0 8px 24px rgba(211, 47, 47, 0.1); }
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Shimmer Animation */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        /* Loading Skeleton Animation */
+        @keyframes skeleton-loading {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                rgba(123, 182, 218, 0.1) 25%,
+                rgba(123, 182, 218, 0.2) 50%,
+                rgba(123, 182, 218, 0.1) 75%
+            );
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        /* Subtle Bounce */
+        @keyframes subtleBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        /* Shadow Pulse */
+        @keyframes shadowPulse {
+            0%, 100% {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08),
+                            0 2px 6px rgba(0, 0, 0, 0.04);
+            }
+            50% {
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
+                            0 4px 12px rgba(0, 0, 0, 0.06);
+            }
+        }
+
         .dashboard-card {
             background: #f5f5f5;
             border: 1px solid rgba(123, 182, 218, 0.1);
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06),
+                        0 1px 4px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dashboard-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1),
+                        0 4px 12px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
         }
 
         .stat-grid {
@@ -292,10 +466,42 @@
             border-radius: 12px;
             padding: 24px;
             text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06),
+                        0 2px 6px rgba(0, 0, 0, 0.04);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            transition: left 0.5s;
+        }
+
+        .stat-box:hover::before {
+            left: 100%;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12),
+                        0 6px 14px rgba(0, 0, 0, 0.08);
+            border-color: rgba(211, 47, 47, 0.3);
         }
 
         .stat-value {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: bold;
             color: #D32F2F;
             margin-bottom: 8px;
@@ -308,18 +514,53 @@
             letter-spacing: 1px;
         }
 
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .user-avatar {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             background: linear-gradient(135deg, #D32F2F, #5a9abf);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 26px;
             font-weight: bold;
             color: #fff;
             margin: 0 auto 16px;
+            box-shadow: 0 4px 16px rgba(211, 47, 47, 0.3),
+                        0 2px 8px rgba(211, 47, 47, 0.2);
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .user-avatar::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D32F2F, #5a9abf, #D32F2F);
+            background-size: 200% 200%;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 24px rgba(211, 47, 47, 0.4),
+                        0 4px 12px rgba(211, 47, 47, 0.3);
+        }
+
+        .user-avatar:hover::before {
+            opacity: 0.7;
+            animation: rotate 3s linear infinite;
         }
 
         .info-row {
@@ -327,6 +568,32 @@
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid rgba(123, 182, 218, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .info-row::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background: #D32F2F;
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .info-row:hover::before {
+            transform: scaleY(1);
+        }
+
+        .info-row:hover {
+            background: rgba(123, 182, 218, 0.05);
+            padding-left: 12px;
+            padding-right: 12px;
+            margin-left: -12px;
+            margin-right: -12px;
         }
 
         .info-row:last-child {
@@ -342,12 +609,32 @@
             font-weight: 600;
         }
 
+        @keyframes badgePulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 4px rgba(76, 175, 80, 0);
+            }
+        }
+
+        @keyframes badgePulsePending {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 4px rgba(255, 152, 0, 0);
+            }
+        }
+
         .badge-status {
             display: inline-block;
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 12px;
             font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: default;
         }
 
         .badge-active {
@@ -355,9 +642,21 @@
             color: #4caf50;
         }
 
+        .badge-active:hover {
+            background: rgba(76, 175, 80, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
+        }
+
         .badge-pending {
             background: rgba(255, 152, 0, 0.2);
             color: #ff9800;
+        }
+
+        .badge-pending:hover {
+            background: rgba(255, 152, 0, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.2);
         }
 
         .btn-primary-custom {
@@ -368,12 +667,40 @@
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3),
+                        0 2px 6px rgba(211, 47, 47, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary-custom::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary-custom:hover::after {
+            width: 300px;
+            height: 300px;
         }
 
         .btn-primary-custom:hover:not(:disabled) {
             background: #5a9abf;
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(90, 154, 191, 0.4),
+                        0 4px 10px rgba(90, 154, 191, 0.3);
+        }
+
+        .btn-primary-custom:active:not(:disabled) {
+            transform: translateY(-1px) scale(1.02);
         }
 
         .btn-primary-custom:disabled {
@@ -389,12 +716,17 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06),
+                        0 1px 5px rgba(0, 0, 0, 0.04);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
 
         .trader-card:hover, .plan-card:hover {
-            border-color: rgba(123, 182, 218, 0.3);
-            transform: translateY(-2px);
+            border-color: rgba(211, 47, 47, 0.4);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12),
+                        0 8px 16px rgba(0, 0, 0, 0.08);
         }
 
         .trader-profile {
@@ -410,6 +742,16 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #D32F2F;
+            box-shadow: 0 3px 10px rgba(211, 47, 47, 0.3),
+                        0 1px 5px rgba(211, 47, 47, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .trader-profile-photo:hover {
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 6px 20px rgba(211, 47, 47, 0.4),
+                        0 3px 10px rgba(211, 47, 47, 0.3);
+            border-width: 3px;
         }
 
         .trader-trades {
@@ -436,6 +778,16 @@
             border: 1px solid rgba(123, 182, 218, 0.1);
             border-radius: 8px;
             padding: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .trade-item:hover {
+            background: rgba(123, 182, 218, 0.1);
+            border-color: rgba(211, 47, 47, 0.3);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08),
+                        0 3px 8px rgba(0, 0, 0, 0.06);
         }
 
         .trade-ticker {
@@ -1350,8 +1702,8 @@
                 <div class="dashboard-card" style="margin-bottom: 30px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
                         <div>
-                            <p style="color: #8b93a7; margin: 0; font-size: 14px;">Current Balance</p>
-                            <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 42px; font-weight: bold;" id="wallet-balance-display">$0.00</h2>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Current Balance</p>
+                            <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 28px; font-weight: bold;" id="wallet-balance-display">$0.00</h2>
                         </div>
                         <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                             <button class="btn-primary-custom" onclick="showDepositModal()">
@@ -1384,8 +1736,8 @@
                 <div class="dashboard-card" style="margin-bottom: 30px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <p style="color: #8b93a7; margin: 0;">Available Balance</p>
-                            <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 32px;" id="wallet-balance">$0.00</h2>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Available Balance</p>
+                            <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 24px;" id="wallet-balance">$0.00</h2>
                         </div>
                         <button class="btn-primary-custom">Add Funds</button>
                     </div>
@@ -1574,9 +1926,9 @@
                 <div class="dashboard-card">
                     <div style="text-align: center; padding: 60px 20px;">
                         <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #D32F2F, #5a9abf); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
-                            <i class="fa-solid fa-coins" style="font-size: 48px; color: white;"></i>
+                            <i class="fa-solid fa-coins" style="font-size: 40px; color: white;"></i>
                         </div>
-                        <h2 style="color: #D32F2F; margin-bottom: 15px; font-size: 28px;">Staking Coming Soon</h2>
+                        <h2 style="color: #D32F2F; margin-bottom: 15px; font-size: 22px;">Staking Coming Soon</h2>
                         <p style="color: #8b93a7; font-size: 16px; line-height: 1.6; max-width: 600px; margin: 0 auto;">
                             We're working on bringing you an amazing staking experience. Soon you'll be able to stake your cryptocurrency assets and earn passive rewards.
                         </p>
@@ -1690,7 +2042,7 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Deposit Funds</h2>
-                <button onclick="closeDepositModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+                <button onclick="closeDepositModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <form id="deposit-form" onsubmit="handleDeposit(event)">
                 <div style="margin-bottom: 20px;">
@@ -1851,11 +2203,11 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Withdraw Funds</h2>
-                <button onclick="closeWithdrawModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+                <button onclick="closeWithdrawModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 14px;">Available Balance</p>
-                <p style="color: #D32F2F; margin: 5px 0 0 0; font-size: 24px; font-weight: bold;" id="withdraw-available-balance">$0.00</p>
+                <p style="color: #D32F2F; margin: 5px 0 0 0; font-size: 20px; font-weight: bold;" id="withdraw-available-balance">$0.00</p>
             </div>
             <form id="withdraw-form" onsubmit="handleWithdraw(event)">
                 <div style="margin-bottom: 20px;">
@@ -1887,7 +2239,7 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
             <div style="text-align: center; margin-bottom: 25px;">
                 <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #D32F2F, #5a9abf); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                    <i class="fa-solid fa-gift" style="font-size: 36px; color: white;"></i>
+                    <i class="fa-solid fa-gift" style="font-size: 30px; color: white;"></i>
                 </div>
                 <h2 style="margin: 0 0 10px 0; color: #D32F2F;">Welcome to TED Brokers!</h2>
                 <p style="color: #8b93a7; margin: 0; font-size: 14px;">Were you referred by someone? Enter their code below!</p>
@@ -1943,7 +2295,7 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Update Profile</h2>
-                <button onclick="closeUpdateProfileModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+                <button onclick="closeUpdateProfileModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <form id="update-profile-form" onsubmit="handleUpdateProfile(event)">
                 <div style="margin-bottom: 20px;">
@@ -1986,7 +2338,7 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Change Password</h2>
-                <button onclick="closeChangePasswordModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+                <button onclick="closeChangePasswordModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
@@ -2024,7 +2376,7 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Change Email Address</h2>
-                <button onclick="closeUpdateEmailModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+                <button onclick="closeUpdateEmailModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
@@ -2064,7 +2416,7 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Verify New Email</h2>
-                <button onclick="closeVerifyEmailUpdateModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+                <button onclick="closeVerifyEmailUpdateModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
@@ -2075,7 +2427,7 @@
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Verification Code</label>
                     <input type="text" id="email-verification-code" required maxlength="6" pattern="[0-9]{6}"
-                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 24px; text-align: center; letter-spacing: 8px;"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 18px; text-align: center; letter-spacing: 6px;"
                         placeholder="000000">
                     <p style="color: #8b93a7; font-size: 12px; margin-top: 5px; text-align: center;">
                         Enter the 6-digit code sent to your new email
@@ -2093,7 +2445,7 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Enable Two-Factor Authentication</h2>
-                <button onclick="close2FAEnableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+                <button onclick="close2FAEnableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
@@ -2119,7 +2471,7 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Verify 2FA Code</h2>
-                <button onclick="close2FAVerifyModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+                <button onclick="close2FAVerifyModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
@@ -2130,7 +2482,7 @@
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Verification Code</label>
                     <input type="text" id="verify-2fa-code" required maxlength="6" pattern="[0-9]{6}"
-                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 24px; text-align: center; letter-spacing: 8px;"
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 18px; text-align: center; letter-spacing: 6px;"
                         placeholder="000000">
                     <p style="color: #8b93a7; font-size: 12px; margin-top: 5px; text-align: center;">
                         Enter the 6-digit code sent to your email
@@ -2148,7 +2500,7 @@
         <div style="background: #f5f5f5; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Disable Two-Factor Authentication</h2>
-                <button onclick="close2FADisableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">&times;</button>
+                <button onclick="close2FADisableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 20px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #ff6b6b; margin: 0; font-size: 13px; line-height: 1.5;">
