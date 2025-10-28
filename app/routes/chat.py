@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from datetime import datetime
 from bson import ObjectId
 from typing import List, Optional
+import random
 
 from app.schemas import ChatMessageCreate, ChatMessageResponse, ChatConversationResponse, ChatConversationDetail
 from app.auth import get_current_user_token
@@ -11,6 +12,15 @@ from app.database import (
 )
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
+
+# Pool of support agent names shown to users
+SUPPORT_AGENT_NAMES = [
+    "Sarah Mitchell",
+    "James Thompson",
+    "Emily Rodriguez",
+    "Michael Chen",
+    "Jessica Williams"
+]
 
 
 def get_user_by_id(user_id: str):
@@ -56,12 +66,14 @@ async def send_message(
         if existing_conversation:
             conversation_id = str(existing_conversation["_id"])
         else:
-            # Create new conversation
+            # Create new conversation with assigned support agent name
+            assigned_agent_name = random.choice(SUPPORT_AGENT_NAMES)
             conversation = {
                 "user_id": current_user["user_id"],
                 "user_name": user.get("full_name") or user.get("username", "User"),
                 "user_username": user.get("username", "User"),
                 "user_email": user.get("email", ""),
+                "assigned_agent_name": assigned_agent_name,  # Random agent name for this conversation
                 "status": "active",
                 "unread_admin_count": 1,  # Admin hasn't read this yet
                 "unread_user_count": 0,   # User created the message

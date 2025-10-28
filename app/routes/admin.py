@@ -1971,20 +1971,16 @@ async def reply_to_conversation(
             detail="Conversation not found"
         )
 
-    # Get admin details
-    admin = admin_service.get_admin_by_id(current_admin["user_id"])
-    if not admin:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Admin not found"
-        )
+    # Get the assigned agent name for this conversation (shown to user)
+    # This ensures all admin replies show the same random name to the user
+    assigned_agent_name = conversation.get("assigned_agent_name", "Support Team")
 
     # Create message
     new_message = {
         "conversation_id": conversation_id,
         "sender_id": current_admin["user_id"],
         "sender_type": "admin",
-        "sender_name": admin.get("full_name", "Support Team"),
+        "sender_name": assigned_agent_name,  # Use the assigned agent name
         "message": reply_data.message,
         "is_read": False,
         "created_at": datetime.utcnow()
