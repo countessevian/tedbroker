@@ -109,6 +109,7 @@ class ChatWidget {
                 visibility: hidden;
                 transform: translateY(20px) scale(0.95);
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                overscroll-behavior: contain;
             }
 
             .chat-window.open {
@@ -169,6 +170,7 @@ class ChatWidget {
                 background: #f9fafb;
                 -webkit-overflow-scrolling: touch;
                 scroll-behavior: smooth;
+                overscroll-behavior: contain;
             }
 
             .chat-message {
@@ -313,12 +315,12 @@ class ChatWidget {
                     width: 360px;
                     max-width: calc(100vw - 20px);
                     right: 10px;
-                    bottom: 80px;
+                    bottom: 90px;
                 }
 
                 .chat-widget-container {
                     right: 10px;
-                    bottom: 10px;
+                    bottom: 90px;
                 }
 
                 .chat-message-content {
@@ -341,9 +343,14 @@ class ChatWidget {
                     width: 100%;
                     max-width: calc(100vw - 20px);
                     height: 500px;
-                    max-height: calc(100vh - 100px);
+                    max-height: calc(100vh - 110px);
                     right: 10px;
-                    bottom: 80px;
+                    bottom: 90px;
+                }
+
+                .chat-widget-container {
+                    right: 10px;
+                    bottom: 90px;
                 }
 
                 .chat-bubble {
@@ -394,7 +401,7 @@ class ChatWidget {
 
                 .chat-widget-container {
                     right: 15px;
-                    bottom: 15px;
+                    bottom: 90px;
                 }
 
                 .chat-bubble {
@@ -552,6 +559,20 @@ class ChatWidget {
                     font-size: 12px;
                 }
             }
+
+            /* Fix iOS Safari input zoom */
+            @media (max-width: 480px) {
+                .chat-input {
+                    font-size: 16px !important;
+                }
+            }
+
+            /* Prevent body scroll when chat is open on mobile */
+            body.chat-open-mobile {
+                overflow: hidden;
+                position: fixed;
+                width: 100%;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -673,9 +694,15 @@ class ChatWidget {
 
         if (this.isOpen) {
             window.classList.add('open');
+            // Prevent body scroll on mobile when chat is open
+            if (window.innerWidth <= 480) {
+                document.body.classList.add('chat-open-mobile');
+            }
             await this.loadConversation();
         } else {
             window.classList.remove('open');
+            // Re-enable body scroll
+            document.body.classList.remove('chat-open-mobile');
         }
     }
 
