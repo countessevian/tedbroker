@@ -1309,9 +1309,10 @@
 
         /* Desktop Toggle Button */
         .desktop-toggle-btn {
-            position: absolute;
+            position: fixed;
             top: 20px;
-            right: -18px;
+            right: auto;
+            left: 242px;
             background: #f5f5f5;
             border: 2px solid rgba(123, 182, 218, 0.5);
             border-radius: 50%;
@@ -1321,7 +1322,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 1001;
+            z-index: 1002;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(200, 200, 200, 0.3);
         }
@@ -1341,6 +1342,11 @@
             color: #D32F2F;
             font-size: 16px;
             transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed + * .desktop-toggle-btn,
+        .sidebar.collapsed .desktop-toggle-btn {
+            left: 52px;
         }
 
         /* Mobile Overlay */
