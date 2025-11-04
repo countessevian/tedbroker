@@ -9,7 +9,11 @@ import requests
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 
-from app.schemas import UserRegister, UserLogin, Token, UserResponse, PasswordChange
+from app.schemas import (
+    UserRegister, UserLogin, Token, UserResponse, PasswordChange,
+    ForgotPasswordRequest, VerifyPasswordResetCode, ResetPasswordRequest,
+    PasswordChangeWithVerification
+)
 from app.auth import (
     get_password_hash,
     verify_password,
@@ -1125,3 +1129,270 @@ async def google_callback(code: str, request: Request):
         # Redirect to login page with error
         redirect_url = "/copytradingbroker.io/login.html?error=oauth_failed"
         return RedirectResponse(url=redirect_url)
+
+
+@router.post("/forgot-password")
+@limiter.limit(get_rate_limit("forgot_password"))
+async def forgot_password(request: Request, forgot_data: ForgotPasswordRequest):
+    """
+    Initiate password reset by sending 2FA code to user's email
+    """
+    # Get user from database
+    user = get_user_by_email(forgot_data.email)
+
+    # For security, always return success even if user doesn't exist
+    # This prevents email enumeration attacks
+    if not user:
+        # Still return success to prevent email enumeration
+        return {
+            "message": "If an account with this email exists, a verification code has been sent.",
+            "email": forgot_data.email
+        }
+
+    # Check if user has a password (Google OAuth users without password can't reset)
+    if not user.get("hashed_password"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This account uses Google sign-in and does not have a password. Please sign in with Google."
+        )
+
+    # Generate 2FA code for password reset
+    code = twofa_service.create_2fa_session(
+        email=user["email"],
+        user_id=str(user["_id"])
+    )
+
+    # Send password reset code via email
+    username = user.get("full_name", user.get("username", "User"))
+    email_sent = email_service.send_password_reset_code(
+        to_email=user["email"],
+        code=code,
+        username=username
+    )
+
+    if not email_sent:
+        print(f"Password Reset Code for {user['email']}: {code}")
+
+    return {
+        "message": "A verification code has been sent to your email address.",
+        "email": user["email"]
+    }
+
+
+@router.post("/verify-password-reset-code")
+@limiter.limit(get_rate_limit("verify_2fa"))
+async def verify_password_reset_code(request: Request, verification_data: VerifyPasswordResetCode):
+    """
+    Verify the 2FA code for password reset
+    Returns a temporary token that can be used to reset the password
+    """
+    # Verify the code
+    result = twofa_service.verify_code(
+        email=verification_data.email,
+        code=verification_data.code
+    )
+
+    if not result["success"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"]
+        )
+
+    # Get user to ensure they exist
+    user = get_user_by_email(verification_data.email)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Create a temporary token for password reset (valid for 15 minutes)
+    reset_token = create_access_token(
+        data={
+            "sub": user["email"],
+            "user_id": str(user["_id"]),
+            "purpose": "password_reset"
+        },
+        expires_delta=timedelta(minutes=15)
+    )
+
+    # Clean up 2FA session
+    twofa_service.delete_session(verification_data.email)
+
+    return {
+        "message": "Verification successful. You can now reset your password.",
+        "reset_token": reset_token
+    }
+
+
+@router.post("/reset-password")
+@limiter.limit(get_rate_limit("reset_password"))
+async def reset_password(request: Request, reset_data: ResetPasswordRequest):
+    """
+    Reset password using the temporary token from verification
+    """
+    # Decode and verify the reset token
+    from app.auth import decode_access_token
+
+    payload = decode_access_token(reset_data.token)
+
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+
+    # Verify this is a password reset token
+    if payload.get("purpose") != "password_reset":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid reset token"
+        )
+
+    user_id = payload.get("user_id")
+    email = payload.get("sub")
+
+    if not user_id or not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid reset token"
+        )
+
+    # Get user from database
+    user = get_user_by_id(user_id)
+
+    if not user or user["email"] != email:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Update password
+    users = get_collection(USERS_COLLECTION)
+    users.update_one(
+        {"_id": ObjectId(user_id)},
+        {
+            "$set": {
+                "hashed_password": get_password_hash(reset_data.new_password),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "message": "Password has been reset successfully. You can now log in with your new password."
+    }
+
+
+@router.post("/change-password-with-verification")
+async def change_password_with_verification(
+    password_data: PasswordChangeWithVerification,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """
+    Initiate password change from dashboard - sends 2FA code for verification
+    """
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user from database
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Check if user has a password (Google OAuth users without password can't change)
+    if not user.get("hashed_password"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This account uses Google sign-in and does not have a password."
+        )
+
+    # Verify old password
+    if not verify_password(password_data.old_password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect current password"
+        )
+
+    # Generate 2FA code for password change verification
+    code = twofa_service.create_2fa_session(
+        email=user["email"],
+        user_id=str(user["_id"])
+    )
+
+    # Send verification code via email
+    username = user.get("full_name", user.get("username", "User"))
+    email_sent = email_service.send_2fa_code(
+        to_email=user["email"],
+        code=code,
+        username=username
+    )
+
+    if not email_sent:
+        print(f"Password Change Code for {user['email']}: {code}")
+
+    return {
+        "message": "Verification code sent to your email. Please verify to complete password change.",
+        "email": user["email"],
+        "new_password_hash": get_password_hash(password_data.new_password)  # Temporarily store for verification
+    }
+
+
+class VerifyPasswordChange(BaseModel):
+    """Schema for verifying password change"""
+    code: str = Field(..., min_length=6, max_length=6)
+    new_password_hash: str
+
+
+@router.post("/verify-password-change")
+async def verify_password_change(
+    verification_data: VerifyPasswordChange,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """
+    Verify 2FA code and complete password change
+    """
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Verify the code
+    result = twofa_service.verify_code(
+        email=user["email"],
+        code=verification_data.code
+    )
+
+    if not result["success"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"]
+        )
+
+    # Update password with the pre-hashed password
+    users.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "hashed_password": verification_data.new_password_hash,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # Clean up 2FA session
+    twofa_service.delete_session(user["email"])
+
+    return {
+        "message": "Password has been changed successfully."
+    }

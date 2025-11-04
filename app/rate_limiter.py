@@ -48,6 +48,7 @@ RATE_LIMITS = {
     "verify_2fa": "10/minute",      # 10 2FA verification attempts per minute
     "resend_2fa": "3/minute",       # 3 resend code attempts per minute
     "forgot_password": "3/minute",  # 3 forgot password attempts per minute
+    "reset_password": "5/minute",   # 5 password reset attempts per minute
 
     # Sensitive operations
     "change_password": "3/minute",

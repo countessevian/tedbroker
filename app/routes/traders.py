@@ -21,6 +21,7 @@ def trader_helper(trader) -> dict:
         "ytd_return": trader["ytd_return"],
         "win_rate": trader["win_rate"],
         "copiers": trader["copiers"],
+        "minimum_copy_amount": trader.get("minimum_copy_amount", 100.0),
         "trades": trader.get("trades", [])
     }
 

@@ -79,12 +79,12 @@ async def create_deposit(
     # Generate unique reference number
     reference_number = f"DEP-{secrets.token_hex(8).upper()}"
 
-    # Create transaction record
+    # Create transaction record with pending status
     transaction = {
         "user_id": current_user["user_id"],
         "transaction_type": "deposit",
         "amount": amount,
-        "status": "completed",  # Auto-approve for demo purposes
+        "status": "pending",  # Requires admin approval
         "payment_method": payment_method,
         "reference_number": reference_number,
         "description": f"Deposit via {payment_method}",
@@ -96,20 +96,11 @@ async def create_deposit(
     result = transactions_col.insert_one(transaction)
     transaction["_id"] = result.inserted_id
 
-    # Update user wallet balance
-    new_balance = user.get("wallet_balance", 0.0) + amount
-    users.update_one(
-        {"_id": ObjectId(current_user["user_id"])},
-        {
-            "$set": {
-                "wallet_balance": new_balance,
-                "updated_at": datetime.utcnow()
-            }
-        }
-    )
+    # Note: Wallet balance will be updated only when admin approves the deposit
+    current_balance = user.get("wallet_balance", 0.0)
 
     return {
-        "message": "Deposit successful",
+        "message": "Deposit request submitted successfully. Your funds will be available once approved by admin.",
         "transaction": TransactionResponse(
             id=str(transaction["_id"]),
             transaction_type=transaction["transaction_type"],
@@ -120,7 +111,7 @@ async def create_deposit(
             description=transaction.get("description"),
             created_at=transaction["created_at"]
         ),
-        "new_balance": new_balance
+        "current_balance": current_balance
     }
 
 
@@ -159,12 +150,12 @@ async def create_withdrawal(
     # Generate unique reference number
     reference_number = f"WTH-{secrets.token_hex(8).upper()}"
 
-    # Create transaction record
+    # Create transaction record with pending status
     transaction = {
         "user_id": current_user["user_id"],
         "transaction_type": "withdrawal",
         "amount": amount,
-        "status": "completed",  # Auto-approve for demo purposes
+        "status": "pending",  # Requires admin approval
         "payment_method": payment_method,
         "reference_number": reference_number,
         "description": f"Withdrawal to {payment_method}",
@@ -176,20 +167,10 @@ async def create_withdrawal(
     result = transactions_col.insert_one(transaction)
     transaction["_id"] = result.inserted_id
 
-    # Update user wallet balance
-    new_balance = current_balance - amount
-    users.update_one(
-        {"_id": ObjectId(current_user["user_id"])},
-        {
-            "$set": {
-                "wallet_balance": new_balance,
-                "updated_at": datetime.utcnow()
-            }
-        }
-    )
+    # Note: Wallet balance will be deducted only when admin approves the withdrawal
 
     return {
-        "message": "Withdrawal successful",
+        "message": "Withdrawal request submitted successfully. Your request will be processed once approved by admin.",
         "transaction": TransactionResponse(
             id=str(transaction["_id"]),
             transaction_type=transaction["transaction_type"],
@@ -200,7 +181,7 @@ async def create_withdrawal(
             description=transaction.get("description"),
             created_at=transaction["created_at"]
         ),
-        "new_balance": new_balance
+        "current_balance": current_balance
     }
 
 
@@ -217,4 +198,56 @@ async def get_balance(current_user: dict = Depends(get_current_user_token)):
 
     return {
         "balance": user.get("wallet_balance", 0.0)
+    }
+
+
+@router.get("/pending-transactions")
+async def get_pending_transactions(current_user: dict = Depends(get_current_user_token)):
+    """Get summary of pending transactions for the current user"""
+    transactions_col = get_collection(TRANSACTIONS_COLLECTION)
+
+    # Find pending deposits and withdrawals
+    pending_deposits = list(transactions_col.find({
+        "user_id": current_user["user_id"],
+        "transaction_type": "deposit",
+        "status": "pending"
+    }))
+
+    pending_withdrawals = list(transactions_col.find({
+        "user_id": current_user["user_id"],
+        "transaction_type": "withdrawal",
+        "status": "pending"
+    }))
+
+    # Calculate totals
+    total_pending_deposits = sum(txn["amount"] for txn in pending_deposits)
+    total_pending_withdrawals = sum(txn["amount"] for txn in pending_withdrawals)
+
+    return {
+        "pending_deposits": {
+            "count": len(pending_deposits),
+            "total_amount": total_pending_deposits,
+            "transactions": [
+                {
+                    "id": str(txn["_id"]),
+                    "amount": txn["amount"],
+                    "payment_method": txn["payment_method"],
+                    "created_at": txn["created_at"]
+                }
+                for txn in pending_deposits
+            ]
+        },
+        "pending_withdrawals": {
+            "count": len(pending_withdrawals),
+            "total_amount": total_pending_withdrawals,
+            "transactions": [
+                {
+                    "id": str(txn["_id"]),
+                    "amount": txn["amount"],
+                    "payment_method": txn["payment_method"],
+                    "created_at": txn["created_at"]
+                }
+                for txn in pending_withdrawals
+            ]
+        }
     }

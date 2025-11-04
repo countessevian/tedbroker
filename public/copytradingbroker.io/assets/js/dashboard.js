@@ -300,7 +300,19 @@ function createTraderCard(trader) {
     const selectedTraders = userData?.selected_traders || [];
     const isSelected = selectedTraders.includes(trader.id);
 
-    const buttonText = isSelected ? 'Stop Copying' : 'Copy Trader';
+    // Check if user has sufficient funds to copy this trader
+    const userBalance = userData?.wallet_balance || 0;
+    const minimumRequired = trader.minimum_copy_amount || 100;
+    const hasSufficientFunds = userBalance >= minimumRequired;
+    const canCopyTrader = hasSufficientFunds || isSelected; // Allow uncopy even if balance is low
+
+    // Add visual indicator for unaffordable traders
+    if (!hasSufficientFunds && !isSelected) {
+        card.style.opacity = '0.85';
+        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
+    }
+
+    const buttonText = isSelected ? 'Stop Copying' : (hasSufficientFunds ? 'Copy Trader' : 'Insufficient Funds');
     const buttonStyle = isSelected ? 'background: #ff6b6b;' : '';
 
     // Create trades HTML
@@ -330,6 +342,21 @@ function createTraderCard(trader) {
 
         <p style="color: #8b93a7; margin-bottom: 15px;">${trader.description}</p>
 
+        <div style="padding: 10px; background: rgba(123, 182, 218, 0.05); border-radius: 6px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #8b93a7; font-size: 13px;">Minimum to Copy:</span>
+                <span style="color: #D32F2F; font-weight: 600; font-size: 15px;">$${minimumRequired.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            </div>
+        </div>
+
+        ${!hasSufficientFunds && !isSelected ? `
+            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
+                <p style="color: #ff6b6b; font-size: 13px; margin: 0;">
+                    <i class="fa fa-exclamation-triangle"></i> Insufficient funds. You need $${(minimumRequired - userBalance).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} more.
+                </p>
+            </div>
+        ` : ''}
+
         <div class="trader-header">
             <div class="trader-stats-grid">
                 <div>
@@ -345,7 +372,14 @@ function createTraderCard(trader) {
                     <div style="color: #8b93a7; font-size: 12px;">Copiers</div>
                 </div>
             </div>
-            <button class="btn-primary-custom" style="${buttonStyle}" onclick="copyTrader('${trader.id}', '${trader.full_name}')">${buttonText}</button>
+            <button
+                class="btn-primary-custom"
+                style="${buttonStyle} ${!canCopyTrader ? 'pointer-events: none;' : ''}"
+                ${!canCopyTrader ? 'disabled' : ''}
+                ${canCopyTrader ? `onclick="copyTrader('${trader.id}', '${trader.full_name}')"` : ''}
+            >
+                ${isSelected ? '<i class="fa fa-times-circle"></i> ' : (hasSufficientFunds ? '<i class="fa fa-check-circle"></i> ' : '<i class="fa fa-lock"></i> ')}${buttonText}
+            </button>
         </div>
 
         ${tradesHTML}
@@ -447,6 +481,7 @@ async function loadInvestmentPlans(forceReload = false) {
     // Skip if already loaded and not forcing reload
     if (plansLoaded && !forceReload && plansCache) {
         // Display cached plans
+        console.log('Displaying cached plans:', plansCache.length);
         displayPlans(plansCache);
         return;
     }
@@ -455,21 +490,40 @@ async function loadInvestmentPlans(forceReload = false) {
     container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading investment plans...</p>';
 
     try {
+        console.log('Starting to load investment plans...');
+
+        // Check authentication
+        const token = TED_AUTH.getToken();
+        if (!token) {
+            console.error('No authentication token found');
+            throw new Error('Please login to view investment plans');
+        }
+        console.log('Authentication token found');
+
         // Fetch user data to get wallet balance
         const userData = TED_AUTH.getUser();
-        if (!userData || !userData.wallet_balance) {
+        console.log('User data from localStorage:', userData);
+
+        if (!userData || userData.wallet_balance === undefined || userData.wallet_balance === null) {
             // Try to fetch fresh user data
+            console.log('Fetching fresh user data from /api/auth/me...');
             const userResponse = await TED_AUTH.apiCall('/api/auth/me');
+            console.log('User data response status:', userResponse.status);
+
             if (userResponse.ok) {
                 const freshUserData = await userResponse.json();
-                userWalletBalance = freshUserData.wallet_balance || 0;
+                console.log('Fresh user data:', freshUserData);
+                userWalletBalance = freshUserData.wallet_balance !== undefined ? freshUserData.wallet_balance : 0;
                 TED_AUTH.saveUser(freshUserData);
             } else {
+                console.warn('Failed to fetch user data, defaulting wallet balance to 0');
                 userWalletBalance = 0;
             }
         } else {
             userWalletBalance = userData.wallet_balance;
         }
+
+        console.log('User wallet balance:', userWalletBalance);
 
         // Update wallet balance display
         const walletBalanceElement = document.getElementById('wallet-balance');
@@ -478,16 +532,21 @@ async function loadInvestmentPlans(forceReload = false) {
         }
 
         // Fetch investment plans from API
+        console.log('Fetching investment plans from /api/plans/...');
         const response = await TED_AUTH.apiCall('/api/plans/', {
             method: 'GET'
         });
 
+        console.log('Plans API response status:', response.status);
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
+            console.error('Plans API error:', errorData);
             throw new Error(errorData.detail || `Failed to fetch investment plans: ${response.statusText}`);
         }
 
         const plans = await response.json();
+        console.log('Successfully fetched plans:', plans.length, plans);
 
         // Cache the plans
         plansCache = plans;
@@ -497,6 +556,7 @@ async function loadInvestmentPlans(forceReload = false) {
         displayPlans(plans);
     } catch (error) {
         console.error('Error loading investment plans:', error);
+        console.error('Error stack:', error.stack);
         plansLoaded = false; // Reset flag so user can retry
         container.innerHTML = `
             <div style="text-align: center; padding: 40px 0;">
@@ -505,6 +565,7 @@ async function loadInvestmentPlans(forceReload = false) {
                     Failed to load investment plans
                 </p>
                 <p style="color: #8b93a7; font-size: 14px; margin-bottom: 20px;">${error.message}</p>
+                <p style="color: #8b93a7; font-size: 12px; margin-bottom: 20px;">Check browser console for details</p>
                 <button class="btn-primary-custom" onclick="loadInvestmentPlans(true)">
                     <i class="fa fa-refresh"></i> Retry
                 </button>
@@ -541,6 +602,12 @@ function createPlanCard(plan) {
     // Check if user has sufficient funds
     const hasSufficientFunds = userWalletBalance >= plan.minimum_investment;
     const buttonDisabled = !hasSufficientFunds;
+
+    // Add visual indicator for unaffordable plans
+    if (!hasSufficientFunds) {
+        card.style.opacity = '0.85';
+        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
+    }
 
     // Calculate potential profit
     const potentialProfit = (plan.minimum_investment * plan.expected_return_percent / 100).toFixed(2);
@@ -587,11 +654,11 @@ function createPlanCard(plan) {
 
         <button
             class="btn-primary-custom"
-            style="width: 100%; margin-top: 10px;"
-            onclick="investInPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"
+            style="width: 100%; margin-top: 10px; ${buttonDisabled ? 'pointer-events: none;' : ''}"
             ${buttonDisabled ? 'disabled' : ''}
+            ${!buttonDisabled ? `onclick="investInPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"` : ''}
         >
-            ${hasSufficientFunds ? 'Invest Now' : 'Insufficient Funds'}
+            ${hasSufficientFunds ? '<i class="fa fa-check-circle"></i> Invest Now' : '<i class="fa fa-lock"></i> Insufficient Funds'}
         </button>
     `;
 
@@ -701,6 +768,9 @@ async function loadWalletData() {
                 `$${balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
+        // Load pending transactions
+        await loadPendingTransactions();
+
         // Load transactions
         await loadTransactions();
 
@@ -711,20 +781,85 @@ async function loadWalletData() {
 }
 
 /**
+ * Load and display pending transactions
+ */
+async function loadPendingTransactions() {
+    try {
+        console.log('Loading pending transactions...');
+        const response = await TED_AUTH.apiCall('/api/wallet/pending-transactions');
+
+        if (!response.ok) {
+            console.error('Failed to fetch pending transactions');
+            return;
+        }
+
+        const data = await response.json();
+        console.log('Pending transactions:', data);
+
+        const indicator = document.getElementById('pending-transactions-indicator');
+        const depositsBox = document.getElementById('pending-deposits-box');
+        const withdrawalsBox = document.getElementById('pending-withdrawals-box');
+
+        let hasPending = false;
+
+        // Handle pending deposits
+        if (data.pending_deposits.count > 0) {
+            hasPending = true;
+            depositsBox.style.display = 'block';
+
+            const depositText = data.pending_deposits.count === 1
+                ? '1 deposit awaiting approval'
+                : `${data.pending_deposits.count} deposits awaiting approval`;
+
+            document.getElementById('pending-deposits-text').textContent = depositText;
+            document.getElementById('pending-deposits-amount').textContent =
+                `+$${data.pending_deposits.total_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        } else {
+            depositsBox.style.display = 'none';
+        }
+
+        // Handle pending withdrawals
+        if (data.pending_withdrawals.count > 0) {
+            hasPending = true;
+            withdrawalsBox.style.display = 'block';
+
+            const withdrawalText = data.pending_withdrawals.count === 1
+                ? '1 withdrawal awaiting approval'
+                : `${data.pending_withdrawals.count} withdrawals awaiting approval`;
+
+            document.getElementById('pending-withdrawals-text').textContent = withdrawalText;
+            document.getElementById('pending-withdrawals-amount').textContent =
+                `-$${data.pending_withdrawals.total_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        } else {
+            withdrawalsBox.style.display = 'none';
+        }
+
+        // Show/hide indicator
+        indicator.style.display = hasPending ? 'block' : 'none';
+
+    } catch (error) {
+        console.error('Error loading pending transactions:', error);
+    }
+}
+
+/**
  * Load and display transaction history
  */
 async function loadTransactions() {
+    console.log('Loading transaction history...');
     const container = document.getElementById('transactions-container');
     container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading transactions...</p>';
 
     try {
         const response = await TED_AUTH.apiCall('/api/wallet/transactions');
+        console.log('Transactions API response status:', response.status);
 
         if (!response.ok) {
             throw new Error('Failed to fetch transactions');
         }
 
         const transactions = await response.json();
+        console.log('Fetched transactions:', transactions.length, transactions);
 
         if (transactions.length === 0) {
             container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No transactions yet. Make your first deposit to get started!</p>';
@@ -739,7 +874,7 @@ async function loadTransactions() {
                         <tr style="border-bottom: 2px solid rgba(123, 182, 218, 0.2);">
                             <th style="text-align: left; padding: 12px; color: #8b93a7; font-weight: 600;">Date</th>
                             <th style="text-align: left; padding: 12px; color: #8b93a7; font-weight: 600;">Type</th>
-                            <th style="text-align: left; padding: 12px; color: #8b93a7; font-weight: 600;">Method</th>
+                            <th style="text-align: left; padding: 12px; color: #8b93a7; font-weight: 600;">Details</th>
                             <th style="text-align: right; padding: 12px; color: #8b93a7; font-weight: 600;">Amount</th>
                             <th style="text-align: center; padding: 12px; color: #8b93a7; font-weight: 600;">Status</th>
                             <th style="text-align: left; padding: 12px; color: #8b93a7; font-weight: 600;">Reference</th>
@@ -757,22 +892,50 @@ async function loadTransactions() {
                 minute: '2-digit'
             });
 
-            const typeColor = txn.transaction_type === 'deposit' ? '#4caf50' : '#ff9800';
-            const typeIcon = txn.transaction_type === 'deposit' ? 'fa-arrow-down' : 'fa-arrow-up';
-            const amountSign = txn.transaction_type === 'deposit' ? '+' : '-';
+            // Determine type color, icon, and sign based on transaction type
+            let typeColor, typeIcon, amountSign, displayType;
+
+            switch(txn.transaction_type) {
+                case 'deposit':
+                    typeColor = '#4caf50';
+                    typeIcon = 'fa-arrow-down';
+                    amountSign = '+';
+                    displayType = 'Deposit';
+                    break;
+                case 'withdrawal':
+                    typeColor = '#ff9800';
+                    typeIcon = 'fa-arrow-up';
+                    amountSign = '-';
+                    displayType = 'Withdrawal';
+                    break;
+                case 'investment':
+                    typeColor = '#2196f3';
+                    typeIcon = 'fa-chart-line';
+                    amountSign = '-';
+                    displayType = 'Investment';
+                    break;
+                default:
+                    typeColor = '#8b93a7';
+                    typeIcon = 'fa-exchange';
+                    amountSign = '';
+                    displayType = txn.transaction_type.charAt(0).toUpperCase() + txn.transaction_type.slice(1);
+            }
 
             const statusClass = txn.status === 'completed' ? 'badge-active' :
                                txn.status === 'pending' ? 'badge-pending' : 'badge-inactive';
+
+            // Use description if available, otherwise use payment method
+            const details = txn.description || txn.payment_method;
 
             tableHTML += `
                 <tr style="border-bottom: 1px solid rgba(123, 182, 218, 0.1);">
                     <td style="padding: 15px; color: #000;">${date}</td>
                     <td style="padding: 15px;">
                         <span style="color: ${typeColor};">
-                            <i class="fa ${typeIcon}"></i> ${txn.transaction_type.charAt(0).toUpperCase() + txn.transaction_type.slice(1)}
+                            <i class="fa ${typeIcon}"></i> ${displayType}
                         </span>
                     </td>
-                    <td style="padding: 15px; color: #8b93a7;">${txn.payment_method}</td>
+                    <td style="padding: 15px; color: #8b93a7; max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${details}">${details}</td>
                     <td style="padding: 15px; text-align: right; font-weight: 600; color: ${typeColor};">
                         ${amountSign}$${txn.amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                     </td>
@@ -951,24 +1114,30 @@ async function handleDeposit(event) {
 
         const result = await response.json();
 
-        // Update balance displays
-        document.getElementById('wallet-balance-display').textContent =
-            `$${result.new_balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        // Reload pending transactions to show the new pending deposit
+        await loadPendingTransactions();
 
-        // Update user data in localStorage
-        const userData = TED_AUTH.getUser();
-        if (userData) {
-            userData.wallet_balance = result.new_balance;
-            TED_AUTH.saveUser(userData);
-        }
-
-        // Reload transactions
+        // Reload transactions list
         await loadTransactions();
 
         // Close modal
         closeDepositModal();
 
-        alert(`Deposit request submitted successfully!\nAmount: $${amount.toLocaleString()}\nPayment Method: ${paymentMethod}\nReference: ${result.transaction.reference_number}\n\nYour deposit will be processed shortly.`);
+        // Show success message
+        Swal.fire({
+            icon: 'success',
+            title: 'Deposit Request Submitted',
+            html: `
+                <p>Your deposit request has been submitted successfully!</p>
+                <p><strong>Amount:</strong> $${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                <p><strong>Payment Method:</strong> ${paymentMethod}</p>
+                <p><strong>Reference:</strong> ${result.transaction.reference_number}</p>
+                <p style="color: #ff9800; margin-top: 15px;">
+                    <i class="fa fa-info-circle"></i> Your funds will be available once approved by admin.
+                </p>
+            `,
+            confirmButtonColor: '#D32F2F'
+        });
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Deposit error:', error);
@@ -1018,26 +1187,30 @@ async function handleWithdraw(event) {
 
         const result = await response.json();
 
-        // Update balance displays
-        document.getElementById('wallet-balance-display').textContent =
-            `$${result.new_balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        document.getElementById('withdraw-available-balance').textContent =
-            `$${result.new_balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        // Reload pending transactions to show the new pending withdrawal
+        await loadPendingTransactions();
 
-        // Update user data in localStorage
-        const userData = TED_AUTH.getUser();
-        if (userData) {
-            userData.wallet_balance = result.new_balance;
-            TED_AUTH.saveUser(userData);
-        }
-
-        // Reload transactions
+        // Reload transactions list
         await loadTransactions();
 
         // Close modal
         closeWithdrawModal();
 
-        alert(`Withdrawal successful! $${amount.toLocaleString()} will be sent to your ${paymentMethod}.\nReference: ${result.transaction.reference_number}`);
+        // Show success message
+        Swal.fire({
+            icon: 'success',
+            title: 'Withdrawal Request Submitted',
+            html: `
+                <p>Your withdrawal request has been submitted successfully!</p>
+                <p><strong>Amount:</strong> $${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                <p><strong>Payment Method:</strong> ${paymentMethod}</p>
+                <p><strong>Reference:</strong> ${result.transaction.reference_number}</p>
+                <p style="color: #ff9800; margin-top: 15px;">
+                    <i class="fa fa-info-circle"></i> Your withdrawal will be processed once approved by admin.
+                </p>
+            `,
+            confirmButtonColor: '#D32F2F'
+        });
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Withdrawal error:', error);
@@ -1264,9 +1437,9 @@ function copyReferralLink() {
 }
 
 /**
- * Quick Action: Navigate to subscription/trading plans tab
+ * Quick Action: Navigate to subscription/robo advisor tab
  */
-function quickActionStartCopyTrading() {
+function quickActionStartRoboAdvisor() {
     // Activate subscription tab
     document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
     const subscriptionTab = document.querySelector('.menu-item[data-tab="subscription"]');
@@ -2051,7 +2224,7 @@ window.handleUpdateProfile = handleUpdateProfile;
 window.showChangePasswordModal = showChangePasswordModal;
 window.closeChangePasswordModal = closeChangePasswordModal;
 window.handleChangePassword = handleChangePassword;
-window.quickActionStartCopyTrading = quickActionStartCopyTrading;
+window.quickActionStartRoboAdvisor = quickActionStartRoboAdvisor;
 window.quickActionDepositFunds = quickActionDepositFunds;
 window.quickActionBrowseTraders = quickActionBrowseTraders;
 window.toggleDepositPaymentFields = toggleDepositPaymentFields;
