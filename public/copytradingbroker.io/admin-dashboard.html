@@ -436,6 +436,26 @@
                 </div>
             </div>
 
+            <!-- Withdrawal Requests Tab -->
+            <div class="tab-content" id="tab-withdrawals">
+                <div class="header">
+                    <h1>Withdrawal Requests</h1>
+                    <div>
+                        <select id="withdrawal-status-filter" style="padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; margin-right: 10px;">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="filterWithdrawalRequests()"><i class="fas fa-filter"></i> Filter</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div id="withdrawals-table-container">Loading withdrawal requests...</div>
+                </div>
+            </div>
+
             <!-- Bank Accounts Tab -->
             <div class="tab-content" id="tab-bank-accounts">
                 <div class="header">
@@ -1061,6 +1081,62 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Withdrawal Details Modal -->
+    <div class="modal" id="withdrawal-details-modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: #D32F2F; margin: 0;"><i class="fas fa-hand-holding-dollar"></i> Withdrawal Request Details</h2>
+                <button class="btn btn-secondary" onclick="closeWithdrawalDetailsModal()" style="padding: 8px 16px;">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+
+            <!-- Withdrawal Details Content -->
+            <div id="withdrawal-details-content">
+                <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #2D3748;">Request Information</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <p id="wd-status-badge"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <p id="wd-amount" style="font-size: 24px; color: #D32F2F; font-weight: 700;">$0.00</p>
+                        </div>
+                        <div class="form-group">
+                            <label>User</label>
+                            <p id="wd-username" style="font-weight: 600;">-</p>
+                            <small id="wd-email" style="color: #8b93a7;">-</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Withdrawal Method</label>
+                            <p id="wd-method" style="font-weight: 600;">-</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Requested On</label>
+                            <p id="wd-created">-</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Reviewed At</label>
+                            <p id="wd-reviewed">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 15px; color: #2D3748;">Account Details</h3>
+                <div style="background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <pre id="wd-account-details" style="white-space: pre-wrap; word-break: break-word; margin: 0; font-family: monospace; font-size: 13px;"></pre>
+                </div>
+
+                <div class="form-group" id="wd-notes-container" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #2D3748;">Notes</h3>
+                    <p id="wd-notes" style="background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffc107;">-</p>
+                </div>
+            </div>
         </div>
     </div>
 
