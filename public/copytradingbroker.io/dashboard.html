@@ -58,6 +58,129 @@
             --card-hover: #374151;
         }
 
+        /* Notification Styles */
+        .notification-banner {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px var(--shadow);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: slideDown 0.3s ease;
+            border-left: 4px solid;
+            position: relative;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+                max-height: 200px;
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+                max-height: 0;
+                margin-bottom: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+        }
+
+        .notification-banner.info {
+            background: #E3F2FD;
+            border-left-color: #2196F3;
+            color: #0D47A1;
+        }
+
+        .notification-banner.success {
+            background: #E8F5E9;
+            border-left-color: #4CAF50;
+            color: #1B5E20;
+        }
+
+        .notification-banner.warning {
+            background: #FFF3E0;
+            border-left-color: #FF9800;
+            color: #E65100;
+        }
+
+        .notification-banner.error {
+            background: #FFEBEE;
+            border-left-color: #F44336;
+            color: #B71C1C;
+        }
+
+        [data-theme="dark"] .notification-banner.info {
+            background: rgba(33, 150, 243, 0.15);
+            color: #90CAF9;
+        }
+
+        [data-theme="dark"] .notification-banner.success {
+            background: rgba(76, 175, 80, 0.15);
+            color: #A5D6A7;
+        }
+
+        [data-theme="dark"] .notification-banner.warning {
+            background: rgba(255, 152, 0, 0.15);
+            color: #FFB74D;
+        }
+
+        [data-theme="dark"] .notification-banner.error {
+            background: rgba(244, 67, 54, 0.15);
+            color: #EF9A9A;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+
+        .notification-dismiss {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            padding: 4px 8px;
+            color: inherit;
+            flex-shrink: 0;
+        }
+
+        .notification-dismiss:hover {
+            opacity: 1;
+        }
+
         body {
             background: var(--bg-primary);
             color: var(--text-primary);
@@ -1742,6 +1865,9 @@
         <main class="main-content">
             <!-- Dashboard Tab -->
             <div class="tab-content-wrapper active" id="tab-dashboard">
+                <!-- Notifications Area -->
+                <div id="notifications-area" style="margin-bottom: 24px;"></div>
+
                 <div class="content-header">
                     <h1>Welcome Back, <span id="user-display-name">User</span>!</h1>
                     <p>Here's an overview of your TED Brokers account</p>

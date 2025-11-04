@@ -6,8 +6,8 @@ from bson import ObjectId
 
 from app.admin_service import admin_service
 from app.auth import create_access_token, get_current_user_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, TRANSACTIONS_COLLECTION, CRYPTO_WALLETS_COLLECTION, BANK_ACCOUNTS_COLLECTION, USER_BANK_ACCOUNTS_COLLECTION, USER_CRYPTO_ADDRESSES_COLLECTION, WITHDRAWAL_REQUESTS_COLLECTION, CHAT_CONVERSATIONS_COLLECTION, CHAT_MESSAGES_COLLECTION
-from app.schemas import Token, Trade
+from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, TRANSACTIONS_COLLECTION, CRYPTO_WALLETS_COLLECTION, BANK_ACCOUNTS_COLLECTION, USER_BANK_ACCOUNTS_COLLECTION, USER_CRYPTO_ADDRESSES_COLLECTION, WITHDRAWAL_REQUESTS_COLLECTION, CHAT_CONVERSATIONS_COLLECTION, CHAT_MESSAGES_COLLECTION, NOTIFICATIONS_COLLECTION
+from app.schemas import Token, Trade, NotificationCreate, NotificationResponse
 import secrets
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -302,16 +302,19 @@ async def get_user_details(
     current_admin: dict = Depends(get_current_admin)
 ):
     """
-    Get detailed information about a specific user
+    Get detailed information about a specific user including KYC and login history
 
     Args:
         user_id: User ID
         current_admin: Current authenticated admin
 
     Returns:
-        dict: User details
+        dict: User details with KYC and login history
     """
     users = get_collection(USERS_COLLECTION)
+
+    # Import login history service
+    from app.login_history import LoginHistoryService
 
     try:
         user = users.find_one({"_id": ObjectId(user_id)})
@@ -327,6 +330,32 @@ async def get_user_details(
             detail="User not found"
         )
 
+    # Get onboarding/KYC data
+    onboarding_data = user.get("onboarding", {})
+    kyc_data = {
+        "document_number": onboarding_data.get("document_number"),
+        "document_photo": onboarding_data.get("document_photo"),
+        "kyc_status": onboarding_data.get("kyc_status", "not_submitted"),
+        "kyc_submitted_at": onboarding_data.get("kyc_submitted_at").isoformat() if onboarding_data.get("kyc_submitted_at") else None,
+        "first_name": onboarding_data.get("first_name"),
+        "last_name": onboarding_data.get("last_name"),
+        "gender": onboarding_data.get("gender"),
+        "street": onboarding_data.get("street"),
+        "city": onboarding_data.get("city"),
+        "state": onboarding_data.get("state"),
+        "zip_code": onboarding_data.get("zip_code"),
+        "country": onboarding_data.get("country"),
+        "personal_info_completed": onboarding_data.get("personal_info_completed", False),
+        "address_completed": onboarding_data.get("address_completed", False),
+        "kyc_completed": onboarding_data.get("kyc_completed", False)
+    }
+
+    # Get login history
+    login_history = LoginHistoryService.get_user_login_history(user_id, limit=20)
+
+    # Get login statistics
+    login_stats = LoginHistoryService.get_login_statistics(user_id, days=30)
+
     return {
         "id": str(user["_id"]),
         "email": user["email"],
@@ -339,10 +368,15 @@ async def get_user_details(
         "wallet_balance": user.get("wallet_balance", 0.0),
         "is_active": user.get("is_active", True),
         "is_verified": user.get("is_verified", False),
+        "two_fa_enabled": user.get("two_fa_enabled", False),
+        "auth_provider": user.get("auth_provider", "local"),
         "created_at": user["created_at"].isoformat() if user.get("created_at") else None,
         "updated_at": user["updated_at"].isoformat() if user.get("updated_at") else None,
         "referral_code": user.get("referral_code"),
-        "referred_by": user.get("referred_by")
+        "referred_by": user.get("referred_by"),
+        "kyc": kyc_data,
+        "login_history": login_history,
+        "login_statistics": login_stats
     }
 
 
@@ -2129,3 +2163,155 @@ async def get_admin_unread_count(current_admin: dict = Depends(get_current_admin
     total_unread = result[0]["total"] if result else 0
 
     return {"unread_count": total_unread}
+
+
+# ============================================================
+# NOTIFICATIONS MANAGEMENT
+# ============================================================
+
+@router.post("/notifications")
+async def create_notification(
+    notification_data: NotificationCreate,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Create a notification (broadcast or targeted)
+
+    Args:
+        notification_data: Notification data
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Created notification
+    """
+    notifications = get_collection(NOTIFICATIONS_COLLECTION)
+
+    # Validate target user if specific
+    if notification_data.target_type == "specific":
+        if not notification_data.target_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="target_user_id is required for specific notifications"
+            )
+
+        # Verify user exists
+        users = get_collection(USERS_COLLECTION)
+        try:
+            user = users.find_one({"_id": ObjectId(notification_data.target_user_id)})
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Target user not found"
+                )
+        except:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid user ID"
+            )
+
+    # Create notification document
+    notification_dict = {
+        "title": notification_data.title,
+        "message": notification_data.message,
+        "notification_type": notification_data.notification_type,
+        "target_type": notification_data.target_type,
+        "target_user_id": notification_data.target_user_id,
+        "is_dismissed": False,
+        "created_by": current_admin["user_id"],
+        "created_at": datetime.utcnow()
+    }
+
+    # Insert notification
+    result = notifications.insert_one(notification_dict)
+    notification_dict["_id"] = result.inserted_id
+
+    return {
+        "id": str(notification_dict["_id"]),
+        "title": notification_dict["title"],
+        "message": notification_dict["message"],
+        "notification_type": notification_dict["notification_type"],
+        "target_type": notification_dict["target_type"],
+        "target_user_id": notification_dict["target_user_id"],
+        "created_at": notification_dict["created_at"].isoformat(),
+        "message": f"Notification created successfully and sent to {'all users' if notification_data.target_type == 'all' else '1 user'}"
+    }
+
+
+@router.get("/notifications")
+async def get_all_notifications(
+    current_admin: dict = Depends(get_current_admin),
+    limit: int = 50,
+    offset: int = 0
+):
+    """
+    Get all notifications (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+        limit: Maximum number of notifications to return
+        offset: Number of notifications to skip
+
+    Returns:
+        dict: Notifications list and count
+    """
+    notifications = get_collection(NOTIFICATIONS_COLLECTION)
+
+    # Get total count
+    total_count = notifications.count_documents({})
+
+    # Get notifications
+    cursor = notifications.find().sort("created_at", -1).skip(offset).limit(limit)
+
+    notifications_list = []
+    for notif in cursor:
+        notifications_list.append({
+            "id": str(notif["_id"]),
+            "title": notif["title"],
+            "message": notif["message"],
+            "notification_type": notif["notification_type"],
+            "target_type": notif["target_type"],
+            "target_user_id": notif.get("target_user_id"),
+            "created_by": notif["created_by"],
+            "created_at": notif["created_at"].isoformat()
+        })
+
+    return {
+        "notifications": notifications_list,
+        "total": total_count,
+        "limit": limit,
+        "offset": offset
+    }
+
+
+@router.delete("/notifications/{notification_id}")
+async def delete_notification(
+    notification_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Delete a notification
+
+    Args:
+        notification_id: Notification ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    notifications = get_collection(NOTIFICATIONS_COLLECTION)
+
+    try:
+        result = notifications.delete_one({"_id": ObjectId(notification_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid notification ID"
+        )
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Notification not found"
+        )
+
+    return {"message": "Notification deleted successfully"}

@@ -617,3 +617,43 @@ class PasswordChangeWithVerification(BaseModel):
         """Validate that passwords match after model initialization"""
         if self.new_password != self.confirm_password:
             raise ValueError('Passwords do not match')
+
+
+class NotificationCreate(BaseModel):
+    """Schema for creating a notification"""
+    title: str = Field(..., min_length=1, max_length=200, description="Notification title")
+    message: str = Field(..., min_length=1, max_length=1000, description="Notification message")
+    notification_type: str = Field(..., description="Type: 'info', 'success', 'warning', or 'error'")
+    target_type: str = Field(..., description="Target: 'all' or 'specific'")
+    target_user_id: Optional[str] = Field(None, description="User ID if target is specific")
+
+    @field_validator('notification_type')
+    @classmethod
+    def validate_notification_type(cls, v):
+        allowed_types = ['info', 'success', 'warning', 'error']
+        if v not in allowed_types:
+            raise ValueError(f'Notification type must be one of: {", ".join(allowed_types)}')
+        return v
+
+    @field_validator('target_type')
+    @classmethod
+    def validate_target_type(cls, v):
+        if v not in ['all', 'specific']:
+            raise ValueError('Target type must be either "all" or "specific"')
+        return v
+
+
+class NotificationResponse(BaseModel):
+    """Schema for notification response"""
+    id: str
+    title: str
+    message: str
+    notification_type: str
+    target_type: str
+    target_user_id: Optional[str]
+    is_dismissed: bool
+    created_by: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
