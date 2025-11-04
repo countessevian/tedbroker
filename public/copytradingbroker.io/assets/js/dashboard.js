@@ -40,6 +40,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Check onboarding status - redirect if incomplete
     await checkOnboardingStatus();
 
+    // Load notifications
+    await loadNotifications();
+
     // Get user data from localStorage
     let userData = TED_AUTH.getUser();
 
@@ -2976,3 +2979,112 @@ function openNewsArticle(url) {
 // Export news functions
 window.filterNewsByCategory = filterNewsByCategory;
 window.openNewsArticle = openNewsArticle;
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+/**
+ * Load and display user notifications
+ */
+async function loadNotifications() {
+    try {
+        const response = await TED_AUTH.apiCall('/api/notifications/active');
+        const notifications = await response.json();
+
+        const container = document.getElementById('notifications-area');
+        if (!container) return;
+
+        // Clear existing notifications
+        container.innerHTML = '';
+
+        if (notifications.length === 0) {
+            return; // Don't show anything if no notifications
+        }
+
+        // Display each notification
+        notifications.forEach(notif => {
+            const notificationEl = createNotificationElement(notif);
+            container.appendChild(notificationEl);
+        });
+
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+    }
+}
+
+/**
+ * Create notification DOM element
+ */
+function createNotificationElement(notification) {
+    const div = document.createElement('div');
+    div.className = `notification-banner ${notification.notification_type}`;
+    div.setAttribute('data-notification-id', notification.id);
+
+    // Get icon based on type
+    const icons = {
+        'info': 'fa-info-circle',
+        'success': 'fa-check-circle',
+        'warning': 'fa-exclamation-triangle',
+        'error': 'fa-times-circle'
+    };
+    const iconClass = icons[notification.notification_type] || 'fa-bell';
+
+    div.innerHTML = `
+        <div class="notification-icon">
+            <i class="fas ${iconClass}"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">${escapeHtml(notification.title)}</div>
+            <div class="notification-message">${escapeHtml(notification.message)}</div>
+        </div>
+        <button class="notification-dismiss" onclick="dismissNotification('${notification.id}')" aria-label="Dismiss">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    return div;
+}
+
+/**
+ * Dismiss a notification
+ */
+async function dismissNotification(notificationId) {
+    try {
+        const response = await TED_AUTH.apiCall(`/api/notifications/${notificationId}/dismiss`, {
+            method: 'PUT'
+        });
+
+        if (response.ok) {
+            // Remove notification from DOM with animation
+            const notificationEl = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (notificationEl) {
+                notificationEl.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => {
+                    notificationEl.remove();
+
+                    // Check if notifications area is empty
+                    const container = document.getElementById('notifications-area');
+                    if (container && container.children.length === 0) {
+                        container.style.display = 'none';
+                    }
+                }, 300);
+            }
+        }
+    } catch (error) {
+        console.error('Error dismissing notification:', error);
+    }
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Export notification functions
+window.loadNotifications = loadNotifications;
+window.dismissNotification = dismissNotification;

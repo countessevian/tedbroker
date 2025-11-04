@@ -84,6 +84,7 @@ function switchTab(tab) {
     if (tab === 'deposits') loadDepositRequests();
     if (tab === 'bank-accounts') loadBankAccounts();
     if (tab === 'crypto-wallets') loadCryptoWallets();
+    if (tab === 'notifications') loadNotifications();
     if (tab === 'chats') {
         // Initialize chat manager if not already initialized
         if (typeof adminChatManager !== 'undefined') {
@@ -172,13 +173,158 @@ function searchUsers() {
 
 // View user details
 async function viewUser(userId) {
+    const modal = document.getElementById('user-details-modal');
+    const loading = document.getElementById('user-details-loading');
+    const content = document.getElementById('user-details-content');
+
+    // Show modal and loading state
+    modal.classList.add('show');
+    loading.style.display = 'block';
+    content.style.display = 'none';
+
     try {
         const response = await adminFetch(`/api/admin/users/${userId}`);
         const user = await response.json();
-        
-        alert(`User Details:\n\nUsername: ${user.username}\nEmail: ${user.email}\nFull Name: ${user.full_name || 'N/A'}\nWallet: $${user.wallet_balance}\nStatus: ${user.is_active ? 'Active' : 'Inactive'}\nReferral Code: ${user.referral_code || 'N/A'}`);
+
+        // Populate overview tab
+        document.getElementById('detail-username').textContent = user.username || '-';
+        document.getElementById('detail-email').textContent = user.email || '-';
+        document.getElementById('detail-fullname').textContent = user.full_name || '-';
+        document.getElementById('detail-phone').textContent = user.phone || '-';
+        document.getElementById('detail-gender').textContent = user.gender || '-';
+        document.getElementById('detail-country').textContent = user.country || '-';
+        document.getElementById('detail-wallet').textContent = `$${user.wallet_balance.toLocaleString()}`;
+
+        // Status badge
+        const statusBadge = user.is_active ?
+            '<span class="badge badge-active">Active</span>' :
+            '<span class="badge badge-inactive">Inactive</span>';
+        document.getElementById('detail-status').innerHTML = statusBadge;
+
+        document.getElementById('detail-2fa').textContent = user.two_fa_enabled ? 'Yes' : 'No';
+        document.getElementById('detail-auth-provider').textContent = user.auth_provider || 'local';
+        document.getElementById('detail-referral-code').textContent = user.referral_code || '-';
+        document.getElementById('detail-referred-by').textContent = user.referred_by || '-';
+        document.getElementById('detail-created').textContent = user.created_at ? new Date(user.created_at).toLocaleString() : '-';
+        document.getElementById('detail-updated').textContent = user.updated_at ? new Date(user.updated_at).toLocaleString() : '-';
+
+        // Populate KYC tab
+        const kyc = user.kyc || {};
+
+        // KYC status badge
+        let kycStatusClass = 'badge-pending';
+        if (kyc.kyc_status === 'approved') kycStatusClass = 'badge-approved';
+        else if (kyc.kyc_status === 'rejected') kycStatusClass = 'badge-rejected';
+
+        document.getElementById('kyc-status-badge').className = `badge ${kycStatusClass}`;
+        document.getElementById('kyc-status-badge').textContent = kyc.kyc_status ? kyc.kyc_status.replace('_', ' ').toUpperCase() : 'NOT SUBMITTED';
+        document.getElementById('kyc-submitted-at').textContent = kyc.kyc_submitted_at ? new Date(kyc.kyc_submitted_at).toLocaleString() : '-';
+
+        document.getElementById('kyc-first-name').textContent = kyc.first_name || '-';
+        document.getElementById('kyc-last-name').textContent = kyc.last_name || '-';
+        document.getElementById('kyc-gender').textContent = kyc.gender || '-';
+        document.getElementById('kyc-document-number').textContent = kyc.document_number || '-';
+        document.getElementById('kyc-street').textContent = kyc.street || '-';
+        document.getElementById('kyc-city').textContent = kyc.city || '-';
+        document.getElementById('kyc-state').textContent = kyc.state || '-';
+        document.getElementById('kyc-zip').textContent = kyc.zip_code || '-';
+        document.getElementById('kyc-country').textContent = kyc.country || '-';
+
+        // KYC document photo
+        const docContainer = document.getElementById('kyc-document-container');
+        if (kyc.document_photo) {
+            docContainer.innerHTML = `<img src="${kyc.document_photo}" alt="KYC Document" style="max-width: 100%; max-height: 500px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">`;
+        } else {
+            docContainer.innerHTML = '<p style="color: #8b93a7;">No document uploaded</p>';
+        }
+
+        // Populate login statistics
+        const stats = user.login_statistics || {};
+        document.getElementById('login-stat-total').textContent = stats.successful_logins || 0;
+        document.getElementById('login-stat-ips').textContent = stats.unique_ips || 0;
+        document.getElementById('login-stat-devices').textContent = stats.unique_devices || 0;
+
+        // Populate login history
+        const loginHistory = user.login_history || [];
+        const historyContainer = document.getElementById('login-history-container');
+
+        if (loginHistory.length === 0) {
+            historyContainer.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px;">No login history available</p>';
+        } else {
+            let historyHtml = '';
+            loginHistory.forEach(login => {
+                const successClass = login.success ? '' : ' failed';
+                const statusIcon = login.success ? '<i class="fas fa-check-circle" style="color: #4caf50;"></i>' : '<i class="fas fa-times-circle" style="color: #f44336;"></i>';
+                const timestamp = new Date(login.timestamp).toLocaleString();
+
+                historyHtml += `
+                    <div class="login-history-item${successClass}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                ${statusIcon}
+                                <strong>${login.success ? 'Successful Login' : 'Failed Login'}</strong>
+                            </div>
+                            <span style="color: #8b93a7; font-size: 13px;">${timestamp}</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
+                            <div>
+                                <strong>IP Address:</strong> ${login.ip_address || 'Unknown'}
+                            </div>
+                            <div>
+                                <strong>Location:</strong> ${login.location ? `${login.location.city}, ${login.location.country}` : 'Unknown'}
+                            </div>
+                            <div>
+                                <strong>Device:</strong> ${login.device_info ? login.device_info.device : 'Unknown'}
+                            </div>
+                            <div>
+                                <strong>Browser:</strong> ${login.device_info ? login.device_info.browser : 'Unknown'}
+                            </div>
+                            ${!login.success && login.failure_reason ? `<div style="grid-column: span 2; color: #f44336;"><strong>Reason:</strong> ${login.failure_reason}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            historyContainer.innerHTML = historyHtml;
+        }
+
+        // Hide loading and show content
+        loading.style.display = 'none';
+        content.style.display = 'block';
+
+        // Switch to overview tab by default
+        switchUserTab('overview');
+
     } catch (error) {
+        console.error('Error loading user details:', error);
         alert('Error loading user details');
+        modal.classList.remove('show');
+    }
+}
+
+// Close user details modal
+function closeUserDetailsModal() {
+    const modal = document.getElementById('user-details-modal');
+    modal.classList.remove('show');
+}
+
+// Switch user detail tabs
+function switchUserTab(tabName) {
+    // Remove active class from all buttons
+    document.querySelectorAll('.user-tab-btn').forEach(btn => btn.classList.remove('active'));
+
+    // Add active class to selected button
+    const selectedBtn = document.querySelector(`.user-tab-btn[data-tab="${tabName}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('active');
+    }
+
+    // Hide all tab contents
+    document.querySelectorAll('.user-tab-content').forEach(content => content.classList.remove('active'));
+
+    // Show selected tab content
+    const selectedTab = document.getElementById(`user-tab-${tabName}`);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
     }
 }
 
@@ -927,6 +1073,213 @@ async function deleteBankAccount(accountId) {
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to delete account'));
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+// Load notifications
+async function loadNotifications() {
+    const container = document.getElementById('notifications-container');
+    container.innerHTML = 'Loading...';
+
+    try {
+        const response = await adminFetch('/api/admin/notifications');
+        const data = await response.json();
+
+        if (data.notifications.length === 0) {
+            container.innerHTML = '<p>No notifications found. <button class="btn btn-primary" onclick="showCreateNotificationModal()">Create First Notification</button></p>';
+            return;
+        }
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Target</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        data.notifications.forEach(notif => {
+            const date = new Date(notif.created_at).toLocaleDateString();
+            const typeColors = {
+                'info': '#2196F3',
+                'success': '#4caf50',
+                'warning': '#ff9800',
+                'error': '#f44336'
+            };
+            const typeColor = typeColors[notif.notification_type] || '#8b93a7';
+
+            html += `
+                <tr>
+                    <td><strong>${notif.title}</strong><br><small style="color: #8b93a7;">${notif.message.substring(0, 50)}${notif.message.length > 50 ? '...' : ''}</small></td>
+                    <td><span class="badge" style="background: ${typeColor};">${notif.notification_type.toUpperCase()}</span></td>
+                    <td>${notif.target_type === 'all' ? '<strong>All Users</strong>' : 'Specific User'}</td>
+                    <td>${date}</td>
+                    <td>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteNotification('${notif.id}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch (error) {
+        container.innerHTML = '<p style="color: red;">Error loading notifications</p>';
+        console.error(error);
+    }
+}
+
+// Show create notification modal
+function showCreateNotificationModal() {
+    const modal = document.getElementById('create-notification-modal');
+    if (modal) {
+        modal.classList.add('show');
+        document.getElementById('create-notification-form').reset();
+        document.getElementById('user-selection-group').style.display = 'none';
+        document.getElementById('notif-target-user').value = '';
+        document.getElementById('user-search-results').style.display = 'none';
+        document.getElementById('selected-user-display').style.display = 'none';
+    }
+}
+
+// Hide create notification modal
+function hideCreateNotificationModal() {
+    const modal = document.getElementById('create-notification-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('create-notification-form').reset();
+    }
+}
+
+// Toggle user selection based on target type
+function toggleUserSelection() {
+    const targetType = document.getElementById('notif-target-type').value;
+    const userSelectionGroup = document.getElementById('user-selection-group');
+
+    if (targetType === 'specific') {
+        userSelectionGroup.style.display = 'block';
+    } else {
+        userSelectionGroup.style.display = 'none';
+        document.getElementById('notif-target-user').value = '';
+    }
+}
+
+// Search users for notification
+let userSearchTimeout;
+async function searchUsersForNotification() {
+    clearTimeout(userSearchTimeout);
+    const search = document.getElementById('notif-target-user-search').value.trim();
+
+    if (search.length < 2) {
+        document.getElementById('user-search-results').style.display = 'none';
+        return;
+    }
+
+    userSearchTimeout = setTimeout(async () => {
+        try {
+            const response = await adminFetch(`/api/admin/users?search=${encodeURIComponent(search)}&limit=10`);
+            const data = await response.json();
+            const resultsDiv = document.getElementById('user-search-results');
+
+            if (data.users.length === 0) {
+                resultsDiv.innerHTML = '<p style="padding: 10px; color: #8b93a7;">No users found</p>';
+                resultsDiv.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+            data.users.forEach(user => {
+                html += `
+                    <div style="padding: 10px; cursor: pointer; border-bottom: 1px solid #e2e8f0; hover: background-color: #f7fafc;" onclick="selectUserForNotification('${user.id}', '${user.username}', '${user.email}')">
+                        <strong>${user.username}</strong><br>
+                        <small style="color: #8b93a7;">${user.email}</small>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        } catch (error) {
+            console.error('Error searching users:', error);
+        }
+    }, 300);
+}
+
+// Select user for notification
+function selectUserForNotification(userId, username, email) {
+    document.getElementById('notif-target-user').value = userId;
+    document.getElementById('user-search-results').style.display = 'none';
+    document.getElementById('notif-target-user-search').value = `${username} (${email})`;
+    document.getElementById('selected-user-display').textContent = `✓ Selected: ${username} (${email})`;
+    document.getElementById('selected-user-display').style.display = 'block';
+}
+
+// Submit new notification
+async function submitNewNotification(event) {
+    event.preventDefault();
+
+    const targetType = document.getElementById('notif-target-type').value;
+    const notificationData = {
+        title: document.getElementById('notif-title').value,
+        message: document.getElementById('notif-message').value,
+        notification_type: document.getElementById('notif-type').value,
+        target_type: targetType,
+        target_user_id: targetType === 'specific' ? document.getElementById('notif-target-user').value : null
+    };
+
+    // Validate specific user selection
+    if (targetType === 'specific' && !notificationData.target_user_id) {
+        alert('Please select a user for specific notification');
+        return;
+    }
+
+    try {
+        const response = await adminFetch('/api/admin/notifications', {
+            method: 'POST',
+            body: JSON.stringify(notificationData)
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            alert(data.message || 'Notification sent successfully!');
+            hideCreateNotificationModal();
+            loadNotifications();
+        } else {
+            const error = await response.json();
+            alert(`Error: ${error.detail || 'Failed to send notification'}`);
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+// Delete notification
+async function deleteNotification(notificationId) {
+    if (!confirm('Delete this notification? This will remove it for all users.')) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/notifications/${notificationId}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Notification deleted successfully');
+            loadNotifications();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to delete notification'));
         }
     } catch (error) {
         alert('Network error. Please try again.');
