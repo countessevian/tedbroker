@@ -256,7 +256,7 @@
         }
 
         .submenu-item:hover {
-            background: rgba(123, 182, 218, 0.1);
+            background: rgba(211, 47, 47, 0.1);
             color: #D32F2F;
             border-left-color: #D32F2F;
             transform: translateX(4px);
@@ -264,7 +264,7 @@
         }
 
         .submenu-item.active {
-            background: rgba(123, 182, 218, 0.15);
+            background: rgba(211, 47, 47, 0.15);
             color: #D32F2F;
             border-left-color: #D32F2F;
             font-weight: 600;
@@ -346,7 +346,7 @@
         }
 
         .content-header p {
-            color: #8b93a7;
+            color: var(--text-muted);
             font-size: 14px;
             transition: color 0.3s ease;
         }
@@ -648,7 +648,7 @@
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
-            border-bottom: 1px solid rgba(123, 182, 218, 0.1);
+            border-bottom: 1px solid var(--border-color);
             transition: all 0.3s ease;
             position: relative;
         }
@@ -670,7 +670,7 @@
         }
 
         .info-row:hover {
-            background: rgba(123, 182, 218, 0.05);
+            background: var(--bg-secondary);
             padding-left: 12px;
             padding-right: 12px;
             margin-left: -12px;
@@ -682,11 +682,11 @@
         }
 
         .info-label {
-            color: #8b93a7;
+            color: var(--text-muted);
         }
 
         .info-value {
-            color: #000;
+            color: var(--text-primary);
             font-weight: 600;
         }
 
@@ -799,13 +799,13 @@
         }
 
         .trader-card, .plan-card {
-            background: #f5f5f5;
-            border: 1px solid rgba(123, 182, 218, 0.1);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06),
-                        0 1px 5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 3px 10px var(--shadow),
+                        0 1px 5px var(--shadow);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
@@ -845,12 +845,12 @@
         .trader-trades {
             margin-top: 15px;
             padding-top: 15px;
-            border-top: 1px solid rgba(123, 182, 218, 0.1);
+            border-top: 1px solid var(--border-color);
         }
 
         .trader-trades-title {
             font-size: 14px;
-            color: #8b93a7;
+            color: var(--text-muted);
             margin-bottom: 10px;
             font-weight: 600;
         }
@@ -862,20 +862,20 @@
         }
 
         .trade-item {
-            background: rgba(123, 182, 218, 0.05);
-            border: 1px solid rgba(123, 182, 218, 0.1);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 6px var(--shadow);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .trade-item:hover {
-            background: rgba(123, 182, 218, 0.1);
+            background: var(--card-hover);
             border-color: rgba(211, 47, 47, 0.3);
             transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08),
-                        0 3px 8px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 6px 16px var(--shadow),
+                        0 3px 8px var(--shadow);
         }
 
         .trade-ticker {
@@ -886,7 +886,7 @@
 
         .trade-price {
             font-size: 12px;
-            color: #000;
+            color: var(--text-primary);
             margin: 4px 0;
         }
 
@@ -908,8 +908,8 @@
         }
 
         .referral-link-box {
-            background: rgba(123, 182, 218, 0.05);
-            border: 1px solid rgba(123, 182, 218, 0.2);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             padding: 16px;
             border-radius: 8px;
             display: flex;
@@ -926,9 +926,9 @@
 
         /* News Tab Styles */
         .news-category-btn {
-            background: rgba(123, 182, 218, 0.1);
-            border: 1px solid rgba(123, 182, 218, 0.2);
-            color: #8b93a7;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
             padding: 10px 16px;
             border-radius: 8px;
             font-size: 14px;
@@ -941,8 +941,8 @@
         }
 
         .news-category-btn:hover {
-            background: rgba(123, 182, 218, 0.2);
-            border-color: rgba(123, 182, 218, 0.3);
+            background: rgba(211, 47, 47, 0.1);
+            border-color: rgba(211, 47, 47, 0.3);
             color: #D32F2F;
             transform: translateY(-2px);
         }
@@ -958,8 +958,8 @@
         }
 
         .news-article-card {
-            background: #f5f5f5;
-            border: 1px solid rgba(123, 182, 218, 0.1);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
@@ -968,9 +968,9 @@
         }
 
         .news-article-card:hover {
-            border-color: rgba(123, 182, 218, 0.3);
+            border-color: rgba(211, 47, 47, 0.3);
             transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 16px var(--shadow);
         }
 
         .news-article-image {
@@ -996,13 +996,13 @@
         .news-article-title {
             font-size: 18px;
             font-weight: 700;
-            color: #000;
+            color: var(--text-primary);
             margin-bottom: 10px;
             line-height: 1.4;
         }
 
         .news-article-description {
-            color: #8b93a7;
+            color: var(--text-muted);
             font-size: 14px;
             line-height: 1.6;
             margin-bottom: 15px;
@@ -1012,7 +1012,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #8b93a7;
+            color: var(--text-muted);
             font-size: 13px;
         }
 
