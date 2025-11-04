@@ -77,7 +77,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Load investment plans when subscription tab is clicked
-    const subscriptionTab = document.querySelector('.menu-item[data-tab="subscription"]');
+    // Note: subscription is in a submenu, so we need to select submenu-item
+    const subscriptionTab = document.querySelector('.submenu-item[data-tab="subscription"], .menu-item[data-tab="subscription"]');
     if (subscriptionTab) {
         subscriptionTab.addEventListener('click', function() {
             // Force reload each time to ensure fresh data
