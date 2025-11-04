@@ -149,6 +149,7 @@ class ExpertTrader(BaseModel):
     ytd_return: float = Field(..., description="Year-to-date return percentage")
     win_rate: float = Field(..., description="Win rate percentage")
     copiers: int = Field(..., description="Number of copiers")
+    minimum_copy_amount: float = Field(default=100.0, gt=0, description="Minimum amount required to copy this trader in USD")
     trades: List[Trade] = Field(default=[], description="List of recent trades")
     created_at: datetime
     updated_at: datetime
@@ -167,6 +168,7 @@ class ExpertTraderResponse(BaseModel):
     ytd_return: float
     win_rate: float
     copiers: int
+    minimum_copy_amount: float
     trades: List[Trade]
 
     class Config:
@@ -554,3 +556,64 @@ class OnboardingStatus(BaseModel):
     is_onboarding_complete: bool
     current_step: Optional[str] = None
     completed_steps: List[str] = []
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Schema for forgot password request"""
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Schema for resetting password with token"""
+    token: str = Field(..., min_length=1, description="Password reset token")
+    new_password: str = Field(..., min_length=8)
+    confirm_password: str = Field(..., min_length=8)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not re.search(r'[0-9]', v):
+            raise ValueError('Password must contain at least one number')
+        return v
+
+    def model_post_init(self, __context):
+        """Validate that passwords match after model initialization"""
+        if self.new_password != self.confirm_password:
+            raise ValueError('Passwords do not match')
+
+
+class VerifyPasswordResetCode(BaseModel):
+    """Schema for verifying password reset 2FA code"""
+    email: EmailStr
+    code: str = Field(..., min_length=6, max_length=6)
+
+
+class PasswordChangeWithVerification(BaseModel):
+    """Schema for password change with 2FA verification"""
+    old_password: str
+    new_password: str = Field(..., min_length=8)
+    confirm_password: str = Field(..., min_length=8)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not re.search(r'[0-9]', v):
+            raise ValueError('Password must contain at least one number')
+        return v
+
+    def model_post_init(self, __context):
+        """Validate that passwords match after model initialization"""
+        if self.new_password != self.confirm_password:
+            raise ValueError('Passwords do not match')

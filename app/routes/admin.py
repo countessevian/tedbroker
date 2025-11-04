@@ -46,6 +46,7 @@ class CreateTrader(BaseModel):
     ytd_return: float = Field(..., description="Year-to-date return percentage")
     win_rate: float = Field(..., description="Win rate percentage")
     copiers: int = Field(default=0, description="Number of copiers")
+    minimum_copy_amount: float = Field(default=100.0, gt=0, description="Minimum amount required to copy this trader in USD")
 
 
 class CreatePlan(BaseModel):
