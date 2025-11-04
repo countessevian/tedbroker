@@ -28,7 +28,7 @@ from app.login_history import login_history_service
 from app.security_alerts import security_alerts_service
 from app.rate_limiter import limiter, get_rate_limit
 from app.referrals_service import referrals_service
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
