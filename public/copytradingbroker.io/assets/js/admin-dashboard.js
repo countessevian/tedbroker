@@ -82,6 +82,7 @@ function switchTab(tab) {
     if (tab === 'traders') loadTraders();
     if (tab === 'plans') loadPlans();
     if (tab === 'deposits') loadDepositRequests();
+    if (tab === 'withdrawals') loadWithdrawalRequests();
     if (tab === 'bank-accounts') loadBankAccounts();
     if (tab === 'crypto-wallets') loadCryptoWallets();
     if (tab === 'notifications') loadNotifications();
@@ -1280,6 +1281,165 @@ async function deleteNotification(notificationId) {
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to delete notification'));
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+// ============================================================
+// WITHDRAWAL REQUESTS
+// ============================================================
+
+// Load withdrawal requests
+async function loadWithdrawalRequests(statusFilter = '') {
+    const container = document.getElementById('withdrawals-table-container');
+    container.innerHTML = 'Loading...';
+
+    try {
+        const url = statusFilter ? `/api/admin/withdrawal-requests?status_filter=${statusFilter}` : '/api/admin/withdrawal-requests';
+        const response = await adminFetch(url);
+        const data = await response.json();
+
+        if (data.requests.length === 0) {
+            container.innerHTML = '<p>No withdrawal requests found</p>';
+            return;
+        }
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        data.requests.forEach(req => {
+            const date = new Date(req.created_at).toLocaleDateString();
+            const statusBadge = req.status === 'completed' ? 'badge-approved' :
+                              req.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+            html += `
+                <tr>
+                    <td>${req.username}<br><small style="color: #8b93a7;">${req.email}</small></td>
+                    <td><strong>$${req.amount.toLocaleString()}</strong></td>
+                    <td>${req.withdrawal_method}</td>
+                    <td><span class="badge ${statusBadge}">${req.status}</span></td>
+                    <td>${date}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="viewWithdrawalDetails('${req.id}')">View</button>
+                            ${req.status === 'pending' ? `
+                                <button class="btn btn-success" style="padding: 5px 10px;" onclick="approveWithdrawal('${req.id}')">Approve</button>
+                                <button class="btn btn-danger" style="padding: 5px 10px;" onclick="rejectWithdrawal('${req.id}')">Reject</button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    } catch (error) {
+        container.innerHTML = '<p style="color: red;">Error loading withdrawal requests</p>';
+        console.error(error);
+    }
+}
+
+// Filter withdrawal requests
+function filterWithdrawalRequests() {
+    const statusFilter = document.getElementById('withdrawal-status-filter').value;
+    loadWithdrawalRequests(statusFilter);
+}
+
+// View withdrawal details
+function viewWithdrawalDetails(requestId) {
+    // Fetch the full withdrawal request data
+    adminFetch(`/api/admin/withdrawal-requests?offset=0&limit=1000`)
+        .then(response => response.json())
+        .then(data => {
+            const withdrawal = data.requests.find(req => req.id === requestId);
+            if (!withdrawal) {
+                alert('Withdrawal request not found');
+                return;
+            }
+
+            // Populate modal with withdrawal details
+            const statusBadge = withdrawal.status === 'completed' ? 'badge-approved' :
+                              withdrawal.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+            document.getElementById('wd-status-badge').innerHTML = `<span class="badge ${statusBadge}">${withdrawal.status.toUpperCase()}</span>`;
+            document.getElementById('wd-amount').textContent = `$${withdrawal.amount.toLocaleString()}`;
+            document.getElementById('wd-username').textContent = withdrawal.username || '-';
+            document.getElementById('wd-email').textContent = withdrawal.email || '-';
+            document.getElementById('wd-method').textContent = withdrawal.withdrawal_method;
+            document.getElementById('wd-created').textContent = new Date(withdrawal.created_at).toLocaleString();
+            document.getElementById('wd-reviewed').textContent = withdrawal.reviewed_at ? new Date(withdrawal.reviewed_at).toLocaleString() : 'Not reviewed';
+
+            // Format account details as JSON for readability
+            document.getElementById('wd-account-details').textContent = JSON.stringify(withdrawal.account_details, null, 2);
+
+            // Show notes if available
+            if (withdrawal.notes) {
+                document.getElementById('wd-notes-container').style.display = 'block';
+                document.getElementById('wd-notes').textContent = withdrawal.notes;
+            } else {
+                document.getElementById('wd-notes-container').style.display = 'none';
+            }
+
+            // Show modal
+            document.getElementById('withdrawal-details-modal').classList.add('show');
+        })
+        .catch(error => {
+            console.error('Error loading withdrawal details:', error);
+            alert('Error loading withdrawal details');
+        });
+}
+
+// Close withdrawal details modal
+function closeWithdrawalDetailsModal() {
+    document.getElementById('withdrawal-details-modal').classList.remove('show');
+}
+
+// Approve withdrawal
+async function approveWithdrawal(requestId) {
+    if (!confirm('Approve this withdrawal request? This will deduct the amount from the user wallet and mark as completed.')) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/withdrawal-requests/${requestId}/approve`, { method: 'PUT' });
+        if (response.ok) {
+            const data = await response.json();
+            alert(`Withdrawal approved! $${data.amount} deducted from user wallet.`);
+            loadWithdrawalRequests();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to approve withdrawal'));
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+        console.error(error);
+    }
+}
+
+// Reject withdrawal
+async function rejectWithdrawal(requestId) {
+    if (!confirm('Reject this withdrawal request?')) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/withdrawal-requests/${requestId}/reject`, { method: 'PUT' });
+        if (response.ok) {
+            alert('Withdrawal request rejected');
+            loadWithdrawalRequests();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to reject withdrawal'));
         }
     } catch (error) {
         alert('Network error. Please try again.');
