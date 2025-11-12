@@ -620,7 +620,7 @@ function createPlanCard(plan) {
         <h3 style="color: #D32F2F; margin-bottom: 10px;">${plan.name}</h3>
 
         <div style="margin: 20px 0;">
-            <div style="font-size: 36px; font-weight: bold; color: #000;">$${plan.minimum_investment.toLocaleString()}</div>
+            <div style="font-size: 36px; font-weight: bold; color: #D32F2F;">$${plan.minimum_investment.toLocaleString()}</div>
             <div style="font-size: 14px; color: #8b93a7;">Minimum Investment</div>
         </div>
 
