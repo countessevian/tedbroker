@@ -1,14 +1,37 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Body
 from datetime import datetime
 from bson import ObjectId
-from typing import List
+from typing import List, Optional, Dict, Any
 import secrets
+from pydantic import BaseModel
 
 from app.schemas import TransactionResponse
 from app.auth import get_current_user_token
-from app.database import get_collection, USERS_COLLECTION, TRANSACTIONS_COLLECTION
+from app.database import get_collection, USERS_COLLECTION, TRANSACTIONS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION
 
 router = APIRouter(prefix="/api/wallet", tags=["Wallet"])
+
+
+class DepositRequest(BaseModel):
+    amount: float
+    payment_method: str
+    password: str
+    # Optional fields for different payment methods
+    bank_name: Optional[str] = None
+    reference_number: Optional[str] = None
+    crypto_type: Optional[str] = None
+    transaction_hash: Optional[str] = None
+    card_number: Optional[str] = None
+    card_expiry: Optional[str] = None
+    card_cvv: Optional[str] = None
+    card_holder_name: Optional[str] = None
+    paypal_email: Optional[str] = None
+
+
+class WithdrawalRequest(BaseModel):
+    amount: float
+    payment_method: str
+    password: str
 
 
 def get_user_by_id(user_id: str):
@@ -48,18 +71,17 @@ async def get_transactions(current_user: dict = Depends(get_current_user_token))
 
 @router.post("/deposit")
 async def create_deposit(
-    amount: float,
-    payment_method: str,
+    deposit_data: DepositRequest,
     current_user: dict = Depends(get_current_user_token)
 ):
     """Create a deposit transaction"""
-    if amount <= 0:
+    if deposit_data.amount <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Amount must be greater than 0"
         )
 
-    if amount > 1000000:  # Max deposit limit
+    if deposit_data.amount > 1000000:  # Max deposit limit
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Maximum deposit amount is $1,000,000"
@@ -67,6 +89,7 @@ async def create_deposit(
 
     users = get_collection(USERS_COLLECTION)
     transactions_col = get_collection(TRANSACTIONS_COLLECTION)
+    deposit_requests_col = get_collection(DEPOSIT_REQUESTS_COLLECTION)
 
     # Get user
     user = get_user_by_id(current_user["user_id"])
@@ -77,17 +100,32 @@ async def create_deposit(
         )
 
     # Generate unique reference number
-    reference_number = f"DEP-{secrets.token_hex(8).upper()}"
+    reference_number = deposit_data.reference_number or f"DEP-{secrets.token_hex(8).upper()}"
+
+    # Prepare payment details
+    payment_details = {}
+    if deposit_data.payment_method == "Bank Transfer":
+        payment_details["bank_name"] = deposit_data.bank_name
+        payment_details["reference_number"] = deposit_data.reference_number
+    elif deposit_data.payment_method == "Cryptocurrency":
+        payment_details["crypto_type"] = deposit_data.crypto_type
+        payment_details["transaction_hash"] = deposit_data.transaction_hash
+    elif deposit_data.payment_method == "Credit Card":
+        payment_details["card_number"] = deposit_data.card_number[-4:]  # Store only last 4 digits
+        payment_details["card_holder_name"] = deposit_data.card_holder_name
+    elif deposit_data.payment_method == "PayPal":
+        payment_details["paypal_email"] = deposit_data.paypal_email
 
     # Create transaction record with pending status
     transaction = {
         "user_id": current_user["user_id"],
         "transaction_type": "deposit",
-        "amount": amount,
+        "amount": deposit_data.amount,
         "status": "pending",  # Requires admin approval
-        "payment_method": payment_method,
+        "payment_method": deposit_data.payment_method,
         "reference_number": reference_number,
-        "description": f"Deposit via {payment_method}",
+        "payment_details": payment_details,
+        "description": f"Deposit via {deposit_data.payment_method}",
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
@@ -95,6 +133,23 @@ async def create_deposit(
     # Insert transaction
     result = transactions_col.insert_one(transaction)
     transaction["_id"] = result.inserted_id
+
+    # Also create deposit request for admin dashboard
+    deposit_request = {
+        "user_id": current_user["user_id"],
+        "username": user.get("username", ""),
+        "email": user.get("email", ""),
+        "amount": deposit_data.amount,
+        "payment_method": deposit_data.payment_method,
+        "payment_proof": payment_details.get("transaction_hash") or payment_details.get("reference_number"),
+        "notes": None,
+        "status": "pending",
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+        "reviewed_by": None,
+        "reviewed_at": None
+    }
+    deposit_requests_col.insert_one(deposit_request)
 
     # Note: Wallet balance will be updated only when admin approves the deposit
     current_balance = user.get("wallet_balance", 0.0)
@@ -117,12 +172,11 @@ async def create_deposit(
 
 @router.post("/withdraw")
 async def create_withdrawal(
-    amount: float,
-    payment_method: str,
+    withdrawal_data: WithdrawalRequest,
     current_user: dict = Depends(get_current_user_token)
 ):
     """Create a withdrawal transaction"""
-    if amount <= 0:
+    if withdrawal_data.amount <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Amount must be greater than 0"
@@ -141,7 +195,7 @@ async def create_withdrawal(
 
     # Check if user has sufficient balance
     current_balance = user.get("wallet_balance", 0.0)
-    if current_balance < amount:
+    if current_balance < withdrawal_data.amount:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Insufficient funds. Current balance: ${current_balance:.2f}"
@@ -154,11 +208,11 @@ async def create_withdrawal(
     transaction = {
         "user_id": current_user["user_id"],
         "transaction_type": "withdrawal",
-        "amount": amount,
+        "amount": withdrawal_data.amount,
         "status": "pending",  # Requires admin approval
-        "payment_method": payment_method,
+        "payment_method": withdrawal_data.payment_method,
         "reference_number": reference_number,
-        "description": f"Withdrawal to {payment_method}",
+        "description": f"Withdrawal to {withdrawal_data.payment_method}",
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
