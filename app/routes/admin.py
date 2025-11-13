@@ -1130,19 +1130,24 @@ async def approve_deposit_request(
             detail="User not found"
         )
 
-    # Create transaction record
-    transaction = {
-        "user_id": user_id,
-        "transaction_type": "deposit",
-        "amount": amount,
-        "status": "completed",
-        "payment_method": deposit_request["payment_method"],
-        "reference_number": secrets.token_hex(16),
-        "description": f"Deposit approved by admin - {deposit_request['payment_method']}",
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
-    }
-    transactions.insert_one(transaction)
+    # Update the original pending transaction to approved status
+    # Find the pending transaction created when user submitted deposit
+    transactions.update_one(
+        {
+            "user_id": user_id,
+            "transaction_type": "deposit",
+            "amount": amount,
+            "status": "pending",
+            "payment_method": deposit_request["payment_method"]
+        },
+        {
+            "$set": {
+                "status": "approved",
+                "description": f"Deposit approved by admin - {deposit_request['payment_method']}",
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
 
     # Update deposit request status
     deposit_requests.update_one(
@@ -1180,6 +1185,7 @@ async def reject_deposit_request(
         dict: Success message
     """
     deposit_requests = get_collection(DEPOSIT_REQUESTS_COLLECTION)
+    transactions = get_collection(TRANSACTIONS_COLLECTION)
 
     # Get deposit request
     try:
@@ -1201,6 +1207,27 @@ async def reject_deposit_request(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Request already {deposit_request['status']}"
         )
+
+    # Update the original pending transaction to rejected status
+    user_id = deposit_request["user_id"]
+    amount = deposit_request["amount"]
+
+    transactions.update_one(
+        {
+            "user_id": user_id,
+            "transaction_type": "deposit",
+            "amount": amount,
+            "status": "pending",
+            "payment_method": deposit_request["payment_method"]
+        },
+        {
+            "$set": {
+                "status": "rejected",
+                "description": f"Deposit rejected by admin - {deposit_request['payment_method']}",
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
 
     # Update deposit request status
     result = deposit_requests.update_one(
