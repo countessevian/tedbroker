@@ -1130,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					<div class="news-card-image">
 						<img src="${article.imageUrl || 'https://via.placeholder.com/400x200?text=News'}"
 							 alt="${escapeHtml(article.title)}"
-							 onerror="this.src='https://via.placeholder.com/400x200?text=News'">
+							 class="news-image">
 						<span class="news-category-badge badge-${article.category || 'markets'}">
 							${formatCategory(article.category)}
 						</span>
@@ -1155,6 +1155,13 @@ document.addEventListener('DOMContentLoaded', function() {
 				</div>
 			</div>
 		`).join('');
+
+		// Add error handling for images
+		container.querySelectorAll('.news-image').forEach(img => {
+			img.addEventListener('error', function() {
+				this.src = 'https://via.placeholder.com/400x200?text=News';
+			});
+		});
 	}
 
 	/**

@@ -765,7 +765,7 @@ class ChatWidget {
 
         const token = localStorage.getItem(this.TOKEN_KEY);
         if (!token) {
-            alert('Please log in to send messages');
+            SwalHelper.error('Error', 'Please log in to send messages');
             return;
         }
 
@@ -795,11 +795,11 @@ class ChatWidget {
                 await this.loadConversation();
             } else {
                 const error = await response.json();
-                alert('Failed to send message: ' + (error.detail || 'Unknown error'));
+                SwalHelper.error('Error', 'Failed to send message: ' + (error.detail || 'Unknown error'));
             }
         } catch (error) {
             console.error('Error sending message:', error);
-            alert('Failed to send message. Please try again.');
+            SwalHelper.error('Error', 'Failed to send message. Please try again.');
         } finally {
             // Re-enable button
             sendBtn.disabled = false;

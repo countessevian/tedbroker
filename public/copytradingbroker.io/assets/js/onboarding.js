@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupKYCForm();
     setupFileUpload();
     setupBackButtons();
+    setupNavigationButtons();
 });
 
 /**
@@ -222,7 +223,12 @@ function setupKYCForm() {
                 throw new Error(data.detail || 'Failed to submit KYC documents');
             }
 
-            TED_AUTH.showSuccess('Documents submitted successfully!');
+            // Show success message and enable sidebar buttons in dashboard
+            TED_AUTH.showSuccess('You can now start your investment journey with TEDbrokers!');
+
+            // Mark KYC as complete globally
+            window.kycComplete = true;
+
             setTimeout(() => {
                 goToStep(4);
             }, 1000);
@@ -364,4 +370,25 @@ function goToStep(step) {
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
+ * Setup navigation buttons (Skip and Go to Dashboard)
+ */
+function setupNavigationButtons() {
+    // Skip onboarding button
+    const skipBtn = document.getElementById('skip-onboarding-btn');
+    if (skipBtn) {
+        skipBtn.addEventListener('click', function() {
+            window.location.href = '/dashboard';
+        });
+    }
+
+    // Go to Dashboard button (after completion)
+    const goToDashboardBtn = document.getElementById('go-to-dashboard-btn');
+    if (goToDashboardBtn) {
+        goToDashboardBtn.addEventListener('click', function() {
+            window.location.href = '/dashboard';
+        });
+    }
 }

@@ -30,32 +30,11 @@ async function handleOAuthRedirect() {
         // Remove token from URL
         window.history.replaceState({}, document.title, window.location.pathname);
 
-        // Check if onboarding is complete
-        try {
-            const onboardingResponse = await TED_AUTH.apiCall('/api/onboarding/status');
-            const onboardingData = await onboardingResponse.json();
-
-            if (onboardingData.is_onboarding_complete) {
-                // Onboarding complete, go to dashboard
-                TED_AUTH.showSuccess('Login successful! Redirecting to dashboard...');
-                setTimeout(() => {
-                    window.location.href = '/dashboard';
-                }, 1000);
-            } else {
-                // Onboarding not complete, go to onboarding wizard
-                TED_AUTH.showSuccess('Login successful! Please complete your profile...');
-                setTimeout(() => {
-                    window.location.href = '/onboarding';
-                }, 1000);
-            }
-        } catch (error) {
-            // If there's an error checking onboarding status, default to dashboard
-            console.error('Error checking onboarding status:', error);
-            TED_AUTH.showSuccess('Login successful! Redirecting...');
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 1000);
-        }
+        // Always redirect to dashboard (KYC notification will be shown there if incomplete)
+        TED_AUTH.showSuccess('Login successful! Redirecting to dashboard...');
+        setTimeout(() => {
+            window.location.href = '/dashboard';
+        }, 1000);
     }
 }
 
@@ -106,32 +85,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = `/verify-2fa?email=${encodeURIComponent(result.data.email)}`;
                 }, 1000);
             } else {
-                // No 2FA required - check onboarding status before redirecting
-                try {
-                    const onboardingResponse = await TED_AUTH.apiCall('/api/onboarding/status');
-                    const onboardingData = await onboardingResponse.json();
-
-                    if (onboardingData.is_onboarding_complete) {
-                        // Onboarding complete, go to dashboard
-                        TED_AUTH.showSuccess('Login successful! Redirecting to dashboard...');
-                        setTimeout(() => {
-                            window.location.href = '/dashboard';
-                        }, 1000);
-                    } else {
-                        // Onboarding not complete, go to onboarding wizard
-                        TED_AUTH.showSuccess('Login successful! Please complete your profile...');
-                        setTimeout(() => {
-                            window.location.href = '/onboarding';
-                        }, 1000);
-                    }
-                } catch (error) {
-                    // If there's an error checking onboarding status, default to dashboard
-                    console.error('Error checking onboarding status:', error);
-                    TED_AUTH.showSuccess('Login successful! Redirecting...');
-                    setTimeout(() => {
-                        window.location.href = '/dashboard';
-                    }, 1000);
-                }
+                // No 2FA required - redirect to dashboard (KYC notification will be shown there if incomplete)
+                TED_AUTH.showSuccess('Login successful! Redirecting to dashboard...');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
             }
         } else {
             TED_AUTH.showError(result.error);

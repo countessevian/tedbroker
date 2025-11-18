@@ -257,6 +257,9 @@ async function handlePasswordChangeSubmit() {
         return;
     }
 
+    // Show loading
+    SwalHelper.loading('Verifying password...');
+
     try {
         const token = localStorage.getItem('access_token');
         const response = await fetch(`${API_BASE_URL}/change-password-with-verification`, {
@@ -273,6 +276,7 @@ async function handlePasswordChangeSubmit() {
         });
 
         const data = await response.json();
+        SwalHelper.close();
 
         if (response.ok) {
             // Store state and show verification section
@@ -298,6 +302,7 @@ async function handlePasswordChangeSubmit() {
         }
     } catch (error) {
         console.error('Error:', error);
+        SwalHelper.close();
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -324,6 +329,9 @@ async function handleVerifyCode() {
         return;
     }
 
+    // Show loading
+    SwalHelper.loading('Verifying code...');
+
     try {
         const token = localStorage.getItem('access_token');
         const response = await fetch(`${API_BASE_URL}/verify-password-change`, {
@@ -339,6 +347,7 @@ async function handleVerifyCode() {
         });
 
         const data = await response.json();
+        SwalHelper.close();
 
         if (response.ok) {
             // Close modal
@@ -367,6 +376,7 @@ async function handleVerifyCode() {
         }
     } catch (error) {
         console.error('Error:', error);
+        SwalHelper.close();
         Swal.fire({
             icon: 'error',
             title: 'Error',

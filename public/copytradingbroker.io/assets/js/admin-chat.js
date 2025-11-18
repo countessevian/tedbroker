@@ -203,11 +203,11 @@ class AdminChatManager {
                 await this.loadConversations(); // Refresh conversation list
             } else {
                 const error = await response.json();
-                alert(error.detail || 'Failed to send message');
+                SwalHelper.error('Error', error.detail || 'Failed to send message');
             }
         } catch (error) {
             console.error('Error sending message:', error);
-            alert('Failed to send message');
+            SwalHelper.error('Error', 'Failed to send message');
         }
     }
 
@@ -226,7 +226,7 @@ class AdminChatManager {
     async closeConversation() {
         if (!this.currentConversationId) return;
 
-        if (!confirm('Are you sure you want to mark this conversation as resolved?')) {
+        if (!(await SwalHelper.confirm('Confirm', 'Are you sure you want to mark this conversation as resolved?')).isConfirmed) {
             return;
         }
 
@@ -236,7 +236,7 @@ class AdminChatManager {
             });
 
             if (response.ok) {
-                alert('Conversation marked as resolved');
+                SwalHelper.success('Success', 'Conversation marked as resolved');
                 this.currentConversationId = null;
 
                 // Hide chat interface
@@ -248,11 +248,11 @@ class AdminChatManager {
                 await this.loadConversations();
             } else {
                 const error = await response.json();
-                alert(error.detail || 'Failed to close conversation');
+                SwalHelper.error('Error', error.detail || 'Failed to close conversation');
             }
         } catch (error) {
             console.error('Error closing conversation:', error);
-            alert('Failed to close conversation');
+            SwalHelper.error('Error', 'Failed to close conversation');
         }
     }
 

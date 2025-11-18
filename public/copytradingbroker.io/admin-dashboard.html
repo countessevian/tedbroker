@@ -341,7 +341,7 @@
                 <div class="menu-item" data-tab="notifications">
                     <i class="fas fa-bell"></i> <span>Notifications</span>
                 </div>
-                <div class="menu-item" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;" onclick="logout()">
+                <div class="menu-item" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
                     <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
                 </div>
             </nav>
@@ -383,7 +383,7 @@
                     <h1>Users Management</h1>
                     <div>
                         <input type="text" id="user-search" placeholder="Search users..." style="padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; margin-right: 10px;">
-                        <button class="btn btn-primary" onclick="searchUsers()"><i class="fas fa-search"></i> Search</button>
+                        <button class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
                     </div>
                 </div>
                 
@@ -396,7 +396,7 @@
             <div class="tab-content" id="tab-traders">
                 <div class="header">
                     <h1>Expert Traders</h1>
-                    <button class="btn btn-primary" onclick="showAddTraderModal()"><i class="fas fa-plus"></i> Add Trader</button>
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Trader</button>
                 </div>
                 
                 <div class="card">
@@ -408,7 +408,7 @@
             <div class="tab-content" id="tab-plans">
                 <div class="header">
                     <h1>Investment Plans</h1>
-                    <button class="btn btn-primary" onclick="showAddPlanModal()"><i class="fas fa-plus"></i> Add Plan</button>
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Plan</button>
                 </div>
 
                 <div class="card">
@@ -427,7 +427,7 @@
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
                         </select>
-                        <button class="btn btn-primary" onclick="filterDepositRequests()"><i class="fas fa-filter"></i> Filter</button>
+                        <button class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
                     </div>
                 </div>
 
@@ -447,7 +447,7 @@
                             <option value="completed">Completed</option>
                             <option value="rejected">Rejected</option>
                         </select>
-                        <button class="btn btn-primary" onclick="filterWithdrawalRequests()"><i class="fas fa-filter"></i> Filter</button>
+                        <button class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
                     </div>
                 </div>
 
@@ -460,7 +460,7 @@
             <div class="tab-content" id="tab-bank-accounts">
                 <div class="header">
                     <h1>Bank Accounts for Deposits</h1>
-                    <button class="btn btn-primary" onclick="showAddBankAccountModal()"><i class="fas fa-plus"></i> Add Bank Account</button>
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Bank Account</button>
                 </div>
 
                 <div class="card">
@@ -472,7 +472,7 @@
             <div class="tab-content" id="tab-crypto-wallets">
                 <div class="header">
                     <h1>Cryptocurrency Wallets for Deposits</h1>
-                    <button class="btn btn-primary" onclick="showAddCryptoWalletModal()"><i class="fas fa-plus"></i> Add Crypto Wallet</button>
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Crypto Wallet</button>
                 </div>
 
                 <div class="card">
@@ -484,7 +484,7 @@
             <div class="tab-content" id="tab-notifications">
                 <div class="header">
                     <h1>Notifications Management</h1>
-                    <button class="btn btn-primary" onclick="showCreateNotificationModal()"><i class="fas fa-plus"></i> Create Notification</button>
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> Create Notification</button>
                 </div>
 
                 <div class="card">
@@ -503,7 +503,7 @@
                             <option value="open">Open</option>
                             <option value="closed">Closed</option>
                         </select>
-                        <button class="btn btn-primary" onclick="filterChats()"><i class="fas fa-filter"></i> Filter</button>
+                        <button class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
                     </div>
                 </div>
 
@@ -538,12 +538,12 @@
                         <div id="chat-input-area" style="display: none;">
                             <div style="display: flex; gap: 8px;">
                                 <input type="text" id="admin-chat-input" placeholder="Type your message..." style="flex: 1; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
-                                <button class="btn btn-primary" onclick="sendAdminMessage()" style="padding: 12px 24px;">
+                                <button class="btn btn-primary" style="padding: 12px 24px;">
                                     <i class="fas fa-paper-plane"></i> Send
                                 </button>
                             </div>
                             <div style="margin-top: 12px; display: flex; gap: 8px;">
-                                <button class="btn btn-success" onclick="closeConversation()" style="flex: 1;">
+                                <button class="btn btn-success" style="flex: 1;">
                                     <i class="fas fa-check-circle"></i> Mark as Resolved
                                 </button>
                             </div>
@@ -591,7 +591,7 @@
                     <button type="submit" class="btn btn-primary" style="flex: 1;">
                         <i class="fas fa-plus"></i> Add Trader
                     </button>
-                    <button type="button" class="btn btn-secondary" onclick="closeAddTraderModal()" style="flex: 1;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
@@ -603,7 +603,7 @@
     <div class="modal" id="edit-trader-modal">
         <div class="modal-content">
             <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-edit"></i> Edit Trader</h2>
-            <form id="edit-trader-form" onsubmit="submitEditedTrader(event)">
+            <form id="edit-trader-form">
                 <input type="hidden" id="edit-trader-id">
 
                 <div class="form-group">
@@ -638,7 +638,7 @@
                     <button type="submit" class="btn btn-primary" style="flex: 1;">
                         <i class="fas fa-save"></i> Update Trader
                     </button>
-                    <button type="button" class="btn btn-secondary" onclick="hideEditTraderModal()" style="flex: 1;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
@@ -650,7 +650,7 @@
     <div class="modal" id="add-plan-modal">
         <div class="modal-content">
             <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-chart-line"></i> Add New Investment Plan</h2>
-            <form id="add-plan-form" onsubmit="submitNewPlan(event)">
+            <form id="add-plan-form">
                 <div class="form-group">
                     <label for="plan-name">Plan Name *</label>
                     <input type="text" id="plan-name" required maxlength="100" placeholder="e.g., Premium Copy Trading">
@@ -687,7 +687,7 @@
                     <button type="submit" class="btn btn-primary" style="flex: 1;">
                         <i class="fas fa-plus"></i> Create Plan
                     </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddPlanModal()">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
@@ -699,7 +699,7 @@
     <div class="modal" id="edit-plan-modal">
         <div class="modal-content">
             <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-edit"></i> Edit Investment Plan</h2>
-            <form id="edit-plan-form" onsubmit="submitEditedPlan(event)">
+            <form id="edit-plan-form">
                 <input type="hidden" id="edit-plan-id">
 
                 <div class="form-group">
@@ -738,7 +738,7 @@
                     <button type="submit" class="btn btn-primary" style="flex: 1;">
                         <i class="fas fa-save"></i> Update Plan
                     </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideEditPlanModal()">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
@@ -750,7 +750,7 @@
     <div class="modal" id="add-crypto-wallet-modal">
         <div class="modal-content">
             <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fab fa-bitcoin"></i> Add Crypto Wallet</h2>
-            <form id="add-crypto-wallet-form" onsubmit="submitNewCryptoWallet(event)">
+            <form id="add-crypto-wallet-form">
                 <div class="form-group">
                     <label for="crypto-currency">Cryptocurrency *</label>
                     <select id="crypto-currency" required>
@@ -782,7 +782,7 @@
                     <button type="submit" class="btn btn-primary" style="flex: 1;">
                         <i class="fas fa-plus"></i> Add Wallet
                     </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddCryptoWalletModal()">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
@@ -795,7 +795,7 @@
         <div class="modal-content" style="max-width: 900px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="color: #D32F2F; margin: 0;"><i class="fas fa-user"></i> User Details</h2>
-                <button class="btn btn-secondary" onclick="closeUserDetailsModal()" style="padding: 8px 16px;">
+                <button class="btn btn-secondary" style="padding: 8px 16px;">
                     <i class="fas fa-times"></i> Close
                 </button>
             </div>
@@ -811,13 +811,13 @@
                 <!-- Navigation Tabs -->
                 <div style="border-bottom: 2px solid #e2e8f0; margin-bottom: 20px;">
                     <div style="display: flex; gap: 10px;">
-                        <button class="user-tab-btn active" data-tab="overview" onclick="switchUserTab('overview')">
+                        <button class="user-tab-btn active" data-tab="overview">
                             <i class="fas fa-info-circle"></i> Overview
                         </button>
-                        <button class="user-tab-btn" data-tab="kyc" onclick="switchUserTab('kyc')">
+                        <button class="user-tab-btn" data-tab="kyc">
                             <i class="fas fa-id-card"></i> KYC Data
                         </button>
-                        <button class="user-tab-btn" data-tab="login-history" onclick="switchUserTab('login-history')">
+                        <button class="user-tab-btn" data-tab="login-history">
                             <i class="fas fa-history"></i> Login History
                         </button>
                     </div>
@@ -984,7 +984,7 @@
     <div class="modal" id="create-notification-modal">
         <div class="modal-content">
             <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-bell"></i> Create Notification</h2>
-            <form id="create-notification-form" onsubmit="submitNewNotification(event)">
+            <form id="create-notification-form">
                 <div class="form-group">
                     <label for="notif-title">Title *</label>
                     <input type="text" id="notif-title" required maxlength="200" placeholder="Notification title">
@@ -1008,7 +1008,7 @@
 
                 <div class="form-group">
                     <label for="notif-target-type">Target *</label>
-                    <select id="notif-target-type" required onchange="toggleUserSelection()">
+                    <select id="notif-target-type" required>
                         <option value="">Select target</option>
                         <option value="all">All Users (Broadcast)</option>
                         <option value="specific">Specific User</option>
@@ -1017,7 +1017,7 @@
 
                 <div class="form-group" id="user-selection-group" style="display: none;">
                     <label for="notif-target-user">Select User *</label>
-                    <input type="text" id="notif-target-user-search" placeholder="Search users by username or email..." oninput="searchUsersForNotification()">
+                    <input type="text" id="notif-target-user-search" placeholder="Search users by username or email...">
                     <div id="user-search-results" style="max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 4px; margin-top: 8px; display: none;"></div>
                     <input type="hidden" id="notif-target-user">
                     <p id="selected-user-display" style="margin-top: 8px; color: #4caf50; display: none;"></p>
@@ -1027,7 +1027,7 @@
                     <button type="submit" class="btn btn-primary" style="flex: 1;">
                         <i class="fas fa-paper-plane"></i> Send Notification
                     </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideCreateNotificationModal()">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
@@ -1039,7 +1039,7 @@
     <div class="modal" id="add-bank-account-modal">
         <div class="modal-content">
             <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-building-columns"></i> Add Bank Account</h2>
-            <form id="add-bank-account-form" onsubmit="submitNewBankAccount(event)">
+            <form id="add-bank-account-form">
                 <div class="form-group">
                     <label for="bank-name">Bank Name *</label>
                     <input type="text" id="bank-name" required maxlength="100" placeholder="e.g., Chase Bank">
@@ -1076,7 +1076,7 @@
                     <button type="submit" class="btn btn-primary" style="flex: 1;">
                         <i class="fas fa-plus"></i> Add Account
                     </button>
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddBankAccountModal()">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
@@ -1089,7 +1089,7 @@
         <div class="modal-content" style="max-width: 700px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="color: #D32F2F; margin: 0;"><i class="fas fa-hand-holding-dollar"></i> Withdrawal Request Details</h2>
-                <button class="btn btn-secondary" onclick="closeWithdrawalDetailsModal()" style="padding: 8px 16px;">
+                <button class="btn btn-secondary" style="padding: 8px 16px;">
                     <i class="fas fa-times"></i> Close
                 </button>
             </div>
@@ -1140,6 +1140,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/assets/js/swal-helpers.js"></script>
     <script src="/assets/js/admin-dashboard.js"></script>
     <script src="/assets/js/admin-chat.js"></script>
     <!-- Chat Support Widget -->

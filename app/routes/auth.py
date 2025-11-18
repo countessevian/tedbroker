@@ -1058,8 +1058,8 @@ async def google_callback(code: str, request: Request):
                 expires_delta=access_token_expires
             )
 
-            # Redirect to login page with token as query parameter
-            redirect_url = f"/login?token={access_token}"
+            # Redirect to register page with token as query parameter
+            redirect_url = f"/register?token={access_token}"
             return RedirectResponse(url=redirect_url)
         else:
             # New user - create account
@@ -1120,8 +1120,8 @@ async def google_callback(code: str, request: Request):
                 expires_delta=access_token_expires
             )
 
-            # Redirect to login page with token as query parameter
-            redirect_url = f"/login?token={access_token}"
+            # Redirect to register page with token as query parameter (will redirect to dashboard from there)
+            redirect_url = f"/register?token={access_token}"
             return RedirectResponse(url=redirect_url)
 
     except Exception as e:
