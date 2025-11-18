@@ -109,7 +109,7 @@ async function loadDashboardStats() {
     }
 }
 
-// Load users
+// Load users with full onboarding data
 async function loadUsers(search = '') {
     const container = document.getElementById('users-table-container');
     container.innerHTML = 'Loading...';
@@ -124,20 +124,46 @@ async function loadUsers(search = '') {
             return;
         }
 
-        let html = '<div style="display: grid; gap: 16px;">';
+        let html = '<div style="display: grid; gap: 20px;">';
 
-        data.users.forEach(user => {
+        // For each user, fetch full details including onboarding data
+        for (const user of data.users) {
+            // Fetch detailed user data
+            let fullUserData = user;
+            try {
+                const detailResponse = await adminFetch(`/api/admin/users/${user.id}`);
+                fullUserData = await detailResponse.json();
+            } catch (err) {
+                console.error(`Error fetching details for user ${user.id}:`, err);
+            }
+
+            const kyc = fullUserData.kyc || {};
             const date = user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A';
             const statusBadge = `badge-${user.is_active ? 'active' : 'inactive'}`;
             const verifiedBadge = user.is_verified ? '<span class="badge badge-approved" style="margin-left: 8px; font-size: 11px;">Verified</span>' : '<span class="badge badge-pending" style="margin-left: 8px; font-size: 11px;">Unverified</span>';
 
+            // KYC status badge
+            let kycStatusClass = 'badge-pending';
+            let kycStatusText = 'Not Submitted';
+            if (kyc.kyc_status === 'approved') {
+                kycStatusClass = 'badge-approved';
+                kycStatusText = 'Approved';
+            } else if (kyc.kyc_status === 'rejected') {
+                kycStatusClass = 'badge-rejected';
+                kycStatusText = 'Rejected';
+            } else if (kyc.kyc_status === 'not_submitted') {
+                kycStatusText = 'Not Submitted';
+            } else if (kyc.kyc_status) {
+                kycStatusText = kyc.kyc_status.replace('_', ' ').toUpperCase();
+            }
+
             html += `
-                <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; background: white;">
+                <div style="border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                     <!-- User Header -->
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #f7fafc;">
                         <div style="flex: 1;">
-                            <h3 style="margin: 0 0 8px 0; color: #2D3748; display: flex; align-items: center;">
-                                <i class="fas fa-user-circle" style="color: #D32F2F; margin-right: 10px;"></i>
+                            <h3 style="margin: 0 0 8px 0; color: #2D3748; display: flex; align-items: center; font-size: 20px;">
+                                <i class="fas fa-user-circle" style="color: #D32F2F; margin-right: 12px; font-size: 24px;"></i>
                                 ${user.username}
                                 <span class="badge ${statusBadge}" style="margin-left: 12px;">${user.is_active ? 'Active' : 'Inactive'}</span>
                                 ${verifiedBadge}
@@ -148,73 +174,190 @@ async function loadUsers(search = '') {
                             </p>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-primary" style="padding: 8px 16px;" onclick="viewUser('${user.id}')">
+                            <button class="btn btn-primary" style="padding: 10px 18px;" onclick="viewUser('${user.id}')">
                                 <i class="fas fa-eye"></i> Full Details
                             </button>
                             ${user.is_active ?
-                                `<button class="btn btn-danger" style="padding: 8px 16px;" onclick="deactivateUser('${user.id}')">
+                                `<button class="btn btn-danger" style="padding: 10px 18px;" onclick="deactivateUser('${user.id}')">
                                     <i class="fas fa-ban"></i> Deactivate
                                 </button>` :
-                                `<button class="btn btn-success" style="padding: 8px 16px;" onclick="activateUser('${user.id}')">
+                                `<button class="btn btn-success" style="padding: 10px 18px;" onclick="activateUser('${user.id}')">
                                     <i class="fas fa-check"></i> Activate
                                 </button>`
                             }
                         </div>
                     </div>
 
-                    <!-- User Details Grid -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 16px; background: #f7fafc; border-radius: 8px;">
-                        <div>
-                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Full Name</label>
-                            <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.full_name || '-'}</p>
+                    <!-- Basic Info Section -->
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 12px 0; color: #2D3748; font-size: 14px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">
+                            <i class="fas fa-info-circle" style="margin-right: 8px; color: #D32F2F;"></i>
+                            Account Information
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; padding: 16px; background: #f7fafc; border-radius: 8px; border-left: 4px solid #D32F2F;">
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Full Name</label>
+                                <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.full_name || '-'}</p>
+                            </div>
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Phone</label>
+                                <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.phone || '-'}</p>
+                            </div>
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Country</label>
+                                <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                    ${user.country ? `<i class="fas fa-globe" style="margin-right: 6px;"></i>${user.country}` : '-'}
+                                </p>
+                            </div>
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Gender</label>
+                                <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.gender || '-'}</p>
+                            </div>
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Wallet Balance</label>
+                                <p style="margin: 0; color: #D32F2F; font-size: 20px; font-weight: 700;">
+                                    <i class="fas fa-wallet" style="margin-right: 6px; font-size: 16px;"></i>
+                                    $${user.wallet_balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </p>
+                            </div>
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Auth Provider</label>
+                                <p style="margin: 0; color: #2D3748; font-weight: 600;">${fullUserData.auth_provider || 'local'}</p>
+                            </div>
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Referral Code</label>
+                                <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                    ${user.referral_code ? `<code style="background: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${user.referral_code}</code>` : '-'}
+                                </p>
+                            </div>
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Referred By</label>
+                                <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.referred_by || '-'}</p>
+                            </div>
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Account Created</label>
+                                <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                    <i class="fas fa-calendar" style="margin-right: 6px;"></i>
+                                    ${date}
+                                </p>
+                            </div>
+                            <div>
+                                <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">User ID</label>
+                                <p style="margin: 0; color: #2D3748; font-family: monospace; font-size: 11px;">${user.id}</p>
+                            </div>
                         </div>
-                        <div>
-                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Phone</label>
-                            <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.phone || '-'}</p>
+                    </div>
+
+                    <!-- KYC/Onboarding Section -->
+                    <div style="margin-bottom: 0;">
+                        <h4 style="margin: 0 0 12px 0; color: #2D3748; font-size: 14px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>
+                                <i class="fas fa-id-card" style="margin-right: 8px; color: #D32F2F;"></i>
+                                KYC / Onboarding Information
+                            </span>
+                            <span class="badge ${kycStatusClass}" style="font-size: 11px;">${kycStatusText}</span>
+                        </h4>
+
+                        <!-- Personal Information -->
+                        <div style="margin-bottom: 16px;">
+                            <h5 style="margin: 0 0 8px 0; color: #5a5a5a; font-size: 12px; font-weight: 600; text-transform: uppercase;">Personal Information</h5>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; padding: 14px; background: #fffbf5; border-radius: 8px; border-left: 3px solid #ff9800;">
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">First Name</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${kyc.first_name || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Last Name</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${kyc.last_name || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Gender</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${kyc.gender || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Completed</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                        ${kyc.personal_info_completed ? '<i class="fas fa-check-circle" style="color: #4caf50;"></i> Yes' : '<i class="fas fa-times-circle" style="color: #f44336;"></i> No'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Country</label>
-                            <p style="margin: 0; color: #2D3748; font-weight: 600;">
-                                ${user.country ? `<i class="fas fa-globe" style="margin-right: 6px;"></i>${user.country}` : '-'}
-                            </p>
+
+                        <!-- Address Information -->
+                        <div style="margin-bottom: 16px;">
+                            <h5 style="margin: 0 0 8px 0; color: #5a5a5a; font-size: 12px; font-weight: 600; text-transform: uppercase;">Address Information</h5>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; padding: 14px; background: #f0f9ff; border-radius: 8px; border-left: 3px solid #2196F3;">
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Street Address</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${kyc.street || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">City</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${kyc.city || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">State/Province</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${kyc.state || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">ZIP/Postal Code</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${kyc.zip_code || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Country</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                        ${kyc.country ? `<i class="fas fa-globe" style="margin-right: 6px;"></i>${kyc.country}` : '-'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Completed</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                        ${kyc.address_completed ? '<i class="fas fa-check-circle" style="color: #4caf50;"></i> Yes' : '<i class="fas fa-times-circle" style="color: #f44336;"></i> No'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- Verification Documents -->
                         <div>
-                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Wallet Balance</label>
-                            <p style="margin: 0; color: #D32F2F; font-size: 20px; font-weight: 700;">
-                                <i class="fas fa-wallet" style="margin-right: 6px; font-size: 16px;"></i>
-                                $${user.wallet_balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                            </p>
-                        </div>
-                        <div>
-                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Referral Code</label>
-                            <p style="margin: 0; color: #2D3748; font-weight: 600;">
-                                ${user.referral_code ? `<code style="background: white; padding: 4px 8px; border-radius: 4px; font-size: 13px;">${user.referral_code}</code>` : '-'}
-                            </p>
-                        </div>
-                        <div>
-                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Referred By</label>
-                            <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.referred_by || '-'}</p>
-                        </div>
-                        <div>
-                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Account Created</label>
-                            <p style="margin: 0; color: #2D3748; font-weight: 600;">
-                                <i class="fas fa-calendar" style="margin-right: 6px;"></i>
-                                ${date}
-                            </p>
-                        </div>
-                        <div>
-                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">User ID</label>
-                            <p style="margin: 0; color: #2D3748; font-family: monospace; font-size: 12px;">${user.id}</p>
+                            <h5 style="margin: 0 0 8px 0; color: #5a5a5a; font-size: 12px; font-weight: 600; text-transform: uppercase;">Verification Documents</h5>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; padding: 14px; background: #f3f4f6; border-radius: 8px; border-left: 3px solid #6366f1;">
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Document Number</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                        ${kyc.document_number ? `<code style="background: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${kyc.document_number}</code>` : '-'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Document Photo</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                        ${kyc.document_photo ? '<i class="fas fa-check-circle" style="color: #4caf50;"></i> Uploaded' : '<i class="fas fa-times-circle" style="color: #f44336;"></i> Not Uploaded'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">KYC Submitted</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                        ${kyc.kyc_submitted_at ? new Date(kyc.kyc_submitted_at).toLocaleDateString() : '-'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Completed</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                        ${kyc.kyc_completed ? '<i class="fas fa-check-circle" style="color: #4caf50;"></i> Yes' : '<i class="fas fa-times-circle" style="color: #f44336;"></i> No'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
-        });
+        }
 
         html += '</div>';
         container.innerHTML = html;
     } catch (error) {
-        container.innerHTML = '<p style="color: red;">Error loading users</p>';
+        console.error('Error loading users:', error);
+        container.innerHTML = '<p style="color: red;">Error loading users. Please try again.</p>';
     }
 }
 

@@ -1058,8 +1058,8 @@ async def google_callback(code: str, request: Request):
                 expires_delta=access_token_expires
             )
 
-            # Redirect to login page with token as query parameter
-            redirect_url = f"/login?token={access_token}"
+            # Redirect to dashboard with token as query parameter
+            redirect_url = f"/dashboard?token={access_token}"
             return RedirectResponse(url=redirect_url)
         else:
             # New user - create account
@@ -1120,8 +1120,8 @@ async def google_callback(code: str, request: Request):
                 expires_delta=access_token_expires
             )
 
-            # Redirect to login page with token as query parameter
-            redirect_url = f"/login?token={access_token}"
+            # Redirect to dashboard with token as query parameter
+            redirect_url = f"/dashboard?token={access_token}"
             return RedirectResponse(url=redirect_url)
 
     except Exception as e:
@@ -1395,4 +1395,58 @@ async def verify_password_change(
 
     return {
         "message": "Password has been changed successfully."
+    }
+
+
+class SetupOAuthPassword(BaseModel):
+    """Schema for setting up password for OAuth users"""
+    password: str = Field(..., min_length=8)
+
+
+@router.post("/setup-oauth-password")
+async def setup_oauth_password(
+    password_data: SetupOAuthPassword,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """
+    Set up password for Google OAuth users who don't have one
+    """
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user from database
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Check if user is a Google OAuth user
+    if user.get("auth_provider") != "google":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This endpoint is only for Google OAuth users"
+        )
+
+    # Check if user already has a password
+    if user.get("hashed_password"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You already have a password set up"
+        )
+
+    # Set password
+    users.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "hashed_password": get_password_hash(password_data.password),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "message": "Password has been set up successfully. You can now login with either Google or your password."
     }

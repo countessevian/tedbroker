@@ -58,6 +58,21 @@ async function loadExistingData() {
             document.getElementById('first_name').value = data.personal_info.first_name || '';
             document.getElementById('last_name').value = data.personal_info.last_name || '';
             document.getElementById('gender').value = data.personal_info.gender || '';
+        } else {
+            // For Google OAuth users, try to pre-fill from their profile
+            const userData = TED_AUTH.getUser();
+            if (userData && userData.full_name) {
+                // Split full_name into first and last name
+                const nameParts = userData.full_name.trim().split(' ');
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ') || '';
+
+                document.getElementById('first_name').value = firstName;
+                document.getElementById('last_name').value = lastName;
+            }
+            if (userData && userData.gender) {
+                document.getElementById('gender').value = userData.gender;
+            }
         }
 
         // Load address if exists
@@ -67,6 +82,12 @@ async function loadExistingData() {
             document.getElementById('state').value = data.address.state || '';
             document.getElementById('zip_code').value = data.address.zip_code || '';
             document.getElementById('country').value = data.address.country || '';
+        } else {
+            // Pre-fill country from user profile if available
+            const userData = TED_AUTH.getUser();
+            if (userData && userData.country) {
+                document.getElementById('country').value = userData.country;
+            }
         }
 
         // Load KYC if exists

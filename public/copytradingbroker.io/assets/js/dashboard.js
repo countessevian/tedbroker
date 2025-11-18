@@ -207,6 +207,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Populate dashboard with user data
     populateDashboard(userData);
 
+    // Check if Google OAuth user needs to set password
+    checkAndShowPasswordSetupModal(userData);
+
     // Load active investments on dashboard
     loadDashboardActiveInvestments();
 
@@ -1493,6 +1496,145 @@ async function skipReferral() {
                 cancelButtonText: 'No'
             })).isConfirmed) {
         closeReferralModal();
+    }
+}
+
+/**
+ * Check if Google OAuth user needs to set password and show modal
+ */
+async function checkAndShowPasswordSetupModal(userData) {
+    // Only show for Google OAuth users who registered without password
+    // Check if auth_provider is 'google' and the user is new (created recently)
+    if (userData.auth_provider === 'google') {
+        // Check if user has already set up password using localStorage flag
+        const hasSetupPassword = localStorage.getItem('hasSetupOAuthPassword');
+
+        if (!hasSetupPassword) {
+            // Small delay to let dashboard load first
+            setTimeout(() => {
+                showPasswordSetupModal();
+            }, 1500);
+        }
+    }
+}
+
+/**
+ * Show password setup modal for Google OAuth users
+ */
+function showPasswordSetupModal() {
+    Swal.fire({
+        title: 'Set Up Your Password',
+        html: `
+            <div style="text-align: left; padding: 0 20px;">
+                <p style="margin-bottom: 20px; color: #4a5568;">
+                    You signed in with Google. Set up a password to enable password-based login as well.
+                </p>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3748;">
+                        New Password
+                    </label>
+                    <input
+                        type="password"
+                        id="oauth-password"
+                        class="swal2-input"
+                        placeholder="Enter password"
+                        style="width: 100%; padding: 12px; margin: 0; border: 1px solid #e2e8f0; border-radius: 6px;"
+                    />
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3748;">
+                        Confirm Password
+                    </label>
+                    <input
+                        type="password"
+                        id="oauth-password-confirm"
+                        class="swal2-input"
+                        placeholder="Confirm password"
+                        style="width: 100%; padding: 12px; margin: 0; border: 1px solid #e2e8f0; border-radius: 6px;"
+                    />
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Set Password',
+        cancelButtonText: 'Skip for Now',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: {
+            container: 'password-setup-modal',
+            popup: 'password-setup-popup'
+        },
+        preConfirm: () => {
+            const password = document.getElementById('oauth-password').value;
+            const confirmPassword = document.getElementById('oauth-password-confirm').value;
+
+            if (!password || !confirmPassword) {
+                Swal.showValidationMessage('Please fill in both password fields');
+                return false;
+            }
+
+            if (password.length < 8) {
+                Swal.showValidationMessage('Password must be at least 8 characters long');
+                return false;
+            }
+
+            if (password !== confirmPassword) {
+                Swal.showValidationMessage('Passwords do not match');
+                return false;
+            }
+
+            return { password };
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            await handlePasswordSetup(result.value.password);
+        } else {
+            // User skipped - mark as seen so we don't show again
+            localStorage.setItem('hasSetupOAuthPassword', 'skipped');
+        }
+    });
+}
+
+/**
+ * Handle password setup for OAuth users
+ */
+async function handlePasswordSetup(password) {
+    try {
+        TED_AUTH.showLoading('Setting up your password...');
+
+        const response = await TED_AUTH.apiCall('/api/auth/setup-oauth-password', {
+            method: 'POST',
+            body: JSON.stringify({ password })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to set password');
+        }
+
+        // Mark as completed
+        localStorage.setItem('hasSetupOAuthPassword', 'completed');
+
+        // Show success message
+        Swal.fire({
+            title: 'Success!',
+            text: 'Your password has been set up successfully. You can now login with either Google or your password.',
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Password setup error:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: `Failed to set password: ${error.message}`,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
     }
 }
 
