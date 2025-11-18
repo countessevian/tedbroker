@@ -113,53 +113,105 @@ async function loadDashboardStats() {
 async function loadUsers(search = '') {
     const container = document.getElementById('users-table-container');
     container.innerHTML = 'Loading...';
-    
+
     try {
         const url = search ? `/api/admin/users?search=${encodeURIComponent(search)}` : '/api/admin/users';
         const response = await adminFetch(url);
         const data = await response.json();
-        
+
         if (data.users.length === 0) {
             container.innerHTML = '<p>No users found</p>';
             return;
         }
-        
-        let html = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Wallet</th>
-                        <th>Status</th>
-                        <th>Created</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        
+
+        let html = '<div style="display: grid; gap: 16px;">';
+
         data.users.forEach(user => {
             const date = user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A';
+            const statusBadge = `badge-${user.is_active ? 'active' : 'inactive'}`;
+            const verifiedBadge = user.is_verified ? '<span class="badge badge-approved" style="margin-left: 8px; font-size: 11px;">Verified</span>' : '<span class="badge badge-pending" style="margin-left: 8px; font-size: 11px;">Unverified</span>';
+
             html += `
-                <tr>
-                    <td>${user.username}</td>
-                    <td>${user.email}</td>
-                    <td>$${user.wallet_balance.toLocaleString()}</td>
-                    <td><span class="badge badge-${user.is_active ? 'active' : 'inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
-                    <td>${date}</td>
-                    <td>
-                        <button class="btn btn-secondary" style="padding: 5px 10px; margin: 2px;" onclick="viewUser('${user.id}')">View</button>
-                        ${user.is_active ? 
-                            `<button class="btn btn-secondary" style="padding: 5px 10px; margin: 2px; background: #f44336;" onclick="deactivateUser('${user.id}')">Deactivate</button>` :
-                            `<button class="btn btn-secondary" style="padding: 5px 10px; margin: 2px; background: #4caf50;" onclick="activateUser('${user.id}')">Activate</button>`
-                        }
-                    </td>
-                </tr>
+                <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; background: white;">
+                    <!-- User Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                        <div style="flex: 1;">
+                            <h3 style="margin: 0 0 8px 0; color: #2D3748; display: flex; align-items: center;">
+                                <i class="fas fa-user-circle" style="color: #D32F2F; margin-right: 10px;"></i>
+                                ${user.username}
+                                <span class="badge ${statusBadge}" style="margin-left: 12px;">${user.is_active ? 'Active' : 'Inactive'}</span>
+                                ${verifiedBadge}
+                            </h3>
+                            <p style="margin: 0; color: #8b93a7; font-size: 14px;">
+                                <i class="fas fa-envelope" style="margin-right: 6px;"></i>
+                                ${user.email}
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" style="padding: 8px 16px;" onclick="viewUser('${user.id}')">
+                                <i class="fas fa-eye"></i> Full Details
+                            </button>
+                            ${user.is_active ?
+                                `<button class="btn btn-danger" style="padding: 8px 16px;" onclick="deactivateUser('${user.id}')">
+                                    <i class="fas fa-ban"></i> Deactivate
+                                </button>` :
+                                `<button class="btn btn-success" style="padding: 8px 16px;" onclick="activateUser('${user.id}')">
+                                    <i class="fas fa-check"></i> Activate
+                                </button>`
+                            }
+                        </div>
+                    </div>
+
+                    <!-- User Details Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 16px; background: #f7fafc; border-radius: 8px;">
+                        <div>
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Full Name</label>
+                            <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.full_name || '-'}</p>
+                        </div>
+                        <div>
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Phone</label>
+                            <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.phone || '-'}</p>
+                        </div>
+                        <div>
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Country</label>
+                            <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                ${user.country ? `<i class="fas fa-globe" style="margin-right: 6px;"></i>${user.country}` : '-'}
+                            </p>
+                        </div>
+                        <div>
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Wallet Balance</label>
+                            <p style="margin: 0; color: #D32F2F; font-size: 20px; font-weight: 700;">
+                                <i class="fas fa-wallet" style="margin-right: 6px; font-size: 16px;"></i>
+                                $${user.wallet_balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            </p>
+                        </div>
+                        <div>
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Referral Code</label>
+                            <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                ${user.referral_code ? `<code style="background: white; padding: 4px 8px; border-radius: 4px; font-size: 13px;">${user.referral_code}</code>` : '-'}
+                            </p>
+                        </div>
+                        <div>
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Referred By</label>
+                            <p style="margin: 0; color: #2D3748; font-weight: 600;">${user.referred_by || '-'}</p>
+                        </div>
+                        <div>
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Account Created</label>
+                            <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                <i class="fas fa-calendar" style="margin-right: 6px;"></i>
+                                ${date}
+                            </p>
+                        </div>
+                        <div>
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">User ID</label>
+                            <p style="margin: 0; color: #2D3748; font-family: monospace; font-size: 12px;">${user.id}</p>
+                        </div>
+                    </div>
+                </div>
             `;
         });
-        
-        html += '</tbody></table>';
+
+        html += '</div>';
         container.innerHTML = html;
     } catch (error) {
         container.innerHTML = '<p style="color: red;">Error loading users</p>';
