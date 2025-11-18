@@ -222,10 +222,28 @@ function setupKYCForm() {
                 throw new Error(data.detail || 'Failed to submit KYC documents');
             }
 
-            TED_AUTH.showSuccess('Documents submitted successfully!');
-            setTimeout(() => {
-                goToStep(4);
-            }, 1000);
+            // Show success message and redirect to dashboard
+            Swal.fire({
+                title: 'Verification Complete!',
+                html: `
+                    <div style="text-align: center;">
+                        <i class="fas fa-check-circle" style="color: #48bb78; font-size: 64px; margin-bottom: 20px;"></i>
+                        <p style="font-size: 16px; margin-bottom: 12px;">
+                            Your KYC verification has been successfully submitted!
+                        </p>
+                        <p style="font-size: 18px; font-weight: bold; color: #2d3748;">
+                            You can now start your investment journey with TEDbrokers
+                        </p>
+                    </div>
+                `,
+                icon: 'success',
+                confirmButtonText: 'Go to Dashboard',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then(() => {
+                // Redirect to dashboard
+                window.location.href = '/dashboard';
+            });
 
         } catch (error) {
             TED_AUTH.closeLoading();

@@ -4,21 +4,164 @@
  */
 
 /**
- * Check if user has completed onboarding
+ * Check if user has completed onboarding/KYC
  */
-async async function checkOnboardingStatus() {
+async function checkOnboardingStatus() {
     try {
         const response = await TED_AUTH.apiCall('/api/onboarding/status');
         const data = await response.json();
 
         if (!data.is_onboarding_complete) {
-            // Redirect to onboarding if not complete
-            window.location.href = '/onboarding';
-            return;
+            // Show KYC notification banner
+            showKYCNotification();
+            // Disable sidebar menu items until KYC is complete
+            disableSidebarMenus();
+            return false;
         }
+        return true;
     } catch (error) {
         console.error('Error checking onboarding status:', error);
         // Continue to dashboard even if check fails
+        return true;
+    }
+}
+
+/**
+ * Show KYC notification banner at the top of dashboard
+ */
+function showKYCNotification() {
+    // Check if notification already exists
+    if (document.getElementById('kyc-notification-banner')) {
+        return;
+    }
+
+    const banner = document.createElement('div');
+    banner.id = 'kyc-notification-banner';
+    banner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        animation: slideDown 0.4s ease-out;
+    `;
+
+    banner.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <i class="fas fa-exclamation-circle" style="font-size: 24px;"></i>
+            <div>
+                <div style="font-weight: bold; font-size: 16px; margin-bottom: 4px;">
+                    Complete Your KYC Verification
+                </div>
+                <div style="font-size: 14px; opacity: 0.9;">
+                    Please complete your identity verification to unlock all features and start your investment journey.
+                </div>
+            </div>
+        </div>
+        <button
+            onclick="window.location.href='/onboarding'"
+            style="
+                background: white;
+                color: #667eea;
+                border: none;
+                padding: 10px 24px;
+                border-radius: 6px;
+                font-weight: bold;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                white-space: nowrap;
+            "
+            onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';"
+            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+        >
+            Complete KYC Now
+        </button>
+    `;
+
+    // Add animation keyframes if not already added
+    if (!document.getElementById('kyc-notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'kyc-notification-styles';
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    transform: translateY(-100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.body.insertBefore(banner, document.body.firstChild);
+
+    // Adjust main content to account for banner
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        mainContent.style.paddingTop = '80px';
+    }
+}
+
+/**
+ * Disable all sidebar menu items until KYC is complete
+ */
+function disableSidebarMenus() {
+    const menuItems = document.querySelectorAll('.menu-item, .submenu-item');
+
+    menuItems.forEach(item => {
+        // Skip the overview/dashboard tab - allow it to stay active
+        const tabName = item.getAttribute('data-tab');
+        if (tabName === 'overview' || tabName === 'dashboard') {
+            return;
+        }
+
+        // Add disabled styling
+        item.style.opacity = '0.5';
+        item.style.cursor = 'not-allowed';
+        item.style.pointerEvents = 'none';
+
+        // Add a data attribute to track disabled state
+        item.setAttribute('data-kyc-disabled', 'true');
+    });
+}
+
+/**
+ * Enable all sidebar menu items after KYC completion
+ */
+function enableSidebarMenus() {
+    const menuItems = document.querySelectorAll('[data-kyc-disabled="true"]');
+
+    menuItems.forEach(item => {
+        item.style.opacity = '';
+        item.style.cursor = '';
+        item.style.pointerEvents = '';
+        item.removeAttribute('data-kyc-disabled');
+    });
+
+    // Remove KYC notification banner if it exists
+    const banner = document.getElementById('kyc-notification-banner');
+    if (banner) {
+        banner.style.animation = 'slideUp 0.4s ease-out';
+        setTimeout(() => {
+            banner.remove();
+            // Reset main content padding
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.paddingTop = '';
+            }
+        }, 400);
     }
 }
 
