@@ -738,7 +738,7 @@
             position: fixed;
             top: 70px;
             right: 30px;
-            z-index: 9999;
+            z-index: 9998;
             background: var(--bg-card);
             border: 2px solid var(--border-color);
             border-radius: 50px;
@@ -749,6 +749,14 @@
             gap: 10px;
             box-shadow: 0 4px 12px var(--shadow);
             transition: all 0.3s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Hide dark mode toggle when page is loading */
+        body:has(#page-loader:not(.loaded)) .dark-mode-toggle {
+            opacity: 0;
+            visibility: hidden;
         }
 
         .dark-mode-toggle:hover {
