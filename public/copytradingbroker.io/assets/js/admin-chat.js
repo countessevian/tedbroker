@@ -207,7 +207,7 @@ class AdminChatManager {
             }
         } catch (error) {
             console.error('Error sending message:', error);
-            alert('Failed to send message');
+            Swal.fire({ title: 'Error!', text: 'Failed to send message', icon: 'error' });
         }
     }
 
@@ -226,7 +226,14 @@ class AdminChatManager {
     async closeConversation() {
         if (!this.currentConversationId) return;
 
-        if (!confirm('Are you sure you want to mark this conversation as resolved?')) {
+        if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Are you sure you want to mark this conversation as resolved?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) {
             return;
         }
 
@@ -236,7 +243,7 @@ class AdminChatManager {
             });
 
             if (response.ok) {
-                alert('Conversation marked as resolved');
+                Swal.fire({ title: 'Notice', text: 'Conversation marked as resolved', icon: 'info' });
                 this.currentConversationId = null;
 
                 // Hide chat interface
@@ -252,7 +259,7 @@ class AdminChatManager {
             }
         } catch (error) {
             console.error('Error closing conversation:', error);
-            alert('Failed to close conversation');
+            Swal.fire({ title: 'Error!', text: 'Failed to close conversation', icon: 'error' });
         }
     }
 

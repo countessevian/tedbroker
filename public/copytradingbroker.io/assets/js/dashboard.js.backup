@@ -6,7 +6,7 @@
 /**
  * Check if user has completed onboarding
  */
-async async function checkOnboardingStatus() {
+async function checkOnboardingStatus() {
     try {
         const response = await TED_AUTH.apiCall('/api/onboarding/status');
         const data = await response.json();
@@ -217,14 +217,7 @@ function formatDate(date) {
  * Handle logout
  */
 function handleLogout() {
-    if ((await Swal.fire({
-                title: 'Confirm Action',
-                text: 'Are you sure you want to logout?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            })).isConfirmed) {
+    if (confirm('Are you sure you want to logout?')) {
         TED_AUTH.logout();
     }
 }
@@ -235,7 +228,7 @@ function handleLogout() {
 let tradersLoaded = false; // Flag to prevent multiple loads
 let tradersCache = null; // Cache traders data
 
-async async function loadExpertTraders(forceReload = false) {
+async function loadExpertTraders(forceReload = false) {
     // Skip if already loaded and not forcing reload
     if (tradersLoaded && !forceReload && tradersCache) {
         // Display cached traders
@@ -411,14 +404,7 @@ async function copyTrader(traderId, traderName) {
 
         if (isSelected) {
             // Unselect trader
-            if (!(await Swal.fire({
-                title: 'Confirm Action',
-                text: 'Stop copying ${traderName}?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            })).isConfirmed) {
+            if (!confirm(`Stop copying ${traderName}?`)) {
                 return;
             }
 
@@ -446,18 +432,11 @@ async function copyTrader(traderId, traderName) {
             // Reload traders to update button state
             await loadExpertTraders(true);
 
-            Swal.fire({ title: 'Success!', html: `Successfully stopped copying ${traderName}.<br>You now have ${result.selected_traders_count} trader(s) selected.`, icon: 'success' });
+            alert(`Successfully stopped copying ${traderName}.\nYou now have ${result.selected_traders_count} trader(s) selected.`);
 
         } else {
             // Select trader
-            if (!(await Swal.fire({
-                title: 'Confirm Action',
-                text: 'Start copying ${traderName}?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            })).isConfirmed) {
+            if (!confirm(`Start copying ${traderName}?`)) {
                 return;
             }
 
@@ -485,13 +464,13 @@ async function copyTrader(traderId, traderName) {
             // Reload traders to update button state
             await loadExpertTraders(true);
 
-            Swal.fire({ title: 'Success!', html: `Successfully started copying ${traderName}!<br>You now have ${result.selected_traders_count} trader(s) selected.`, icon: 'success' });
+            alert(`Successfully started copying ${traderName}!\nYou now have ${result.selected_traders_count} trader(s) selected.`);
         }
 
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Error copying/uncopying trader:', error);
-        Swal.fire({ title: 'Error!', text: `Error: ${error.message}`, icon: 'error' });
+        alert(`Error: ${error.message}`);
     }
 }
 
@@ -695,14 +674,7 @@ function createPlanCard(plan) {
  */
 async function investInPlan(planId, planName, minimumInvestment) {
     // Confirm investment
-    if (!(await Swal.fire({
-                title: 'Confirm Action',
-                text: 'Invest in ${planName}?\n\nMinimum Investment: $${minimumInvestment.toLocaleString()}\n\nThis amount will be deducted from your wallet.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            })).isConfirmed) {
+    if (!confirm(`Invest in ${planName}?\n\nMinimum Investment: $${minimumInvestment.toLocaleString()}\n\nThis amount will be deducted from your wallet.`)) {
         return;
     }
 
@@ -728,7 +700,7 @@ async function investInPlan(planId, planName, minimumInvestment) {
 
             // Check if error is about trader selection
             if (error.detail && error.detail.includes('select at least 1 trader')) {
-                Swal.fire({ title: 'Error!', html: `Unable to invest: ${error.detail}<br><br>Please go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`, icon: 'error' });
+                alert(`Unable to invest: ${error.detail}\n\nPlease go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`);
 
                 // Navigate to traders tab
                 document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
@@ -760,7 +732,7 @@ async function investInPlan(planId, planName, minimumInvestment) {
         await loadInvestmentPlans(true);
 
         // Show success message and navigate to portfolio
-        Swal.fire({ title: 'Success!', html: `Investment successful!<br><br>Invested: $${result.amount_invested.toLocaleString()}<br>Plan: ${result.plan_name}<br>Maturity Date: ${new Date(result.maturity_date).toLocaleDateString()}<br><br>View your investment in the Portfolio tab.`, icon: 'success' });
+        alert(`Investment successful!\n\nInvested: $${result.amount_invested.toLocaleString()}\nPlan: ${result.plan_name}\nMaturity Date: ${new Date(result.maturity_date).toLocaleDateString()}\n\nView your investment in the Portfolio tab.`);
 
         // Navigate to portfolio tab
         document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
@@ -773,7 +745,7 @@ async function investInPlan(planId, planName, minimumInvestment) {
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Investment error:', error);
-        Swal.fire({ title: 'Error!', text: `Investment failed: ${error.message}`, icon: 'error' });
+        alert(`Investment failed: ${error.message}`);
     }
 }
 
@@ -1051,22 +1023,22 @@ async function handleDeposit(event) {
     const password = document.getElementById('deposit-password').value;
 
     if (!amount || !paymentMethod) {
-        Swal.fire({ title: 'Warning', text: 'Please fill in all required fields', icon: 'warning' });
+        alert('Please fill in all required fields');
         return;
     }
 
     if (!password) {
-        Swal.fire({ title: 'Warning', text: 'Please enter your password to confirm this deposit', icon: 'warning' });
+        alert('Please enter your password to confirm this deposit');
         return;
     }
 
     if (amount < 10) {
-        Swal.fire({ title: 'Warning', text: 'Minimum deposit amount is $10', icon: 'warning' });
+        alert('Minimum deposit amount is $10');
         return;
     }
 
     if (amount > 1000000) {
-        Swal.fire({ title: 'Warning', text: 'Maximum deposit amount is $1,000,000', icon: 'warning' });
+        alert('Maximum deposit amount is $1,000,000');
         return;
     }
 
@@ -1083,7 +1055,7 @@ async function handleDeposit(event) {
             const bankName = document.getElementById('bank-name').value;
             const bankReference = document.getElementById('bank-reference').value;
             if (!bankName || !bankReference) {
-                Swal.fire({ title: 'Warning', text: 'Please fill in all bank transfer details', icon: 'warning' });
+                alert('Please fill in all bank transfer details');
                 return;
             }
             paymentDetails.bank_name = bankName;
@@ -1094,7 +1066,7 @@ async function handleDeposit(event) {
             const cryptoType = document.getElementById('crypto-type').value;
             const cryptoTxHash = document.getElementById('crypto-tx-hash').value;
             if (!cryptoType || !cryptoTxHash) {
-                Swal.fire({ title: 'Warning', text: 'Please select cryptocurrency and enter transaction hash', icon: 'warning' });
+                alert('Please select cryptocurrency and enter transaction hash');
                 return;
             }
             paymentDetails.crypto_type = cryptoType;
@@ -1107,7 +1079,7 @@ async function handleDeposit(event) {
             const cardCvv = document.getElementById('card-cvv').value;
             const cardHolderName = document.getElementById('card-holder-name').value;
             if (!cardNumber || !cardExpiry || !cardCvv || !cardHolderName) {
-                Swal.fire({ title: 'Warning', text: 'Please fill in all credit card details', icon: 'warning' });
+                alert('Please fill in all credit card details');
                 return;
             }
             paymentDetails.card_number = cardNumber;
@@ -1119,7 +1091,7 @@ async function handleDeposit(event) {
         case 'PayPal':
             const paypalEmail = document.getElementById('paypal-email').value;
             if (!paypalEmail) {
-                Swal.fire({ title: 'Warning', text: 'Please enter your PayPal email', icon: 'warning' });
+                alert('Please enter your PayPal email');
                 return;
             }
             paymentDetails.paypal_email = paypalEmail;
@@ -1173,7 +1145,7 @@ async function handleDeposit(event) {
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Deposit error:', error);
-        Swal.fire({ title: 'Error!', text: `Deposit failed: ${error.message}`, icon: 'error' });
+        alert(`Deposit failed: ${error.message}`);
     }
 }
 
@@ -1187,12 +1159,12 @@ async function handleWithdraw(event) {
     const paymentMethod = document.getElementById('withdraw-payment-method').value;
 
     if (!amount || !paymentMethod) {
-        Swal.fire({ title: 'Warning', text: 'Please fill in all fields', icon: 'warning' });
+        alert('Please fill in all fields');
         return;
     }
 
     if (amount < 10) {
-        Swal.fire({ title: 'Warning', text: 'Minimum withdrawal amount is $10', icon: 'warning' });
+        alert('Minimum withdrawal amount is $10');
         return;
     }
 
@@ -1246,7 +1218,7 @@ async function handleWithdraw(event) {
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Withdrawal error:', error);
-        Swal.fire({ title: 'Error!', text: `Withdrawal failed: ${error.message}`, icon: 'error' });
+        alert(`Withdrawal failed: ${error.message}`);
     }
 }
 
@@ -1298,7 +1270,7 @@ async function handleReferralSubmission(event) {
     const referralCode = document.getElementById('referral-code-input').value.trim();
 
     if (!referralCode) {
-        Swal.fire({ title: 'Warning', text: 'Please enter a referral code', icon: 'warning' });
+        alert('Please enter a referral code');
         return;
     }
 
@@ -1328,27 +1300,20 @@ async function handleReferralSubmission(event) {
         closeReferralModal();
 
         // Show success message
-        Swal.fire({ title: 'Success!', text: `Success! Your referrer has been credited with $${result.bonus_amount}. Thank you for using their referral link!`, icon: 'success' });
+        alert(`Success! Your referrer has been credited with $${result.bonus_amount}. Thank you for using their referral link!`);
 
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Referral submission error:', error);
-        Swal.fire({ title: 'Error!', text: `Referral submission failed: ${error.message}`, icon: 'error' });
+        alert(`Referral submission failed: ${error.message}`);
     }
 }
 
 /**
  * Skip referral (user doesn't have a code)
  */
-async function skipReferral() {
-    if ((await Swal.fire({
-                title: 'Confirm Action',
-                text: 'Are you sure you want to skip? You won\'t be able to submit a referral code later.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            })).isConfirmed) {
+function skipReferral() {
+    if (confirm('Are you sure you want to skip? You won\'t be able to submit a referral code later.')) {
         closeReferralModal();
     }
 }
@@ -1392,7 +1357,7 @@ async function loadReferralData() {
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Error loading referral data:', error);
-        Swal.fire({ title: 'Error!', text: 'Failed to load referral data. Please try again later.', icon: 'error' });
+        alert('Failed to load referral data. Please try again later.');
     }
 }
 
@@ -1468,10 +1433,10 @@ function displayReferredUsers(referredUsers) {
 function copyReferralLink() {
     const linkText = document.getElementById('referral-link').textContent;
     navigator.clipboard.writeText(linkText).then(() => {
-        Swal.fire({ title: 'Success!', text: 'Referral link copied to clipboard!', icon: 'success' });
+        alert('Referral link copied to clipboard!');
     }).catch(err => {
         console.error('Failed to copy:', err);
-        Swal.fire({ title: 'Error!', text: 'Failed to copy link. Please try selecting and copying manually.', icon: 'error' });
+        alert('Failed to copy link. Please try selecting and copying manually.');
     });
 }
 
@@ -1611,11 +1576,11 @@ async function handleUpdateProfile(event) {
         // Close modal
         closeUpdateProfileModal();
 
-        Swal.fire({ title: 'Success!', text: 'Profile updated successfully!', icon: 'success' });
+        alert('Profile updated successfully!');
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Profile update error:', error);
-        Swal.fire({ title: 'Error!', text: `Profile update failed: ${error.message}`, icon: 'error' });
+        alert(`Profile update failed: ${error.message}`);
     }
 }
 
@@ -1648,28 +1613,28 @@ async function handleChangePassword(event) {
 
     // Validate passwords match
     if (newPassword !== confirmNewPassword) {
-        Swal.fire({ title: 'Notice', text: 'New passwords do not match!', icon: 'info' });
+        alert('New passwords do not match!');
         return;
     }
 
     // Validate password strength
     if (newPassword.length < 8) {
-        Swal.fire({ title: 'Warning', text: 'Password must be at least 8 characters long', icon: 'warning' });
+        alert('Password must be at least 8 characters long');
         return;
     }
 
     if (!/[A-Z]/.test(newPassword)) {
-        Swal.fire({ title: 'Warning', text: 'Password must contain at least one uppercase letter', icon: 'warning' });
+        alert('Password must contain at least one uppercase letter');
         return;
     }
 
     if (!/[a-z]/.test(newPassword)) {
-        Swal.fire({ title: 'Warning', text: 'Password must contain at least one lowercase letter', icon: 'warning' });
+        alert('Password must contain at least one lowercase letter');
         return;
     }
 
     if (!/[0-9]/.test(newPassword)) {
-        Swal.fire({ title: 'Warning', text: 'Password must contain at least one number', icon: 'warning' });
+        alert('Password must contain at least one number');
         return;
     }
 
@@ -1697,7 +1662,7 @@ async function handleChangePassword(event) {
         // Close modal
         closeChangePasswordModal();
 
-        Swal.fire({ title: 'Success!', text: 'Password changed successfully! Please login with your new password.', icon: 'success' });
+        alert('Password changed successfully! Please login with your new password.');
 
         // Log out user to force re-login with new password
         setTimeout(() => {
@@ -1706,7 +1671,7 @@ async function handleChangePassword(event) {
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Password change error:', error);
-        Swal.fire({ title: 'Error!', text: `Password change failed: ${error.message}`, icon: 'error' });
+        alert(`Password change failed: ${error.message}`);
     }
 }
 
@@ -1878,10 +1843,10 @@ function copyCryptoAddress() {
     const address = document.getElementById('crypto-wallet-address').textContent;
     if (address && address !== '-') {
         navigator.clipboard.writeText(address).then(() => {
-            Swal.fire({ title: 'Success!', text: 'Wallet address copied to clipboard!', icon: 'success' });
+            alert('Wallet address copied to clipboard!');
         }).catch(err => {
             console.error('Failed to copy:', err);
-            Swal.fire({ title: 'Error!', text: 'Failed to copy address. Please try selecting and copying manually.', icon: 'error' });
+            alert('Failed to copy address. Please try selecting and copying manually.');
         });
     }
 }
@@ -2313,14 +2278,14 @@ async function handleUpdateEmail(event) {
     const password = document.getElementById('email-update-password').value;
 
     if (!newEmail || !password) {
-        Swal.fire({ title: 'Warning', text: 'Please fill in all fields', icon: 'warning' });
+        alert('Please fill in all fields');
         return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail)) {
-        Swal.fire({ title: 'Warning', text: 'Please enter a valid email address', icon: 'warning' });
+        alert('Please enter a valid email address');
         return;
     }
 
@@ -2352,11 +2317,11 @@ async function handleUpdateEmail(event) {
         closeUpdateEmailModal();
         showVerifyEmailUpdateModal(newEmail);
 
-        Swal.fire({ title: 'Success!', text: 'Verification code sent to your new email address. Please check your inbox.', icon: 'success' });
+        alert('Verification code sent to your new email address. Please check your inbox.');
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Email update request error:', error);
-        Swal.fire({ title: 'Error!', text: `Email update failed: ${error.message}`, icon: 'error' });
+        alert(`Email update failed: ${error.message}`);
     }
 }
 
@@ -2393,12 +2358,12 @@ async function handleVerifyEmailUpdate(event) {
     const newEmail = sessionStorage.getItem('pending_new_email');
 
     if (!code || code.length !== 6) {
-        Swal.fire({ title: 'Warning', text: 'Please enter the 6-digit verification code', icon: 'warning' });
+        alert('Please enter the 6-digit verification code');
         return;
     }
 
     if (!newEmail) {
-        Swal.fire({ title: 'Warning', text: 'Session expired. Please start the email update process again.', icon: 'warning' });
+        alert('Session expired. Please start the email update process again.');
         closeVerifyEmailUpdateModal();
         return;
     }
@@ -2445,11 +2410,11 @@ async function handleVerifyEmailUpdate(event) {
         // Close modal
         closeVerifyEmailUpdateModal();
 
-        Swal.fire({ title: 'Success!', text: 'Email address updated successfully! You can now use your new email to log in.', icon: 'success' });
+        alert('Email address updated successfully! You can now use your new email to log in.');
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Email verification error:', error);
-        Swal.fire({ title: 'Error!', text: `Email verification failed: ${error.message}`, icon: 'error' });
+        alert(`Email verification failed: ${error.message}`);
     }
 }
 
@@ -2487,7 +2452,7 @@ async function handleEnable2FA(event) {
     const password = document.getElementById('enable-2fa-password').value;
 
     if (!password) {
-        Swal.fire({ title: 'Warning', text: 'Please enter your password', icon: 'warning' });
+        alert('Please enter your password');
         return;
     }
 
@@ -2517,11 +2482,11 @@ async function handleEnable2FA(event) {
         close2FAEnableModal();
         show2FAVerifyModal(result.email);
 
-        Swal.fire({ title: 'Success!', text: 'Verification code sent to your email. Please check your inbox.', icon: 'success' });
+        alert('Verification code sent to your email. Please check your inbox.');
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Enable 2FA error:', error);
-        Swal.fire({ title: 'Error!', text: `Failed to enable 2FA: ${error.message}`, icon: 'error' });
+        alert(`Failed to enable 2FA: ${error.message}`);
     }
 }
 
@@ -2557,7 +2522,7 @@ async function handleVerify2FA(event) {
     const code = document.getElementById('verify-2fa-code').value.trim();
 
     if (!code || code.length !== 6) {
-        Swal.fire({ title: 'Warning', text: 'Please enter the 6-digit verification code', icon: 'warning' });
+        alert('Please enter the 6-digit verification code');
         return;
     }
 
@@ -2597,11 +2562,11 @@ async function handleVerify2FA(event) {
         // Close modal
         close2FAVerifyModal();
 
-        Swal.fire({ title: 'Success!', text: '2FA has been successfully enabled for your account!', icon: 'success' });
+        alert('2FA has been successfully enabled for your account!');
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('2FA verification error:', error);
-        Swal.fire({ title: 'Error!', text: `Verification failed: ${error.message}`, icon: 'error' });
+        alert(`Verification failed: ${error.message}`);
     }
 }
 
@@ -2640,11 +2605,11 @@ async function send2FADisableCode() {
             throw new Error(error.detail || 'Failed to send verification code');
         }
 
-        Swal.fire({ title: 'Success!', text: 'Verification code sent to your email. Please check your inbox and enter the code below.', icon: 'success' });
+        alert('Verification code sent to your email. Please check your inbox and enter the code below.');
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Send disable code error:', error);
-        Swal.fire({ title: 'Error!', text: `Failed to send code: ${error.message}`, icon: 'error' });
+        alert(`Failed to send code: ${error.message}`);
     }
 }
 
@@ -2658,12 +2623,12 @@ async function handleDisable2FA(event) {
     const code = document.getElementById('disable-2fa-code').value.trim();
 
     if (!password || !code) {
-        Swal.fire({ title: 'Warning', text: 'Please fill in all fields', icon: 'warning' });
+        alert('Please fill in all fields');
         return;
     }
 
     if (code.length !== 6) {
-        Swal.fire({ title: 'Warning', text: 'Please enter the 6-digit verification code', icon: 'warning' });
+        alert('Please enter the 6-digit verification code');
         return;
     }
 
@@ -2703,11 +2668,11 @@ async function handleDisable2FA(event) {
         // Close modal
         close2FADisableModal();
 
-        Swal.fire({ title: 'Success!', text: '2FA has been successfully disabled for your account.', icon: 'success' });
+        alert('2FA has been successfully disabled for your account.');
     } catch (error) {
         TED_AUTH.closeLoading();
         console.error('Disable 2FA error:', error);
-        Swal.fire({ title: 'Error!', text: `Failed to disable 2FA: ${error.message}`, icon: 'error' });
+        alert(`Failed to disable 2FA: ${error.message}`);
     }
 }
 

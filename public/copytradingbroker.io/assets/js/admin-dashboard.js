@@ -297,7 +297,7 @@ async function viewUser(userId) {
 
     } catch (error) {
         console.error('Error loading user details:', error);
-        alert('Error loading user details');
+        Swal.fire({ title: 'Error!', text: 'Error loading user details', icon: 'error' });
         modal.classList.remove('show');
     }
 }
@@ -331,27 +331,47 @@ function switchUserTab(tabName) {
 
 // Activate user
 async function activateUser(userId) {
-    if (!confirm('Activate this user?')) return;
-    
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Activate this user?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
+
     try {
+        TED_AUTH.showLoading('Activating user...');
         await adminFetch(`/api/admin/users/${userId}/activate`, { method: 'PUT' });
-        alert('User activated');
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Success!', text: 'User activated', icon: 'success' });
         loadUsers();
     } catch (error) {
-        alert('Error activating user');
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Error!', text: 'Error activating user', icon: 'error' });
     }
 }
 
 // Deactivate user
 async function deactivateUser(userId) {
-    if (!confirm('Deactivate this user?')) return;
-    
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Deactivate this user?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
+
     try {
+        TED_AUTH.showLoading('Deactivating user...');
         await adminFetch(`/api/admin/users/${userId}/deactivate`, { method: 'PUT' });
-        alert('User deactivated');
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Success!', text: 'User deactivated', icon: 'success' });
         loadUsers();
     } catch (error) {
-        alert('Error deactivating user');
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Error!', text: 'Error deactivating user', icon: 'error' });
     }
 }
 
@@ -433,7 +453,7 @@ async function handleAddTraderSubmit(e) {
         });
 
         if (response.ok) {
-            alert('Trader added successfully!');
+            Swal.fire({ title: 'Success!', text: 'Trader added successfully!', icon: 'success' });
             closeAddTraderModal();
             loadTraders(); // Reload traders list
         } else {
@@ -442,7 +462,7 @@ async function handleAddTraderSubmit(e) {
         }
     } catch (error) {
         console.error('Error adding trader:', error);
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
     }
 }
 
@@ -469,7 +489,7 @@ async function showEditTraderModal(traderId) {
             modal.classList.add('show');
         }
     } catch (error) {
-        alert('Error loading trader details');
+        Swal.fire({ title: 'Error!', text: 'Error loading trader details', icon: 'error' });
         console.error(error);
     }
 }
@@ -505,34 +525,41 @@ async function submitEditedTrader(event) {
         });
 
         if (response.ok) {
-            alert('Trader updated successfully!');
+            Swal.fire({ title: 'Success!', text: 'Trader updated successfully!', icon: 'success' });
             hideEditTraderModal();
             loadTraders();
         } else {
             const error = await response.json();
-            alert(`Error: ${error.detail || 'Failed to update trader'}`);
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to update trader'}`, icon: 'error' });
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
 
 // Delete trader
 async function deleteTrader(traderId) {
-    if (!confirm('Are you sure you want to delete this trader? This action cannot be undone.')) return;
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Are you sure you want to delete this trader? This action cannot be undone.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
 
     try {
         const response = await adminFetch(`/api/admin/traders/${traderId}`, { method: 'DELETE' });
         if (response.ok) {
-            alert('Trader deleted successfully');
+            Swal.fire({ title: 'Success!', text: 'Trader deleted successfully', icon: 'success' });
             loadTraders();
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to delete trader'));
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
@@ -612,15 +639,15 @@ async function submitNewPlan(event) {
         });
 
         if (response.ok) {
-            alert('Investment plan created successfully!');
+            Swal.fire({ title: 'Success!', text: 'Investment plan created successfully!', icon: 'success' });
             hideAddPlanModal();
             loadPlans();
         } else {
             const error = await response.json();
-            alert(`Error: ${error.detail || 'Failed to create plan'}`);
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to create plan'}`, icon: 'error' });
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
     }
 }
 
@@ -646,7 +673,7 @@ async function showEditPlanModal(planId) {
             modal.classList.add('show');
         }
     } catch (error) {
-        alert('Error loading plan details');
+        Swal.fire({ title: 'Error!', text: 'Error loading plan details', icon: 'error' });
         console.error(error);
     }
 }
@@ -681,41 +708,55 @@ async function submitEditedPlan(event) {
         });
 
         if (response.ok) {
-            alert('Investment plan updated successfully!');
+            Swal.fire({ title: 'Success!', text: 'Investment plan updated successfully!', icon: 'success' });
             hideEditPlanModal();
             loadPlans();
         } else {
             const error = await response.json();
-            alert(`Error: ${error.detail || 'Failed to update plan'}`);
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to update plan'}`, icon: 'error' });
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
 
 // Delete plan
 async function deletePlan(planId) {
-    if (!confirm('Are you sure you want to delete this investment plan? This action cannot be undone.')) return;
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Are you sure you want to delete this investment plan? This action cannot be undone.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
 
     try {
         const response = await adminFetch(`/api/admin/plans/${planId}`, { method: 'DELETE' });
         if (response.ok) {
-            alert('Investment plan deleted successfully');
+            Swal.fire({ title: 'Success!', text: 'Investment plan deleted successfully', icon: 'success' });
             loadPlans();
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to delete plan'));
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
 
 // Logout
-function logout() {
-    if (confirm('Are you sure you want to logout?')) {
+async function logout() {
+    if ((await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Are you sure you want to logout?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) {
         localStorage.removeItem('admin_token');
         window.location.href = '/admin/login';
     }
@@ -793,39 +834,61 @@ function filterDepositRequests() {
 
 // Approve deposit
 async function approveDeposit(requestId) {
-    if (!confirm('Approve this deposit request? This will credit the user wallet.')) return;
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Approve this deposit request? This will credit the user wallet.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
 
     try {
+        TED_AUTH.showLoading('Approving deposit...');
         const response = await adminFetch(`/api/admin/deposit-requests/${requestId}/approve`, { method: 'PUT' });
+        TED_AUTH.closeLoading();
+
         if (response.ok) {
             const data = await response.json();
-            alert(`Deposit approved! $${data.amount} credited to user wallet.`);
+            Swal.fire({ title: 'Success!', text: `Deposit approved! $${data.amount} credited to user wallet.`, icon: 'success' });
             loadDepositRequests();
         } else {
             const error = await response.json();
-            alert('Error: ' + (error.detail || 'Failed to approve deposit'));
+            Swal.fire({ title: 'Error!', text: 'Error: ' + (error.detail || 'Failed to approve deposit'), icon: 'error' });
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
 
 // Reject deposit
 async function rejectDeposit(requestId) {
-    if (!confirm('Reject this deposit request?')) return;
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Reject this deposit request?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
 
     try {
+        TED_AUTH.showLoading('Rejecting deposit...');
         const response = await adminFetch(`/api/admin/deposit-requests/${requestId}/reject`, { method: 'PUT' });
+        TED_AUTH.closeLoading();
+
         if (response.ok) {
-            alert('Deposit request rejected');
+            Swal.fire({ title: 'Notice', text: 'Deposit request rejected', icon: 'info' });
             loadDepositRequests();
         } else {
             const error = await response.json();
-            alert('Error: ' + (error.detail || 'Failed to reject deposit'));
+            Swal.fire({ title: 'Error!', text: 'Error: ' + (error.detail || 'Failed to reject deposit'), icon: 'error' });
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
@@ -922,34 +985,41 @@ async function submitNewCryptoWallet(event) {
         });
 
         if (response.ok) {
-            alert('Crypto wallet added successfully!');
+            Swal.fire({ title: 'Success!', text: 'Crypto wallet added successfully!', icon: 'success' });
             hideAddCryptoWalletModal();
             loadCryptoWallets();
         } else {
             const error = await response.json();
-            alert(`Error: ${error.detail || 'Failed to add wallet'}`);
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to add wallet'}`, icon: 'error' });
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
 
 // Delete crypto wallet
 async function deleteCryptoWallet(walletId) {
-    if (!confirm('Delete this crypto wallet?')) return;
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Delete this crypto wallet?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
 
     try {
         const response = await adminFetch(`/api/admin/crypto-wallets/${walletId}`, { method: 'DELETE' });
         if (response.ok) {
-            alert('Crypto wallet deleted successfully');
+            Swal.fire({ title: 'Success!', text: 'Crypto wallet deleted successfully', icon: 'success' });
             loadCryptoWallets();
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to delete wallet'));
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
@@ -1049,34 +1119,41 @@ async function submitNewBankAccount(event) {
         });
 
         if (response.ok) {
-            alert('Bank account added successfully!');
+            Swal.fire({ title: 'Success!', text: 'Bank account added successfully!', icon: 'success' });
             hideAddBankAccountModal();
             loadBankAccounts();
         } else {
             const error = await response.json();
-            alert(`Error: ${error.detail || 'Failed to add account'}`);
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to add account'}`, icon: 'error' });
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
 
 // Delete bank account
 async function deleteBankAccount(accountId) {
-    if (!confirm('Delete this bank account?')) return;
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Delete this bank account?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
 
     try {
         const response = await adminFetch(`/api/admin/bank-accounts/${accountId}`, { method: 'DELETE' });
         if (response.ok) {
-            alert('Bank account deleted successfully');
+            Swal.fire({ title: 'Success!', text: 'Bank account deleted successfully', icon: 'success' });
             loadBankAccounts();
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to delete account'));
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
@@ -1244,7 +1321,7 @@ async function submitNewNotification(event) {
 
     // Validate specific user selection
     if (targetType === 'specific' && !notificationData.target_user_id) {
-        alert('Please select a user for specific notification');
+        Swal.fire({ title: 'Warning', text: 'Please select a user for specific notification', icon: 'warning' });
         return;
     }
 
@@ -1261,29 +1338,36 @@ async function submitNewNotification(event) {
             loadNotifications();
         } else {
             const error = await response.json();
-            alert(`Error: ${error.detail || 'Failed to send notification'}`);
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to send notification'}`, icon: 'error' });
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
 
 // Delete notification
 async function deleteNotification(notificationId) {
-    if (!confirm('Delete this notification? This will remove it for all users.')) return;
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Delete this notification? This will remove it for all users.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
 
     try {
         const response = await adminFetch(`/api/admin/notifications/${notificationId}`, { method: 'DELETE' });
         if (response.ok) {
-            alert('Notification deleted successfully');
+            Swal.fire({ title: 'Success!', text: 'Notification deleted successfully', icon: 'success' });
             loadNotifications();
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to delete notification'));
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
@@ -1368,7 +1452,7 @@ function viewWithdrawalDetails(requestId) {
         .then(data => {
             const withdrawal = data.requests.find(req => req.id === requestId);
             if (!withdrawal) {
-                alert('Withdrawal request not found');
+                Swal.fire({ title: 'Notice', text: 'Withdrawal request not found', icon: 'info' });
                 return;
             }
 
@@ -1399,7 +1483,7 @@ function viewWithdrawalDetails(requestId) {
         })
         .catch(error => {
             console.error('Error loading withdrawal details:', error);
-            alert('Error loading withdrawal details');
+            Swal.fire({ title: 'Error!', text: 'Error loading withdrawal details', icon: 'error' });
         });
 }
 
@@ -1410,39 +1494,53 @@ function closeWithdrawalDetailsModal() {
 
 // Approve withdrawal
 async function approveWithdrawal(requestId) {
-    if (!confirm('Approve this withdrawal request? This will deduct the amount from the user wallet and mark as completed.')) return;
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Approve this withdrawal request? This will deduct the amount from the user wallet and mark as completed.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
 
     try {
         const response = await adminFetch(`/api/admin/withdrawal-requests/${requestId}/approve`, { method: 'PUT' });
         if (response.ok) {
             const data = await response.json();
-            alert(`Withdrawal approved! $${data.amount} deducted from user wallet.`);
+            Swal.fire({ title: 'Success!', text: `Withdrawal approved! $${data.amount} deducted from user wallet.`, icon: 'success' });
             loadWithdrawalRequests();
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to approve withdrawal'));
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }
 
 // Reject withdrawal
 async function rejectWithdrawal(requestId) {
-    if (!confirm('Reject this withdrawal request?')) return;
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Reject this withdrawal request?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
 
     try {
         const response = await adminFetch(`/api/admin/withdrawal-requests/${requestId}/reject`, { method: 'PUT' });
         if (response.ok) {
-            alert('Withdrawal request rejected');
+            Swal.fire({ title: 'Notice', text: 'Withdrawal request rejected', icon: 'info' });
             loadWithdrawalRequests();
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to reject withdrawal'));
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
         console.error(error);
     }
 }

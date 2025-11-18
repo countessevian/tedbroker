@@ -765,7 +765,7 @@ class ChatWidget {
 
         const token = localStorage.getItem(this.TOKEN_KEY);
         if (!token) {
-            alert('Please log in to send messages');
+            Swal.fire({ title: 'Warning', text: 'Please log in to send messages', icon: 'warning' });
             return;
         }
 
@@ -799,7 +799,7 @@ class ChatWidget {
             }
         } catch (error) {
             console.error('Error sending message:', error);
-            alert('Failed to send message. Please try again.');
+            Swal.fire({ title: 'Error!', text: 'Failed to send message. Please try again.', icon: 'error' });
         } finally {
             // Re-enable button
             sendBtn.disabled = false;

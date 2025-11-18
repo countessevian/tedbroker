@@ -266,12 +266,12 @@ const TED_AUTH = {
      * Show success message
      */
     showSuccess(message) {
-        if (typeof swal !== 'undefined') {
-            swal({
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
                 title: 'Success!',
                 text: message,
                 icon: 'success',
-                button: 'OK'
+                confirmButtonText: 'OK'
             });
         } else {
             alert(message);
@@ -282,12 +282,12 @@ const TED_AUTH = {
      * Show error message
      */
     showError(message) {
-        if (typeof swal !== 'undefined') {
-            swal({
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
                 title: 'Error!',
                 text: message,
                 icon: 'error',
-                button: 'OK'
+                confirmButtonText: 'OK'
             });
         } else {
             alert(message);
@@ -298,12 +298,15 @@ const TED_AUTH = {
      * Show loading indicator
      */
     showLoading(message = 'Please wait...') {
-        if (typeof swal !== 'undefined') {
-            swal({
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
                 title: message,
-                buttons: false,
-                closeOnClickOutside: false,
-                closeOnEsc: false
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
             });
         }
     },
@@ -312,8 +315,8 @@ const TED_AUTH = {
      * Close loading indicator
      */
     closeLoading() {
-        if (typeof swal !== 'undefined') {
-            swal.close();
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
         }
     }
 };
