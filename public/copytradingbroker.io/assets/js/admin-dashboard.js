@@ -3,49 +3,22 @@ let currentTab = 'dashboard';
 
 // Check authentication on load
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Admin dashboard DOMContentLoaded fired');
     const token = localStorage.getItem('admin_token');
-    console.log('Admin token:', token ? 'exists' : 'missing');
-
     if (!token) {
-        console.log('No admin token found, redirecting to login');
         window.location.href = '/admin/login';
         return;
     }
-
+    
     try {
-        console.log('Fetching admin user data...');
         const response = await adminFetch('/api/admin/me');
-        console.log('Admin me response status:', response.status);
-
-        if (!response.ok) {
-            console.error('Admin me response not ok:', response.status, response.statusText);
-            throw new Error('Unauthorized');
-        }
-
+        if (!response.ok) throw new Error('Unauthorized');
+        
         const admin = await response.json();
-        console.log('Admin user data:', admin);
-
-        const adminNameEl = document.getElementById('admin-name');
-        if (adminNameEl) {
-            adminNameEl.textContent = admin.full_name || admin.username;
-            console.log('Set admin name to:', admin.full_name || admin.username);
-        } else {
-            console.error('admin-name element not found!');
-        }
-
-        console.log('Loading dashboard stats...');
+        document.getElementById('admin-name').textContent = admin.full_name || admin.username;
+        
         loadDashboardStats();
-
-        console.log('Setting up tab switching...');
         setupTabSwitching();
-
-        console.log('Setting up event listeners...');
-        setupEventListeners();
-
-        console.log('Admin dashboard fully initialized');
     } catch (error) {
-        console.error('Error initializing admin dashboard:', error);
         localStorage.removeItem('admin_token');
         window.location.href = '/admin/login';
     }
@@ -176,10 +149,10 @@ async function loadUsers(search = '') {
                     <td><span class="badge badge-${user.is_active ? 'active' : 'inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>${date}</td>
                     <td>
-                        <button class="btn btn-secondary" style="padding: 5px 10px; margin: 2px;" data-user-id="${user.id}">View</button>
+                        <button class="btn btn-secondary" style="padding: 5px 10px; margin: 2px;" onclick="viewUser('${user.id}')">View</button>
                         ${user.is_active ? 
-                            `<button class="btn btn-secondary" style="padding: 5px 10px; margin: 2px; background: #f44336;" data-user-id="${user.id}">Deactivate</button>` :
-                            `<button class="btn btn-secondary" style="padding: 5px 10px; margin: 2px; background: #4caf50;" data-user-id="${user.id}">Activate</button>`
+                            `<button class="btn btn-secondary" style="padding: 5px 10px; margin: 2px; background: #f44336;" onclick="deactivateUser('${user.id}')">Deactivate</button>` :
+                            `<button class="btn btn-secondary" style="padding: 5px 10px; margin: 2px; background: #4caf50;" onclick="activateUser('${user.id}')">Activate</button>`
                         }
                     </td>
                 </tr>
@@ -324,7 +297,7 @@ async function viewUser(userId) {
 
     } catch (error) {
         console.error('Error loading user details:', error);
-        SwalHelper.error('Error', 'Error loading user details');
+        alert('Error loading user details');
         modal.classList.remove('show');
     }
 }
@@ -358,27 +331,27 @@ function switchUserTab(tabName) {
 
 // Activate user
 async function activateUser(userId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Activate this user?')).isConfirmed) return;
+    if (!confirm('Activate this user?')) return;
     
     try {
         await adminFetch(`/api/admin/users/${userId}/activate`, { method: 'PUT' });
-        SwalHelper.success('Success', 'User activated');
+        alert('User activated');
         loadUsers();
     } catch (error) {
-        SwalHelper.error('Error', 'Error activating user');
+        alert('Error activating user');
     }
 }
 
 // Deactivate user
 async function deactivateUser(userId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Deactivate this user?')).isConfirmed) return;
+    if (!confirm('Deactivate this user?')) return;
     
     try {
         await adminFetch(`/api/admin/users/${userId}/deactivate`, { method: 'PUT' });
-        SwalHelper.success('Success', 'User deactivated');
+        alert('User deactivated');
         loadUsers();
     } catch (error) {
-        SwalHelper.error('Error', 'Error deactivating user');
+        alert('Error deactivating user');
     }
 }
 
@@ -406,8 +379,8 @@ async function loadTraders() {
                     <p><strong>YTD Return:</strong> ${trader.ytd_return}% | <strong>Win Rate:</strong> ${trader.win_rate}%</p>
                     <p><strong>Copiers:</strong> ${trader.copiers || 0}</p>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button class="btn btn-primary" style="padding: 8px 16px;" data-trader-id="${trader.id}">Edit</button>
-                        <button class="btn btn-danger" style="padding: 8px 16px;" data-trader-id="${trader.id}">Delete</button>
+                        <button class="btn btn-primary" style="padding: 8px 16px;" onclick="showEditTraderModal('${trader.id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deleteTrader('${trader.id}')">Delete</button>
                     </div>
                 </div>
             `;
@@ -460,16 +433,16 @@ async function handleAddTraderSubmit(e) {
         });
 
         if (response.ok) {
-            SwalHelper.success('Success', 'Trader added successfully!');
+            alert('Trader added successfully!');
             closeAddTraderModal();
             loadTraders(); // Reload traders list
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error adding trader: ' + (error.detail || 'Unknown error'));
+            alert('Error adding trader: ' + (error.detail || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error adding trader:', error);
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
     }
 }
 
@@ -496,7 +469,7 @@ async function showEditTraderModal(traderId) {
             modal.classList.add('show');
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Error loading trader details');
+        alert('Error loading trader details');
         console.error(error);
     }
 }
@@ -532,34 +505,34 @@ async function submitEditedTrader(event) {
         });
 
         if (response.ok) {
-            SwalHelper.success('Success', 'Trader updated successfully!');
+            alert('Trader updated successfully!');
             hideEditTraderModal();
             loadTraders();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', `Error: ${error.detail || 'Failed to update trader'}`);
+            alert(`Error: ${error.detail || 'Failed to update trader'}`);
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
 
 // Delete trader
 async function deleteTrader(traderId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Are you sure you want to delete this trader? This action cannot be undone.')).isConfirmed) return;
+    if (!confirm('Are you sure you want to delete this trader? This action cannot be undone.')) return;
 
     try {
         const response = await adminFetch(`/api/admin/traders/${traderId}`, { method: 'DELETE' });
         if (response.ok) {
-            SwalHelper.success('Success', 'Trader deleted successfully');
+            alert('Trader deleted successfully');
             loadTraders();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error: ' + (error.detail || 'Failed to delete trader'));
+            alert('Error: ' + (error.detail || 'Failed to delete trader'));
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
@@ -589,8 +562,8 @@ async function loadPlans() {
                     <p><strong>Subscribers:</strong> ${plan.current_subscribers || 0}</p>
                     <p><span class="badge badge-${plan.is_active ? 'active' : 'inactive'}">${plan.is_active ? 'Active' : 'Inactive'}</span></p>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button class="btn btn-primary" style="padding: 8px 16px;" data-plan-id="${plan.id}">Edit</button>
-                        <button class="btn btn-danger" style="padding: 8px 16px;" data-plan-id="${plan.id}">Delete</button>
+                        <button class="btn btn-primary" style="padding: 8px 16px;" onclick="showEditPlanModal('${plan.id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deletePlan('${plan.id}')">Delete</button>
                     </div>
                 </div>
             `;
@@ -639,15 +612,15 @@ async function submitNewPlan(event) {
         });
 
         if (response.ok) {
-            SwalHelper.success('Success', 'Investment plan created successfully!');
+            alert('Investment plan created successfully!');
             hideAddPlanModal();
             loadPlans();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', `Error: ${error.detail || 'Failed to create plan'}`);
+            alert(`Error: ${error.detail || 'Failed to create plan'}`);
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
     }
 }
 
@@ -673,7 +646,7 @@ async function showEditPlanModal(planId) {
             modal.classList.add('show');
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Error loading plan details');
+        alert('Error loading plan details');
         console.error(error);
     }
 }
@@ -708,41 +681,41 @@ async function submitEditedPlan(event) {
         });
 
         if (response.ok) {
-            SwalHelper.success('Success', 'Investment plan updated successfully!');
+            alert('Investment plan updated successfully!');
             hideEditPlanModal();
             loadPlans();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', `Error: ${error.detail || 'Failed to update plan'}`);
+            alert(`Error: ${error.detail || 'Failed to update plan'}`);
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
 
 // Delete plan
 async function deletePlan(planId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Are you sure you want to delete this investment plan? This action cannot be undone.')).isConfirmed) return;
+    if (!confirm('Are you sure you want to delete this investment plan? This action cannot be undone.')) return;
 
     try {
         const response = await adminFetch(`/api/admin/plans/${planId}`, { method: 'DELETE' });
         if (response.ok) {
-            SwalHelper.success('Success', 'Investment plan deleted successfully');
+            alert('Investment plan deleted successfully');
             loadPlans();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error: ' + (error.detail || 'Failed to delete plan'));
+            alert('Error: ' + (error.detail || 'Failed to delete plan'));
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
 
 // Logout
-async function logout() {
-    if ((await SwalHelper.confirm('Confirm', 'Are you sure you want to logout?')).isConfirmed) {
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
         localStorage.removeItem('admin_token');
         window.location.href = '/admin/login';
     }
@@ -795,8 +768,8 @@ async function loadDepositRequests(statusFilter = '') {
                     <td>
                         ${req.status === 'pending' ? `
                             <div class="action-buttons">
-                                <button class="btn btn-success" style="padding: 5px 10px;" data-request-id="${req.id}">Approve</button>
-                                <button class="btn btn-danger" style="padding: 5px 10px;" data-request-id="${req.id}">Reject</button>
+                                <button class="btn btn-success" style="padding: 5px 10px;" onclick="approveDeposit('${req.id}')">Approve</button>
+                                <button class="btn btn-danger" style="padding: 5px 10px;" onclick="rejectDeposit('${req.id}')">Reject</button>
                             </div>
                         ` : `<span style="color: #8b93a7;">Reviewed</span>`}
                     </td>
@@ -820,39 +793,39 @@ function filterDepositRequests() {
 
 // Approve deposit
 async function approveDeposit(requestId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Approve this deposit request? This will credit the user wallet.')).isConfirmed) return;
+    if (!confirm('Approve this deposit request? This will credit the user wallet.')) return;
 
     try {
         const response = await adminFetch(`/api/admin/deposit-requests/${requestId}/approve`, { method: 'PUT' });
         if (response.ok) {
             const data = await response.json();
-            SwalHelper.success('Success', `Deposit approved! $${data.amount} credited to user wallet.`);
+            alert(`Deposit approved! $${data.amount} credited to user wallet.`);
             loadDepositRequests();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error: ' + (error.detail || 'Failed to approve deposit'));
+            alert('Error: ' + (error.detail || 'Failed to approve deposit'));
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
 
 // Reject deposit
 async function rejectDeposit(requestId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Reject this deposit request?')).isConfirmed) return;
+    if (!confirm('Reject this deposit request?')) return;
 
     try {
         const response = await adminFetch(`/api/admin/deposit-requests/${requestId}/reject`, { method: 'PUT' });
         if (response.ok) {
-            SwalHelper.success('Success', 'Deposit request rejected');
+            alert('Deposit request rejected');
             loadDepositRequests();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error: ' + (error.detail || 'Failed to reject deposit'));
+            alert('Error: ' + (error.detail || 'Failed to reject deposit'));
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
@@ -900,7 +873,7 @@ async function loadCryptoWallets() {
                     <td><span class="badge badge-${wallet.is_active ? 'active' : 'inactive'}">${wallet.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>${date}</td>
                     <td>
-                        <button class="btn btn-danger" style="padding: 5px 10px;" data-wallet-id="${wallet.id}">Delete</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteCryptoWallet('${wallet.id}')">Delete</button>
                     </td>
                 </tr>
             `;
@@ -949,34 +922,34 @@ async function submitNewCryptoWallet(event) {
         });
 
         if (response.ok) {
-            SwalHelper.success('Success', 'Crypto wallet added successfully!');
+            alert('Crypto wallet added successfully!');
             hideAddCryptoWalletModal();
             loadCryptoWallets();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', `Error: ${error.detail || 'Failed to add wallet'}`);
+            alert(`Error: ${error.detail || 'Failed to add wallet'}`);
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
 
 // Delete crypto wallet
 async function deleteCryptoWallet(walletId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Delete this crypto wallet?')).isConfirmed) return;
+    if (!confirm('Delete this crypto wallet?')) return;
 
     try {
         const response = await adminFetch(`/api/admin/crypto-wallets/${walletId}`, { method: 'DELETE' });
         if (response.ok) {
-            SwalHelper.success('Success', 'Crypto wallet deleted successfully');
+            alert('Crypto wallet deleted successfully');
             loadCryptoWallets();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error: ' + (error.detail || 'Failed to delete wallet'));
+            alert('Error: ' + (error.detail || 'Failed to delete wallet'));
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
@@ -1025,7 +998,7 @@ async function loadBankAccounts() {
                     <td>${account.swift_code || 'N/A'}</td>
                     <td><span class="badge badge-${account.is_active ? 'active' : 'inactive'}">${account.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>
-                        <button class="btn btn-danger" style="padding: 5px 10px;" data-account-id="${account.id}">Delete</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteBankAccount('${account.id}')">Delete</button>
                     </td>
                 </tr>
             `;
@@ -1076,34 +1049,34 @@ async function submitNewBankAccount(event) {
         });
 
         if (response.ok) {
-            SwalHelper.success('Success', 'Bank account added successfully!');
+            alert('Bank account added successfully!');
             hideAddBankAccountModal();
             loadBankAccounts();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', `Error: ${error.detail || 'Failed to add account'}`);
+            alert(`Error: ${error.detail || 'Failed to add account'}`);
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
 
 // Delete bank account
 async function deleteBankAccount(accountId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Delete this bank account?')).isConfirmed) return;
+    if (!confirm('Delete this bank account?')) return;
 
     try {
         const response = await adminFetch(`/api/admin/bank-accounts/${accountId}`, { method: 'DELETE' });
         if (response.ok) {
-            SwalHelper.success('Success', 'Bank account deleted successfully');
+            alert('Bank account deleted successfully');
             loadBankAccounts();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error: ' + (error.detail || 'Failed to delete account'));
+            alert('Error: ' + (error.detail || 'Failed to delete account'));
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
@@ -1157,7 +1130,7 @@ async function loadNotifications() {
                     <td>${notif.target_type === 'all' ? '<strong>All Users</strong>' : 'Specific User'}</td>
                     <td>${date}</td>
                     <td>
-                        <button class="btn btn-danger" style="padding: 5px 10px;" data-notification-id="${notif.id}">Delete</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteNotification('${notif.id}')">Delete</button>
                     </td>
                 </tr>
             `;
@@ -1232,7 +1205,7 @@ async function searchUsersForNotification() {
             let html = '';
             data.users.forEach(user => {
                 html += `
-                    <div style="padding: 10px; cursor: pointer; border-bottom: 1px solid #e2e8f0; hover: background-color: #f7fafc;" data-user-id="${user.id}" data-username="${user.username}" data-email="${user.email}">
+                    <div style="padding: 10px; cursor: pointer; border-bottom: 1px solid #e2e8f0; hover: background-color: #f7fafc;" onclick="selectUserForNotification('${user.id}', '${user.username}', '${user.email}')">
                         <strong>${user.username}</strong><br>
                         <small style="color: #8b93a7;">${user.email}</small>
                     </div>
@@ -1271,7 +1244,7 @@ async function submitNewNotification(event) {
 
     // Validate specific user selection
     if (targetType === 'specific' && !notificationData.target_user_id) {
-        SwalHelper.error('Error', 'Please select a user for specific notification');
+        alert('Please select a user for specific notification');
         return;
     }
 
@@ -1283,34 +1256,34 @@ async function submitNewNotification(event) {
 
         if (response.ok) {
             const data = await response.json();
-            SwalHelper.success('Success', data.message || 'Notification sent successfully!');
+            alert(data.message || 'Notification sent successfully!');
             hideCreateNotificationModal();
             loadNotifications();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', `Error: ${error.detail || 'Failed to send notification'}`);
+            alert(`Error: ${error.detail || 'Failed to send notification'}`);
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
 
 // Delete notification
 async function deleteNotification(notificationId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Delete this notification? This will remove it for all users.')).isConfirmed) return;
+    if (!confirm('Delete this notification? This will remove it for all users.')) return;
 
     try {
         const response = await adminFetch(`/api/admin/notifications/${notificationId}`, { method: 'DELETE' });
         if (response.ok) {
-            SwalHelper.success('Success', 'Notification deleted successfully');
+            alert('Notification deleted successfully');
             loadNotifications();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error: ' + (error.detail || 'Failed to delete notification'));
+            alert('Error: ' + (error.detail || 'Failed to delete notification'));
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
@@ -1362,10 +1335,10 @@ async function loadWithdrawalRequests(statusFilter = '') {
                     <td>${date}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn btn-secondary" style="padding: 5px 10px;" data-request-id="${req.id}">View</button>
+                            <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="viewWithdrawalDetails('${req.id}')">View</button>
                             ${req.status === 'pending' ? `
-                                <button class="btn btn-success" style="padding: 5px 10px;" data-request-id="${req.id}">Approve</button>
-                                <button class="btn btn-danger" style="padding: 5px 10px;" data-request-id="${req.id}">Reject</button>
+                                <button class="btn btn-success" style="padding: 5px 10px;" onclick="approveWithdrawal('${req.id}')">Approve</button>
+                                <button class="btn btn-danger" style="padding: 5px 10px;" onclick="rejectWithdrawal('${req.id}')">Reject</button>
                             ` : ''}
                         </div>
                     </td>
@@ -1395,7 +1368,7 @@ function viewWithdrawalDetails(requestId) {
         .then(data => {
             const withdrawal = data.requests.find(req => req.id === requestId);
             if (!withdrawal) {
-                SwalHelper.error('Error', 'Withdrawal request not found');
+                alert('Withdrawal request not found');
                 return;
             }
 
@@ -1426,7 +1399,7 @@ function viewWithdrawalDetails(requestId) {
         })
         .catch(error => {
             console.error('Error loading withdrawal details:', error);
-            SwalHelper.error('Error', 'Error loading withdrawal details');
+            alert('Error loading withdrawal details');
         });
 }
 
@@ -1437,316 +1410,39 @@ function closeWithdrawalDetailsModal() {
 
 // Approve withdrawal
 async function approveWithdrawal(requestId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Approve this withdrawal request? This will deduct the amount from the user wallet and mark as completed.')).isConfirmed) return;
+    if (!confirm('Approve this withdrawal request? This will deduct the amount from the user wallet and mark as completed.')) return;
 
     try {
         const response = await adminFetch(`/api/admin/withdrawal-requests/${requestId}/approve`, { method: 'PUT' });
         if (response.ok) {
             const data = await response.json();
-            SwalHelper.success('Success', `Withdrawal approved! $${data.amount} deducted from user wallet.`);
+            alert(`Withdrawal approved! $${data.amount} deducted from user wallet.`);
             loadWithdrawalRequests();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error: ' + (error.detail || 'Failed to approve withdrawal'));
+            alert('Error: ' + (error.detail || 'Failed to approve withdrawal'));
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
 }
 
 // Reject withdrawal
 async function rejectWithdrawal(requestId) {
-    if (!(await SwalHelper.confirm('Confirm', 'Reject this withdrawal request?')).isConfirmed) return;
+    if (!confirm('Reject this withdrawal request?')) return;
 
     try {
         const response = await adminFetch(`/api/admin/withdrawal-requests/${requestId}/reject`, { method: 'PUT' });
         if (response.ok) {
-            SwalHelper.success('Success', 'Withdrawal request rejected');
+            alert('Withdrawal request rejected');
             loadWithdrawalRequests();
         } else {
             const error = await response.json();
-            SwalHelper.error('Error', 'Error: ' + (error.detail || 'Failed to reject withdrawal'));
+            alert('Error: ' + (error.detail || 'Failed to reject withdrawal'));
         }
     } catch (error) {
-        SwalHelper.error('Error', 'Network error. Please try again.');
+        alert('Network error. Please try again.');
         console.error(error);
     }
-}
-
-// ============================================================================
-// EVENT LISTENERS SETUP - Restore functionality after CSP compliance
-// ============================================================================
-function setupEventListeners() {
-    // Form submission event listeners
-    const editTraderForm = document.getElementById('edit-trader-form');
-    if (editTraderForm && !editTraderForm.dataset.listenerAdded) {
-        editTraderForm.addEventListener('submit', submitEditedTrader);
-        editTraderForm.dataset.listenerAdded = 'true';
-    }
-
-    const addPlanForm = document.getElementById('add-plan-form');
-    if (addPlanForm && !addPlanForm.dataset.listenerAdded) {
-        addPlanForm.addEventListener('submit', submitNewPlan);
-        addPlanForm.dataset.listenerAdded = 'true';
-    }
-
-    const editPlanForm = document.getElementById('edit-plan-form');
-    if (editPlanForm && !editPlanForm.dataset.listenerAdded) {
-        editPlanForm.addEventListener('submit', submitEditedPlan);
-        editPlanForm.dataset.listenerAdded = 'true';
-    }
-
-    const addCryptoWalletForm = document.getElementById('add-crypto-wallet-form');
-    if (addCryptoWalletForm && !addCryptoWalletForm.dataset.listenerAdded) {
-        addCryptoWalletForm.addEventListener('submit', submitNewCryptoWallet);
-        addCryptoWalletForm.dataset.listenerAdded = 'true';
-    }
-
-    const addBankAccountForm = document.getElementById('add-bank-account-form');
-    if (addBankAccountForm && !addBankAccountForm.dataset.listenerAdded) {
-        addBankAccountForm.addEventListener('submit', submitNewBankAccount);
-        addBankAccountForm.dataset.listenerAdded = 'true';
-    }
-
-    const createNotificationForm = document.getElementById('create-notification-form');
-    if (createNotificationForm && !createNotificationForm.dataset.listenerAdded) {
-        createNotificationForm.addEventListener('submit', submitNewNotification);
-        createNotificationForm.dataset.listenerAdded = 'true';
-    }
-
-    // Select and change event listeners
-    const notifTargetType = document.getElementById('notif-target-type');
-    if (notifTargetType && !notifTargetType.dataset.listenerAdded) {
-        notifTargetType.addEventListener('change', toggleUserSelection);
-        notifTargetType.dataset.listenerAdded = 'true';
-    }
-
-    const notifTargetUserSearch = document.getElementById('notif-target-user-search');
-    if (notifTargetUserSearch && !notifTargetUserSearch.dataset.listenerAdded) {
-        notifTargetUserSearch.addEventListener('input', searchUsersForNotification);
-        notifTargetUserSearch.dataset.listenerAdded = 'true';
-    }
-
-    // User tab buttons in user details modal
-    document.querySelectorAll('.user-tab-btn').forEach(btn => {
-        if (!btn.dataset.listenerAdded) {
-            btn.addEventListener('click', function() {
-                switchUserTab(this.getAttribute('data-tab'));
-            });
-            btn.dataset.listenerAdded = 'true';
-        }
-    });
-
-    // Modal close buttons
-    document.querySelectorAll('.modal .btn-secondary').forEach(btn => {
-        if (!btn.dataset.listenerAdded && btn.textContent.includes('Close')) {
-            btn.addEventListener('click', function() {
-                const modal = this.closest('.modal');
-                if (modal) modal.classList.remove('show');
-            });
-            btn.dataset.listenerAdded = 'true';
-        }
-    });
-
-    // Logout menu item - find by checking for the logout icon
-    const menuItems = document.querySelectorAll('.menu-item');
-    menuItems.forEach(item => {
-        const logoutIcon = item.querySelector('.fa-right-from-bracket');
-        if (logoutIcon && !item.dataset.listenerAdded) {
-            item.addEventListener('click', logout);
-            item.dataset.listenerAdded = 'true';
-        }
-    });
-
-    // Header buttons - these are static so we can attach listeners directly
-    // Search users button
-    const searchUsersBtn = document.querySelector('#tab-users .header button[class*="btn-primary"]');
-    if (searchUsersBtn && !searchUsersBtn.dataset.listenerAdded) {
-        searchUsersBtn.addEventListener('click', searchUsers);
-        searchUsersBtn.dataset.listenerAdded = 'true';
-    }
-
-    // Add Trader button
-    const addTraderBtn = document.querySelector('#tab-traders .header button[class*="btn-primary"]');
-    if (addTraderBtn && !addTraderBtn.dataset.listenerAdded) {
-        addTraderBtn.addEventListener('click', showAddTraderModal);
-        addTraderBtn.dataset.listenerAdded = 'true';
-    }
-
-    // Add Plan button
-    const addPlanBtn = document.querySelector('#tab-plans .header button[class*="btn-primary"]');
-    if (addPlanBtn && !addPlanBtn.dataset.listenerAdded) {
-        addPlanBtn.addEventListener('click', showAddPlanModal);
-        addPlanBtn.dataset.listenerAdded = 'true';
-    }
-
-    // Filter Deposits button
-    const filterDepositsBtn = document.querySelector('#tab-deposits .header button[class*="btn-primary"]');
-    if (filterDepositsBtn && !filterDepositsBtn.dataset.listenerAdded) {
-        filterDepositsBtn.addEventListener('click', filterDepositRequests);
-        filterDepositsBtn.dataset.listenerAdded = 'true';
-    }
-
-    // Filter Withdrawals button
-    const filterWithdrawalsBtn = document.querySelector('#tab-withdrawals .header button[class*="btn-primary"]');
-    if (filterWithdrawalsBtn && !filterWithdrawalsBtn.dataset.listenerAdded) {
-        filterWithdrawalsBtn.addEventListener('click', filterWithdrawalRequests);
-        filterWithdrawalsBtn.dataset.listenerAdded = 'true';
-    }
-
-    // Add Bank Account button
-    const addBankAccountBtn = document.querySelector('#tab-bank-accounts .header button[class*="btn-primary"]');
-    if (addBankAccountBtn && !addBankAccountBtn.dataset.listenerAdded) {
-        addBankAccountBtn.addEventListener('click', showAddBankAccountModal);
-        addBankAccountBtn.dataset.listenerAdded = 'true';
-    }
-
-    // Add Crypto Wallet button
-    const addCryptoWalletBtn = document.querySelector('#tab-crypto-wallets .header button[class*="btn-primary"]');
-    if (addCryptoWalletBtn && !addCryptoWalletBtn.dataset.listenerAdded) {
-        addCryptoWalletBtn.addEventListener('click', showAddCryptoWalletModal);
-        addCryptoWalletBtn.dataset.listenerAdded = 'true';
-    }
-
-    // Create Notification button
-    const createNotificationBtn = document.querySelector('#tab-notifications .header button[class*="btn-primary"]');
-    if (createNotificationBtn && !createNotificationBtn.dataset.listenerAdded) {
-        createNotificationBtn.addEventListener('click', showCreateNotificationModal);
-        createNotificationBtn.dataset.listenerAdded = 'true';
-    }
-
-    // Filter Chats button
-    const filterChatsBtn = document.querySelector('#tab-chats .header button[class*="btn-primary"]');
-    if (filterChatsBtn && !filterChatsBtn.dataset.listenerAdded) {
-        filterChatsBtn.addEventListener('click', function() {
-            // Filter chats functionality (implement if needed)
-            console.log('Filter chats clicked');
-        });
-        filterChatsBtn.dataset.listenerAdded = 'true';
-    }
-
-    // Global event delegation for dynamically generated buttons and elements
-    document.body.addEventListener('click', function(e) {
-        // Handle user selection divs in notification modal
-        const userSelectDiv = e.target.closest('#user-search-results > div[data-user-id]');
-        if (userSelectDiv) {
-            const userId = userSelectDiv.getAttribute('data-user-id');
-            const username = userSelectDiv.getAttribute('data-username');
-            const email = userSelectDiv.getAttribute('data-email');
-            if (userId && username && email) {
-                selectUserForNotification(userId, username, email);
-            }
-            return;
-        }
-
-        const target = e.target.closest('button');
-        if (!target) return;
-
-        // Handle view user button
-        if (target.textContent.includes('View') && target.closest('#users-table-container')) {
-            const row = target.closest('tr');
-            if (row) {
-                const userId = target.getAttribute('data-user-id') || extractUserIdFromOnclick(target);
-                if (userId) viewUser(userId);
-            }
-        }
-
-        // Handle activate/deactivate user buttons
-        if (target.textContent.includes('Activate')) {
-            const userId = target.getAttribute('data-user-id') || extractUserIdFromOnclick(target);
-            if (userId) activateUser(userId);
-        }
-        if (target.textContent.includes('Deactivate')) {
-            const userId = target.getAttribute('data-user-id') || extractUserIdFromOnclick(target);
-            if (userId) deactivateUser(userId);
-        }
-
-        // Handle trader buttons
-        if (target.textContent.includes('Edit') && target.closest('#traders-container')) {
-            const traderId = target.getAttribute('data-trader-id') || extractIdFromOnclick(target);
-            if (traderId) showEditTraderModal(traderId);
-        }
-        if (target.textContent.includes('Delete') && target.closest('#traders-container')) {
-            const traderId = target.getAttribute('data-trader-id') || extractIdFromOnclick(target);
-            if (traderId) deleteTrader(traderId);
-        }
-
-        // Handle plan buttons
-        if (target.textContent.includes('Edit') && target.closest('#plans-container')) {
-            const planId = target.getAttribute('data-plan-id') || extractIdFromOnclick(target);
-            if (planId) showEditPlanModal(planId);
-        }
-        if (target.textContent.includes('Delete') && target.closest('#plans-container')) {
-            const planId = target.getAttribute('data-plan-id') || extractIdFromOnclick(target);
-            if (planId) deletePlan(planId);
-        }
-
-        // Handle deposit request buttons
-        if (target.textContent.includes('Approve') && target.closest('#deposits-table-container')) {
-            const requestId = target.getAttribute('data-request-id') || extractIdFromOnclick(target);
-            if (requestId) approveDeposit(requestId);
-        }
-        if (target.textContent.includes('Reject') && target.closest('#deposits-table-container')) {
-            const requestId = target.getAttribute('data-request-id') || extractIdFromOnclick(target);
-            if (requestId) rejectDeposit(requestId);
-        }
-
-        // Handle withdrawal request buttons
-        if (target.textContent.includes('View') && target.closest('#withdrawals-table-container')) {
-            const requestId = target.getAttribute('data-request-id') || extractIdFromOnclick(target);
-            if (requestId) viewWithdrawalDetails(requestId);
-        }
-        if (target.textContent.includes('Approve') && target.closest('#withdrawals-table-container')) {
-            const requestId = target.getAttribute('data-request-id') || extractIdFromOnclick(target);
-            if (requestId) approveWithdrawal(requestId);
-        }
-        if (target.textContent.includes('Reject') && target.closest('#withdrawals-table-container')) {
-            const requestId = target.getAttribute('data-request-id') || extractIdFromOnclick(target);
-            if (requestId) rejectWithdrawal(requestId);
-        }
-
-        // Handle crypto wallet buttons
-        if (target.textContent.includes('Delete') && target.closest('#crypto-wallets-container')) {
-            const walletId = target.getAttribute('data-wallet-id') || extractIdFromOnclick(target);
-            if (walletId) deleteCryptoWallet(walletId);
-        }
-
-        // Handle bank account buttons
-        if (target.textContent.includes('Delete') && target.closest('#bank-accounts-container')) {
-            const accountId = target.getAttribute('data-account-id') || extractIdFromOnclick(target);
-            if (accountId) deleteBankAccount(accountId);
-        }
-
-        // Handle notification buttons
-        if (target.textContent.includes('Delete') && target.closest('#notifications-container')) {
-            const notificationId = target.getAttribute('data-notification-id') || extractIdFromOnclick(target);
-            if (notificationId) deleteNotification(notificationId);
-        }
-
-        // Handle modal close buttons
-        if (target.classList.contains('btn-secondary') && target.textContent.includes('Cancel')) {
-            const modal = target.closest('.modal');
-            if (modal) {
-                modal.classList.remove('show');
-                const form = modal.querySelector('form');
-                if (form) form.reset();
-            }
-        }
-    });
-
-    console.log('✓ All admin dashboard event listeners set up after CSP compliance');
-}
-
-// Helper function to extract ID from onclick attribute (for backwards compatibility)
-function extractIdFromOnclick(button) {
-    const onclick = button.getAttribute('onclick');
-    if (!onclick) return null;
-    const match = onclick.match(/'([^']+)'/);
-    return match ? match[1] : null;
-}
-
-// Helper function to extract user ID from onclick attribute
-function extractUserIdFromOnclick(button) {
-    return extractIdFromOnclick(button);
 }

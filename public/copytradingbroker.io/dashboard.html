@@ -21,14 +21,6 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Initialize theme immediately to prevent flash -->
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        })();
-    </script>
-
     <style>
         * {
             margin: 0;
@@ -264,10 +256,6 @@
             height: auto;
         }
 
-        [data-theme="dark"] .sidebar-header img {
-            border-radius: 12px;
-        }
-
         .sidebar-menu {
             padding: 20px 0;
         }
@@ -283,8 +271,6 @@
             border-left: 3px solid transparent;
             position: relative;
             overflow: hidden;
-            font-size: 12.8px;
-            font-weight: bold;
         }
 
         .menu-item::after {
@@ -321,7 +307,7 @@
         }
 
         .menu-item i {
-            font-size: 12.8px;
+            font-size: 16px;
             margin-right: 12px;
             width: 24px;
         }
@@ -346,7 +332,7 @@
         .menu-item-parent .submenu-arrow {
             margin-left: auto;
             transition: transform 0.3s ease;
-            font-size: 9.6px;
+            font-size: 12px;
         }
 
         .menu-item-parent.expanded .submenu-arrow {
@@ -373,9 +359,8 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             border-left: 3px solid transparent;
-            font-size: 10.4px;
+            font-size: 13px;
             position: relative;
-            font-weight: bold;
         }
 
         .submenu-item::before {
@@ -1791,134 +1776,12 @@
         .modal-content .btn-primary-custom {
             transition: all 0.3s ease;
         }
-
-        /* Loading Screen Styles */
-        .dashboard-loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-
-        [data-theme="dark"] .dashboard-loading-screen {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        }
-
-        .dashboard-loading-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .loading-content {
-            text-align: center;
-            color: #333;
-        }
-
-        [data-theme="dark"] .loading-content {
-            color: white;
-        }
-
-        .loading-logo {
-            animation: fadeInDown 0.8s ease;
-        }
-
-        .loading-logo img {
-            transition: border-radius 0.3s ease;
-        }
-
-        [data-theme="dark"] .loading-logo img {
-            border-radius: 12px;
-        }
-
-        .loading-spinner {
-            margin: 30px auto;
-        }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-top: 4px solid #D32F2F;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        [data-theme="dark"] .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .loading-text {
-            font-size: 24px;
-            font-weight: 600;
-            margin: 20px 0 10px;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        .loading-subtext {
-            font-size: 14px;
-            opacity: 0.9;
-            font-weight: 400;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        /* Hide dashboard content while loading */
-        body.loading .sidebar,
-        body.loading .main-dashboard,
-        body.loading .mobile-app-bar,
-        body.loading .tradingview-ticker-container,
-        body.loading .dark-mode-toggle {
-            opacity: 0;
-            pointer-events: none;
-        }
     </style>
 </head>
 
 <body>
-    <!-- Loading Screen -->
-    <div id="dashboard-loading-screen" class="dashboard-loading-screen">
-        <div class="loading-content">
-            <div class="loading-logo">
-                <img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" style="max-width: 200px; margin-bottom: 20px;">
-            </div>
-            <div class="loading-spinner">
-                <div class="spinner"></div>
-            </div>
-            <p class="loading-text">Loading your dashboard...</p>
-            <p class="loading-subtext">Please wait while we fetch your data</p>
-        </div>
-    </div>
-
     <!-- Dark Mode Toggle Button -->
-    <div class="dark-mode-toggle" id="dark-mode-toggle">
+    <div class="dark-mode-toggle" id="dark-mode-toggle" onclick="toggleDarkMode()">
         <i class="fas fa-sun sun-icon"></i>
         <i class="fas fa-moon moon-icon"></i>
         <span class="dark-mode-toggle-text">Dark Mode</span>
@@ -2025,7 +1888,7 @@
                         </a>
                     </div>
                 </div>
-                <a class="menu-item logout-btn">
+                <a class="menu-item logout-btn" onclick="handleLogout()">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Log Out</span>
                 </a>
@@ -2038,27 +1901,6 @@
             <div class="tab-content-wrapper active" id="tab-dashboard">
                 <!-- Notifications Area -->
                 <div id="notifications-area" style="margin-bottom: 24px;"></div>
-
-                <!-- KYC Notification Banner -->
-                <div id="kyc-notification-banner" style="display: none; background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-                        <div style="flex: 1; min-width: 250px;">
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                                <i class="fa fa-exclamation-circle" style="font-size: 24px;"></i>
-                                <h3 style="margin: 0; font-size: 18px; font-weight: 600;">Complete Your KYC Verification</h3>
-                            </div>
-                            <p style="margin: 0; font-size: 14px; opacity: 0.95;">
-                                To unlock all features and start your investment journey with TED Brokers, please complete your KYC (Know Your Customer) verification.
-                            </p>
-                        </div>
-                        <div>
-                            <button onclick="completeKYC()" class="btn" style="background: white; color: #D32F2F; font-weight: 600; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                <i class="fa fa-check-circle" style="margin-right: 8px;"></i>
-                                Complete KYC Now
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="content-header">
                     <h1>Welcome Back, <span id="user-display-name">User</span>!</h1>
@@ -2083,13 +1925,13 @@
                 <div class="dashboard-card">
                     <h3 style="margin-bottom: 20px;">Quick Actions</h3>
                     <div class="quick-actions-grid">
-                        <button class="btn-primary-custom">
+                        <button class="btn-primary-custom" onclick="quickActionStartRoboAdvisor()">
                             <i class="fa-solid fa-robot"></i> Start Robo Advisor
                         </button>
-                        <button class="btn-primary-custom">
+                        <button class="btn-primary-custom" onclick="quickActionDepositFunds()">
                             <i class="fa-solid fa-circle-plus"></i> Deposit Funds
                         </button>
-                        <button class="btn-primary-custom">
+                        <button class="btn-primary-custom" onclick="quickActionBrowseTraders()">
                             <i class="fa-solid fa-users-line"></i> Browse Traders
                         </button>
                     </div>
@@ -2107,7 +1949,7 @@
                 <div class="dashboard-card" id="active-investments-card" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3 style="margin: 0;">Active Investments</h3>
-                        <button class="btn-primary-custom" style="padding: 8px 16px; font-size: 14px;">
+                        <button class="btn-primary-custom" onclick="viewFullPortfolio()" style="padding: 8px 16px; font-size: 14px;">
                             <i class="fa fa-chart-line"></i> View Portfolio
                         </button>
                     </div>
@@ -2162,10 +2004,10 @@
                             </div>
                         </div>
                         <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                            <button class="btn-primary-custom">
+                            <button class="btn-primary-custom" onclick="showDepositModal()">
                                 <i class="fa-solid fa-circle-plus"></i> Deposit Funds
                             </button>
-                            <button class="btn-primary-custom">
+                            <button class="btn-primary-custom" onclick="showWithdrawModal()">
                                 <i class="fa-solid fa-circle-minus"></i> Withdraw Funds
                             </button>
                         </div>
@@ -2292,7 +2134,7 @@
 
                     <div class="dashboard-card" style="margin-top: 20px;">
                         <h3 style="margin-bottom: 20px;">Profile Actions</h3>
-                        <button class="btn-primary-custom">Update Profile</button>
+                        <button class="btn-primary-custom" onclick="showUpdateProfileModal()">Update Profile</button>
                     </div>
                 </div>
 
@@ -2322,12 +2164,12 @@
                             </p>
                         </div>
                         <div id="twofa-disabled-actions">
-                            <button class="btn-primary-custom" id="enable-2fa-btn">
+                            <button class="btn-primary-custom" id="enable-2fa-btn" onclick="show2FAEnableModal()">
                                 <i class="fa-solid fa-shield-halved"></i> Enable 2FA
                             </button>
                         </div>
                         <div id="twofa-enabled-actions" style="display: none;">
-                            <button class="btn-primary-custom" id="disable-2fa-btn" style="background: #ff6b6b; display: none;">
+                            <button class="btn-primary-custom" id="disable-2fa-btn" style="background: #ff6b6b; display: none;" onclick="show2FADisableModal()">
                                 <i class="fa-solid fa-shield-slash"></i> Disable 2FA
                             </button>
                         </div>
@@ -2336,7 +2178,7 @@
                     <div class="dashboard-card" style="margin-top: 20px;">
                         <h3 style="margin-bottom: 20px;">Password Management</h3>
                         <p style="color: #8b93a7; margin-bottom: 15px; font-size: 14px;">Change your password to keep your account secure.</p>
-                        <button class="btn-primary-custom">
+                        <button class="btn-primary-custom" onclick="showChangePasswordModal()">
                             <i class="fa-solid fa-key"></i> Change Password
                         </button>
                     </div>
@@ -2350,7 +2192,7 @@
                         <p style="color: #8b93a7; margin: 15px 0; font-size: 13px;">
                             <i class="fa-solid fa-info-circle"></i> Update your email address with 2FA verification.
                         </p>
-                        <button class="btn-primary-custom" id="update-email-btn">
+                        <button class="btn-primary-custom" onclick="showUpdateEmailModal()" id="update-email-btn">
                             <i class="fa-solid fa-envelope"></i> Change Email
                         </button>
                         <p style="color: #8b93a7; margin: 15px 0 0 0; font-size: 12px; display: none;" id="google-oauth-email-notice">
@@ -2417,7 +2259,7 @@
                     <p style="color: #8b93a7; margin-bottom: 20px;">Share this link with friends to earn commission</p>
                     <div class="referral-link-box">
                         <span class="referral-link" id="referral-link">https://tedbroker.com/ref/USER123</span>
-                        <button class="btn-primary-custom">Copy Link</button>
+                        <button class="btn-primary-custom" onclick="copyReferralLink()">Copy Link</button>
                     </div>
                 </div>
 
@@ -2464,22 +2306,22 @@
                 <div class="dashboard-card" style="margin-bottom: 30px;">
                     <h3 style="margin-bottom: 15px;">Categories</h3>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="news-category-btn active" data-category="all"all')">
+                        <button class="news-category-btn active" data-category="all" onclick="filterNewsByCategory('all')">
                             <i class="fa-solid fa-globe"></i> All News
                         </button>
-                        <button class="news-category-btn" data-category="markets"markets')">
+                        <button class="news-category-btn" data-category="markets" onclick="filterNewsByCategory('markets')">
                             <i class="fa-solid fa-chart-line"></i> Markets
                         </button>
-                        <button class="news-category-btn" data-category="crypto"crypto')">
+                        <button class="news-category-btn" data-category="crypto" onclick="filterNewsByCategory('crypto')">
                             <i class="fa-brands fa-bitcoin"></i> Crypto
                         </button>
-                        <button class="news-category-btn" data-category="stocks"stocks')">
+                        <button class="news-category-btn" data-category="stocks" onclick="filterNewsByCategory('stocks')">
                             <i class="fa-solid fa-building-columns"></i> Stocks
                         </button>
-                        <button class="news-category-btn" data-category="forex"forex')">
+                        <button class="news-category-btn" data-category="forex" onclick="filterNewsByCategory('forex')">
                             <i class="fa-solid fa-dollar-sign"></i> Forex
                         </button>
-                        <button class="news-category-btn" data-category="commodities"commodities')">
+                        <button class="news-category-btn" data-category="commodities" onclick="filterNewsByCategory('commodities')">
                             <i class="fa-solid fa-oil-can"></i> Commodities
                         </button>
                     </div>
@@ -2498,9 +2340,9 @@
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Deposit Funds</h2>
-                <button style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+                <button onclick="closeDepositModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
-            <form id="deposit-form">
+            <form id="deposit-form" onsubmit="handleDeposit(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Amount (USD)</label>
                     <input type="number" id="deposit-amount" step="0.01" min="10" max="1000000" required
@@ -2510,7 +2352,7 @@
                 </div>
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Payment Method</label>
-                    <select id="deposit-payment-method" required
+                    <select id="deposit-payment-method" required onchange="toggleDepositPaymentFields()"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
                         <option value="">Select payment method</option>
                         <option value="Credit Card">Credit Card</option>
@@ -2575,7 +2417,7 @@
                         <div style="background: rgba(123, 182, 218, 0.05); padding: 10px; border-radius: 6px; word-break: break-all; font-family: monospace; font-size: 12px; color: #000; margin-bottom: 8px;">
                             <span id="crypto-wallet-address">-</span>
                         </div>
-                        <button type="button" style="background: #8b93a7; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                        <button type="button" onclick="copyCryptoAddress()" style="background: #8b93a7; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer;">
                             <i class="fa-solid fa-copy"></i> Copy Address
                         </button>
                     </div>
@@ -2659,13 +2501,13 @@
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Withdraw Funds</h2>
-                <button style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+                <button onclick="closeWithdrawModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 14px;">Available Balance</p>
                 <p style="color: #D32F2F; margin: 5px 0 0 0; font-size: 18px; font-weight: bold;" id="withdraw-available-balance">$0.00</p>
             </div>
-            <form id="withdraw-form">
+            <form id="withdraw-form" onsubmit="handleWithdraw(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Amount (USD)</label>
                     <input type="number" id="withdraw-amount" step="0.01" min="10" required
@@ -2711,7 +2553,7 @@
                 </p>
             </div>
 
-            <form id="referral-form">
+            <form id="referral-form" onsubmit="handleReferralSubmission(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px; font-weight: 600;">
                         <i class="fa-solid fa-ticket"></i> Referral Code (Optional)
@@ -2728,7 +2570,7 @@
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 25px;">
-                    <button type="button" class="btn-primary-custom"
+                    <button type="button" onclick="skipReferral()" class="btn-primary-custom"
                         style="flex: 1; background: #8b93a7; padding: 12px;">
                         <i class="fa-solid fa-forward"></i> Skip
                     </button>
@@ -2751,9 +2593,9 @@
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Update Profile</h2>
-                <button style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+                <button onclick="closeUpdateProfileModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
-            <form id="update-profile-form">
+            <form id="update-profile-form" onsubmit="handleUpdateProfile(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Full Name</label>
                     <input type="text" id="update-full-name"
@@ -2794,14 +2636,14 @@
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Change Password</h2>
-                <button style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+                <button onclick="closeChangePasswordModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
                     <i class="fa-solid fa-info-circle"></i> Password must be at least 8 characters long and contain uppercase, lowercase, and numbers.
                 </p>
             </div>
-            <form id="change-password-form">
+            <form id="change-password-form" onsubmit="handleChangePassword(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Current Password</label>
                     <input type="password" id="current-password" required
@@ -2832,14 +2674,14 @@
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Change Email Address</h2>
-                <button style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+                <button onclick="closeUpdateEmailModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
                     <i class="fa-solid fa-info-circle"></i> You'll receive a verification code at your new email address to confirm the change.
                 </p>
             </div>
-            <form id="update-email-form">
+            <form id="update-email-form" onsubmit="handleUpdateEmail(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Current Email</label>
                     <input type="email" id="current-email-display" disabled
@@ -2872,14 +2714,14 @@
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Verify New Email</h2>
-                <button style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+                <button onclick="closeVerifyEmailUpdateModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
                     <i class="fa-solid fa-envelope"></i> We've sent a 6-digit verification code to <strong id="verification-email-display" style="color: #D32F2F;"></strong>
                 </p>
             </div>
-            <form id="verify-email-update-form">
+            <form id="verify-email-update-form" onsubmit="handleVerifyEmailUpdate(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Verification Code</label>
                     <input type="text" id="email-verification-code" required maxlength="6" pattern="[0-9]{6}"
@@ -2901,14 +2743,14 @@
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Enable Two-Factor Authentication</h2>
-                <button style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+                <button onclick="close2FAEnableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
                     <i class="fa-solid fa-shield-halved"></i> Enable 2FA to add an extra layer of security. You'll receive a verification code via email each time you log in.
                 </p>
             </div>
-            <form id="enable-2fa-form">
+            <form id="enable-2fa-form" onsubmit="handleEnable2FA(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px;">Password</label>
                     <input type="password" id="enable-2fa-password" required
@@ -2927,14 +2769,14 @@
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Verify 2FA Code</h2>
-                <button style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+                <button onclick="close2FAVerifyModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
                     <i class="fa-solid fa-envelope"></i> We've sent a 6-digit verification code to your email.
                 </p>
             </div>
-            <form id="verify-2fa-form">
+            <form id="verify-2fa-form" onsubmit="handleVerify2FA(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Verification Code</label>
                     <input type="text" id="verify-2fa-code" required maxlength="6" pattern="[0-9]{6}"
@@ -2956,7 +2798,7 @@
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; color: #D32F2F;">Disable Two-Factor Authentication</h2>
-                <button style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+                <button onclick="close2FADisableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #ff6b6b; margin: 0; font-size: 13px; line-height: 1.5;">
@@ -2968,10 +2810,10 @@
                     <i class="fa-solid fa-info-circle"></i> Click the button below to receive a verification code, then enter your password and the code to disable 2FA.
                 </p>
             </div>
-            <button class="btn-primary-custom" style="width: 100%; margin-bottom: 20px; background: #5a9abf;">
+            <button onclick="send2FADisableCode()" class="btn-primary-custom" style="width: 100%; margin-bottom: 20px; background: #5a9abf;">
                 <i class="fa-solid fa-envelope"></i> Send Verification Code
             </button>
-            <form id="disable-2fa-form">
+            <form id="disable-2fa-form" onsubmit="handleDisable2FA(event)">
                 <div style="margin-bottom: 15px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px;">Password</label>
                     <input type="password" id="disable-2fa-password" required
@@ -2994,7 +2836,6 @@
     <!-- JS -->
     <script src="assets/templates/copytradingbroker/frontend/js/plugins.js"></script>
     <script src="assets/templates/copytradingbroker/frontend/js/main.js"></script>
-    <script src="assets/js/swal-helpers.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/dashboard.js"></script>
 
@@ -3072,14 +2913,13 @@
         function copyReferralLink() {
             const linkText = document.getElementById('referral-link').textContent;
             navigator.clipboard.writeText(linkText).then(() => {
-                SwalHelper.toast('Referral link copied to clipboard!', 'success');
+                alert('Referral link copied to clipboard!');
             });
         }
 
         // Logout function
-        async function handleLogout() {
-            const result = await SwalHelper.confirm('Confirm Logout', 'Are you sure you want to log out?', 'Yes, Logout');
-            if (result.isConfirmed) {
+        function handleLogout() {
+            if (confirm('Are you sure you want to log out?')) {
                 TED_AUTH.logout();
             }
         }
@@ -3267,15 +3107,6 @@
             // Log theme initialization
             console.log('Theme initialized:', savedTheme);
         })();
-
-        // Attach event listener to dark mode toggle button
-        document.addEventListener('DOMContentLoaded', function() {
-            const darkModeToggle = document.getElementById('dark-mode-toggle');
-            if (darkModeToggle) {
-                darkModeToggle.addEventListener('click', toggleDarkMode);
-                console.log('✓ Dark mode toggle event listener attached');
-            }
-        });
 
         // Listen for system dark mode preference changes
         if (window.matchMedia) {

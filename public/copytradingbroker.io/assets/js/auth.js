@@ -266,16 +266,15 @@ const TED_AUTH = {
      * Show success message
      */
     showSuccess(message) {
-        if (typeof Swal !== 'undefined' && Swal.fire) {
-            Swal.fire({
+        if (typeof swal !== 'undefined') {
+            swal({
                 title: 'Success!',
                 text: message,
                 icon: 'success',
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#D32F2F'
+                button: 'OK'
             });
         } else {
-            console.log(`Success: ${message}`);
+            alert(message);
         }
     },
 
@@ -283,16 +282,15 @@ const TED_AUTH = {
      * Show error message
      */
     showError(message) {
-        if (typeof Swal !== 'undefined' && Swal.fire) {
-            Swal.fire({
+        if (typeof swal !== 'undefined') {
+            swal({
                 title: 'Error!',
                 text: message,
                 icon: 'error',
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#D32F2F'
+                button: 'OK'
             });
         } else {
-            console.error(`Error: ${message}`);
+            alert(message);
         }
     },
 
@@ -300,16 +298,12 @@ const TED_AUTH = {
      * Show loading indicator
      */
     showLoading(message = 'Please wait...') {
-        if (typeof Swal !== 'undefined' && Swal.fire) {
-            Swal.fire({
+        if (typeof swal !== 'undefined') {
+            swal({
                 title: message,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
+                buttons: false,
+                closeOnClickOutside: false,
+                closeOnEsc: false
             });
         }
     },
@@ -318,8 +312,8 @@ const TED_AUTH = {
      * Close loading indicator
      */
     closeLoading() {
-        if (typeof Swal !== 'undefined' && Swal.close) {
-            Swal.close();
+        if (typeof swal !== 'undefined') {
+            swal.close();
         }
     }
 };

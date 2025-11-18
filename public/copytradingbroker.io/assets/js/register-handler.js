@@ -30,8 +30,8 @@ async function handleOAuthRedirect() {
         // Remove token from URL
         window.history.replaceState({}, document.title, window.location.pathname);
 
-        // Show success and redirect to dashboard (KYC notification will be shown there if incomplete)
-        TED_AUTH.showSuccess('Registration successful! Redirecting to dashboard...');
+        // Show success and redirect to dashboard
+        TED_AUTH.showSuccess('Registration successful! Redirecting...');
         setTimeout(() => {
             window.location.href = '/dashboard';
         }, 1000);
