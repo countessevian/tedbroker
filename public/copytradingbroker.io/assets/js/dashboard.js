@@ -169,12 +169,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Check for OAuth token in URL (from redirect)
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
+    let isOAuthLogin = false;
 
     if (token) {
         // Save token from OAuth redirect
         TED_AUTH.saveToken(token);
         // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
+        isOAuthLogin = true;
     }
 
     // Protect the page - redirect to login if not authenticated
@@ -189,8 +191,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Get user data from localStorage
     let userData = TED_AUTH.getUser();
 
-    // If no user data in localStorage, fetch from API
-    if (!userData) {
+    // If no user data in localStorage OR this is an OAuth login, fetch fresh data from API
+    if (!userData || isOAuthLogin) {
         TED_AUTH.showLoading('Loading your profile...');
         const result = await TED_AUTH.fetchCurrentUser();
         TED_AUTH.closeLoading();
