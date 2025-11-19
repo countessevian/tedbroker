@@ -364,7 +364,7 @@ function formatDate(date) {
 /**
  * Handle logout
  */
-function handleLogout() {
+async function handleLogout() {
     if ((await Swal.fire({
                 title: 'Confirm Action',
                 text: 'Are you sure you want to logout?',
@@ -383,7 +383,7 @@ function handleLogout() {
 let tradersLoaded = false; // Flag to prevent multiple loads
 let tradersCache = null; // Cache traders data
 
-async async function loadExpertTraders(forceReload = false) {
+async function loadExpertTraders(forceReload = false) {
     // Skip if already loaded and not forcing reload
     if (tradersLoaded && !forceReload && tradersCache) {
         // Display cached traders
