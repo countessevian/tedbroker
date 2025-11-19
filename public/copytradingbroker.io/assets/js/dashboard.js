@@ -180,77 +180,78 @@ function showKYCNotification() {
         document.head.appendChild(style);
     }
 
-    // Try to insert into notifications area first
+    // Insert banner at the very top of the dashboard tab
     let inserted = false;
-    const notificationsArea = document.getElementById('notifications-area');
 
-    if (notificationsArea) {
-        console.log('Found notifications-area, inserting banner');
-        console.log('notifications-area display:', window.getComputedStyle(notificationsArea).display);
-        console.log('notifications-area visibility:', window.getComputedStyle(notificationsArea).visibility);
-
-        // Ensure the container is visible with strong overrides
-        notificationsArea.style.cssText = `
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            min-height: 50px !important;
-            width: 100% !important;
-            margin-bottom: 24px !important;
-            position: relative !important;
-            z-index: 99 !important;
-        `;
-
-        notificationsArea.innerHTML = ''; // Clear any existing notifications
-        notificationsArea.appendChild(banner);
+    // Strategy 1: Try tab-dashboard directly (most reliable)
+    const dashboardTab = document.getElementById('tab-dashboard');
+    if (dashboardTab) {
+        console.log('Found tab-dashboard, inserting banner as FIRST child');
+        dashboardTab.insertBefore(banner, dashboardTab.firstChild);
         inserted = true;
-
-        // Verify banner is in DOM and visible
-        setTimeout(() => {
-            const insertedBanner = document.getElementById('kyc-notification-banner');
-            if (insertedBanner) {
-                const styles = window.getComputedStyle(insertedBanner);
-                console.log('Banner in DOM - display:', styles.display, 'visibility:', styles.visibility, 'opacity:', styles.opacity);
-                console.log('Banner dimensions:', insertedBanner.offsetWidth, 'x', insertedBanner.offsetHeight);
-                console.log('Banner position:', insertedBanner.getBoundingClientRect());
-
-                // Force visibility if hidden
-                if (insertedBanner.offsetHeight === 0) {
-                    console.warn('Banner has 0 height, forcing visibility');
-                    insertedBanner.style.display = 'flex !important';
-                    insertedBanner.style.visibility = 'visible !important';
-                    insertedBanner.style.minHeight = '100px';
-                }
-            } else {
-                console.error('Banner not found in DOM after insertion!');
-            }
-        }, 100);
+        console.log('Banner inserted successfully into tab-dashboard');
     } else {
-        console.log('notifications-area not found, trying tab-dashboard');
-        // Fallback: insert at beginning of tab-dashboard
-        const dashboardTab = document.getElementById('tab-dashboard');
-        if (dashboardTab) {
-            console.log('Found tab-dashboard, inserting at beginning');
-            dashboardTab.insertBefore(banner, dashboardTab.firstChild);
+        console.error('tab-dashboard not found!');
+
+        // Strategy 2: Try active tab-content-wrapper
+        const activeTab = document.querySelector('.tab-content-wrapper.active');
+        if (activeTab) {
+            console.log('Found active tab, inserting banner as FIRST child');
+            activeTab.insertBefore(banner, activeTab.firstChild);
             inserted = true;
+            console.log('Banner inserted successfully into active tab');
         } else {
-            console.error('Neither notifications-area nor tab-dashboard found!');
-            // Last resort: try main-content
+            console.error('No active tab found!');
+
+            // Strategy 3: Last resort - main-content
             const mainContent = document.querySelector('.main-content');
             if (mainContent) {
-                console.log('Using main-content as fallback');
-                const firstChild = mainContent.querySelector('.tab-content-wrapper.active') || mainContent.firstElementChild;
-                if (firstChild) {
-                    firstChild.insertBefore(banner, firstChild.firstChild);
-                    inserted = true;
-                }
+                console.log('Using main-content, inserting banner as FIRST child');
+                mainContent.insertBefore(banner, mainContent.firstChild);
+                inserted = true;
+                console.log('Banner inserted successfully into main-content');
+            } else {
+                console.error('Could not find any suitable container for banner!');
             }
         }
     }
 
-    if (inserted) {
-        console.log('KYC notification banner successfully inserted');
-    } else {
+    // Verify insertion after a brief delay
+    setTimeout(() => {
+        const insertedBanner = document.getElementById('kyc-notification-banner');
+        if (insertedBanner) {
+            const rect = insertedBanner.getBoundingClientRect();
+            const styles = window.getComputedStyle(insertedBanner);
+
+            console.log('✓ Banner verification:');
+            console.log('  - In DOM: YES');
+            console.log('  - Display:', styles.display);
+            console.log('  - Visibility:', styles.visibility);
+            console.log('  - Opacity:', styles.opacity);
+            console.log('  - Dimensions:', insertedBanner.offsetWidth, 'x', insertedBanner.offsetHeight);
+            console.log('  - Position (top, left):', rect.top, rect.left);
+            console.log('  - Viewport visible:', rect.top >= 0 && rect.top < window.innerHeight);
+
+            if (insertedBanner.offsetHeight === 0 || rect.height === 0) {
+                console.error('✗ Banner has ZERO height - investigating parent...');
+                let parent = insertedBanner.parentElement;
+                while (parent) {
+                    const parentStyles = window.getComputedStyle(parent);
+                    console.log('  Parent:', parent.tagName, parent.id || parent.className);
+                    console.log('    - Display:', parentStyles.display);
+                    console.log('    - Height:', parent.offsetHeight);
+                    if (parent === document.body) break;
+                    parent = parent.parentElement;
+                }
+            } else {
+                console.log('✓ Banner is visible with height:', insertedBanner.offsetHeight, 'px');
+            }
+        } else {
+            console.error('✗ Banner NOT found in DOM after insertion!');
+        }
+    }, 200);
+
+    if (!inserted) {
         console.error('Failed to insert KYC notification banner - no suitable container found');
     }
 
