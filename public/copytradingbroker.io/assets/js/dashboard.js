@@ -55,22 +55,27 @@ function showKYCNotification() {
     banner.id = 'kyc-notification-banner';
     banner.className = 'kyc-notification-theme';
     banner.style.cssText = `
-        background: ${bgColor};
-        border: 3px solid ${borderColor};
-        border-radius: 12px;
-        color: ${textColor};
-        padding: 24px 28px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
-        animation: pulseAttention 2s ease-in-out infinite, fadeIn 0.4s ease-out;
-        margin-bottom: 28px;
-        position: relative;
-        overflow: hidden;
-        width: 100%;
-        box-sizing: border-box;
+        background: ${bgColor} !important;
+        border: 3px solid ${borderColor} !important;
+        border-radius: 12px !important;
+        color: ${textColor} !important;
+        padding: 24px 28px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 20px !important;
+        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25) !important;
+        animation: pulseAttention 2s ease-in-out infinite, fadeIn 0.4s ease-out !important;
+        margin-bottom: 28px !important;
+        position: relative !important;
+        overflow: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 100 !important;
+        min-height: 80px !important;
     `;
 
     banner.innerHTML = `
@@ -184,11 +189,17 @@ function showKYCNotification() {
         console.log('notifications-area display:', window.getComputedStyle(notificationsArea).display);
         console.log('notifications-area visibility:', window.getComputedStyle(notificationsArea).visibility);
 
-        // Ensure the container is visible
-        notificationsArea.style.display = 'block';
-        notificationsArea.style.visibility = 'visible';
-        notificationsArea.style.opacity = '1';
-        notificationsArea.style.minHeight = '50px'; // Ensure it has height
+        // Ensure the container is visible with strong overrides
+        notificationsArea.style.cssText = `
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 50px !important;
+            width: 100% !important;
+            margin-bottom: 24px !important;
+            position: relative !important;
+            z-index: 99 !important;
+        `;
 
         notificationsArea.innerHTML = ''; // Clear any existing notifications
         notificationsArea.appendChild(banner);
