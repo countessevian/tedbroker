@@ -30,8 +30,11 @@ async function checkOnboardingStatus() {
  * Show KYC notification banner at the top of home tab
  */
 function showKYCNotification() {
+    console.log('showKYCNotification called');
+
     // Check if notification already exists
     if (document.getElementById('kyc-notification-banner')) {
+        console.log('KYC notification already exists, skipping');
         return;
     }
 
@@ -66,6 +69,8 @@ function showKYCNotification() {
         margin-bottom: 28px;
         position: relative;
         overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
     `;
 
     banner.innerHTML = `
@@ -125,6 +130,17 @@ function showKYCNotification() {
                 }
             }
 
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+            }
+
             @keyframes pulseAttention {
                 0%, 100% {
                     box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
@@ -159,17 +175,42 @@ function showKYCNotification() {
         document.head.appendChild(style);
     }
 
-    // Insert into notifications area at the top of the home tab
+    // Try to insert into notifications area first
+    let inserted = false;
     const notificationsArea = document.getElementById('notifications-area');
+
     if (notificationsArea) {
+        console.log('Found notifications-area, inserting banner');
         notificationsArea.innerHTML = ''; // Clear any existing notifications
         notificationsArea.appendChild(banner);
+        inserted = true;
     } else {
+        console.log('notifications-area not found, trying tab-dashboard');
         // Fallback: insert at beginning of tab-dashboard
         const dashboardTab = document.getElementById('tab-dashboard');
         if (dashboardTab) {
+            console.log('Found tab-dashboard, inserting at beginning');
             dashboardTab.insertBefore(banner, dashboardTab.firstChild);
+            inserted = true;
+        } else {
+            console.error('Neither notifications-area nor tab-dashboard found!');
+            // Last resort: try main-content
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                console.log('Using main-content as fallback');
+                const firstChild = mainContent.querySelector('.tab-content-wrapper.active') || mainContent.firstElementChild;
+                if (firstChild) {
+                    firstChild.insertBefore(banner, firstChild.firstChild);
+                    inserted = true;
+                }
+            }
         }
+    }
+
+    if (inserted) {
+        console.log('KYC notification banner successfully inserted');
+    } else {
+        console.error('Failed to insert KYC notification banner - no suitable container found');
     }
 
     // Update notification when theme changes
