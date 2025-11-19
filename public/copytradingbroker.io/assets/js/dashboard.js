@@ -181,9 +181,39 @@ function showKYCNotification() {
 
     if (notificationsArea) {
         console.log('Found notifications-area, inserting banner');
+        console.log('notifications-area display:', window.getComputedStyle(notificationsArea).display);
+        console.log('notifications-area visibility:', window.getComputedStyle(notificationsArea).visibility);
+
+        // Ensure the container is visible
+        notificationsArea.style.display = 'block';
+        notificationsArea.style.visibility = 'visible';
+        notificationsArea.style.opacity = '1';
+        notificationsArea.style.minHeight = '50px'; // Ensure it has height
+
         notificationsArea.innerHTML = ''; // Clear any existing notifications
         notificationsArea.appendChild(banner);
         inserted = true;
+
+        // Verify banner is in DOM and visible
+        setTimeout(() => {
+            const insertedBanner = document.getElementById('kyc-notification-banner');
+            if (insertedBanner) {
+                const styles = window.getComputedStyle(insertedBanner);
+                console.log('Banner in DOM - display:', styles.display, 'visibility:', styles.visibility, 'opacity:', styles.opacity);
+                console.log('Banner dimensions:', insertedBanner.offsetWidth, 'x', insertedBanner.offsetHeight);
+                console.log('Banner position:', insertedBanner.getBoundingClientRect());
+
+                // Force visibility if hidden
+                if (insertedBanner.offsetHeight === 0) {
+                    console.warn('Banner has 0 height, forcing visibility');
+                    insertedBanner.style.display = 'flex !important';
+                    insertedBanner.style.visibility = 'visible !important';
+                    insertedBanner.style.minHeight = '100px';
+                }
+            } else {
+                console.error('Banner not found in DOM after insertion!');
+            }
+        }, 100);
     } else {
         console.log('notifications-area not found, trying tab-dashboard');
         // Fallback: insert at beginning of tab-dashboard
