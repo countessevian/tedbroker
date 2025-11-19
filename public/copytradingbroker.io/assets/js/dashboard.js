@@ -180,40 +180,38 @@ function showKYCNotification() {
         document.head.appendChild(style);
     }
 
-    // Insert banner at the very top of the dashboard tab
+    // Insert banner AFTER the welcome header and BEFORE the stat cards
     let inserted = false;
 
-    // Strategy 1: Try tab-dashboard directly (most reliable)
     const dashboardTab = document.getElementById('tab-dashboard');
     if (dashboardTab) {
-        console.log('Found tab-dashboard, inserting banner as FIRST child');
-        dashboardTab.insertBefore(banner, dashboardTab.firstChild);
-        inserted = true;
-        console.log('Banner inserted successfully into tab-dashboard');
-    } else {
-        console.error('tab-dashboard not found!');
+        // Find the content-header element
+        const contentHeader = dashboardTab.querySelector('.content-header');
 
-        // Strategy 2: Try active tab-content-wrapper
-        const activeTab = document.querySelector('.tab-content-wrapper.active');
-        if (activeTab) {
-            console.log('Found active tab, inserting banner as FIRST child');
-            activeTab.insertBefore(banner, activeTab.firstChild);
+        if (contentHeader) {
+            // Insert AFTER the content-header (Welcome Back section)
+            console.log('Found content-header, inserting banner AFTER it');
+            contentHeader.insertAdjacentElement('afterend', banner);
             inserted = true;
-            console.log('Banner inserted successfully into active tab');
+            console.log('✓ Banner inserted successfully after Welcome header');
         } else {
-            console.error('No active tab found!');
-
-            // Strategy 3: Last resort - main-content
-            const mainContent = document.querySelector('.main-content');
-            if (mainContent) {
-                console.log('Using main-content, inserting banner as FIRST child');
-                mainContent.insertBefore(banner, mainContent.firstChild);
+            // Fallback: insert before stat-grid if content-header not found
+            const statGrid = dashboardTab.querySelector('.stat-grid');
+            if (statGrid) {
+                console.log('content-header not found, inserting BEFORE stat-grid');
+                statGrid.insertAdjacentElement('beforebegin', banner);
                 inserted = true;
-                console.log('Banner inserted successfully into main-content');
+                console.log('✓ Banner inserted successfully before stat-grid');
             } else {
-                console.error('Could not find any suitable container for banner!');
+                // Last resort: insert as first child
+                console.log('Neither content-header nor stat-grid found, inserting as first child');
+                dashboardTab.insertBefore(banner, dashboardTab.firstChild);
+                inserted = true;
+                console.log('✓ Banner inserted as first child of tab-dashboard');
             }
         }
+    } else {
+        console.error('✗ tab-dashboard element not found!');
     }
 
     // Verify insertion after a brief delay
