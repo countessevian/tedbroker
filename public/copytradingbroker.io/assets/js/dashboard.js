@@ -27,7 +27,7 @@ async function checkOnboardingStatus() {
 }
 
 /**
- * Show KYC notification banner at the top of dashboard
+ * Show KYC notification banner at the top of home tab
  */
 function showKYCNotification() {
     // Check if notification already exists
@@ -35,54 +35,77 @@ function showKYCNotification() {
         return;
     }
 
+    // Get current theme
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const isDark = currentTheme === 'dark';
+
+    // Warning colors - prominent orange/amber theme
+    const bgColor = isDark ? 'rgba(251, 146, 60, 0.2)' : 'rgba(254, 243, 199, 1)';
+    const borderColor = isDark ? '#fb923c' : '#f59e0b';
+    const textColor = isDark ? '#fef3c7' : '#78350f';
+    const iconColor = isDark ? '#fb923c' : '#f59e0b';
+    const buttonBg = isDark ? '#ea580c' : '#ea580c';
+    const buttonText = '#ffffff';
+    const buttonHoverBg = isDark ? '#c2410c' : '#c2410c';
+
     const banner = document.createElement('div');
     banner.id = 'kyc-notification-banner';
+    banner.className = 'kyc-notification-theme';
     banner.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 16px 24px;
+        background: ${bgColor};
+        border: 3px solid ${borderColor};
+        border-radius: 12px;
+        color: ${textColor};
+        padding: 24px 28px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        animation: slideDown 0.4s ease-out;
+        gap: 20px;
+        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
+        animation: pulseAttention 2s ease-in-out infinite, fadeIn 0.4s ease-out;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
     `;
 
     banner.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <i class="fas fa-exclamation-circle" style="font-size: 24px;"></i>
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, ${borderColor}, #fbbf24, ${borderColor}); animation: shimmer 2s linear infinite;"></div>
+        <div style="display: flex; align-items: center; gap: 20px; flex: 1;">
+            <div style="display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; background: ${isDark ? 'rgba(251, 146, 60, 0.3)' : 'rgba(251, 191, 36, 0.3)'}; border-radius: 50%; flex-shrink: 0;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 32px; color: ${iconColor}; animation: shake 0.5s ease-in-out infinite alternate;"></i>
+            </div>
             <div>
-                <div style="font-weight: bold; font-size: 16px; margin-bottom: 4px;">
-                    Complete Your KYC Verification
+                <div style="font-weight: 700; font-size: 19px; margin-bottom: 8px; color: ${textColor}; letter-spacing: -0.2px;">
+                    ⚠️ Action Required: Complete Your KYC Verification
                 </div>
-                <div style="font-size: 14px; opacity: 0.9;">
-                    Please complete your identity verification to unlock all features and start your investment journey.
+                <div style="font-size: 15px; line-height: 1.5; color: ${textColor}; opacity: 0.9;">
+                    Your account access is limited. Please complete your identity verification to unlock all features, start investing, and access the full platform.
                 </div>
             </div>
         </div>
         <button
             onclick="window.location.href='/onboarding'"
+            class="kyc-complete-btn"
             style="
-                background: white;
-                color: #667eea;
+                background: ${buttonBg};
+                color: ${buttonText};
                 border: none;
-                padding: 10px 24px;
-                border-radius: 6px;
-                font-weight: bold;
+                padding: 16px 32px;
+                border-radius: 10px;
+                font-weight: 700;
                 cursor: pointer;
-                font-size: 14px;
+                font-size: 16px;
                 transition: all 0.3s ease;
                 white-space: nowrap;
+                box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                flex-shrink: 0;
             "
-            onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';"
-            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';"
+            onmouseover="this.style.background='${buttonHoverBg}'; this.style.transform='translateY(-3px) scale(1.02)'; this.style.boxShadow='0 8px 20px rgba(234, 88, 12, 0.5)';"
+            onmouseout="this.style.background='${buttonBg}'; this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 14px rgba(234, 88, 12, 0.4)';"
         >
-            Complete KYC Now
+            <i class="fas fa-arrow-right"></i> Complete Now
         </button>
     `;
 
@@ -91,27 +114,76 @@ function showKYCNotification() {
         const style = document.createElement('style');
         style.id = 'kyc-notification-styles';
         style.textContent = `
-            @keyframes slideDown {
+            @keyframes fadeIn {
                 from {
-                    transform: translateY(-100%);
                     opacity: 0;
+                    transform: translateY(-20px);
                 }
                 to {
-                    transform: translateY(0);
                     opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes pulseAttention {
+                0%, 100% {
+                    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
+                }
+                50% {
+                    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.45);
+                }
+            }
+
+            @keyframes shake {
+                0% { transform: rotate(-3deg); }
+                100% { transform: rotate(3deg); }
+            }
+
+            @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+
+            @media (max-width: 768px) {
+                #kyc-notification-banner {
+                    flex-direction: column;
+                    text-align: center;
+                    padding: 20px !important;
+                }
+
+                #kyc-notification-banner button {
+                    width: 100%;
                 }
             }
         `;
         document.head.appendChild(style);
     }
 
-    document.body.insertBefore(banner, document.body.firstChild);
-
-    // Adjust main content to account for banner
-    const mainContent = document.querySelector('.main-content');
-    if (mainContent) {
-        mainContent.style.paddingTop = '80px';
+    // Insert into notifications area at the top of the home tab
+    const notificationsArea = document.getElementById('notifications-area');
+    if (notificationsArea) {
+        notificationsArea.innerHTML = ''; // Clear any existing notifications
+        notificationsArea.appendChild(banner);
+    } else {
+        // Fallback: insert at beginning of tab-dashboard
+        const dashboardTab = document.getElementById('tab-dashboard');
+        if (dashboardTab) {
+            dashboardTab.insertBefore(banner, dashboardTab.firstChild);
+        }
     }
+
+    // Update notification when theme changes
+    const themeChangeHandler = function() {
+        const existingBanner = document.getElementById('kyc-notification-banner');
+        if (existingBanner) {
+            existingBanner.remove();
+            showKYCNotification();
+        }
+    };
+
+    // Remove old listener if exists and add new one
+    document.removeEventListener('themeChanged', themeChangeHandler);
+    document.addEventListener('themeChanged', themeChangeHandler);
 }
 
 /**

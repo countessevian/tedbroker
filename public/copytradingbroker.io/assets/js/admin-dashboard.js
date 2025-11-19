@@ -1,6 +1,28 @@
 const API_BASE = '';
 let currentTab = 'dashboard';
 
+// Simple TED_AUTH helper for loading indicators
+const TED_AUTH = {
+    showLoading(message = 'Please wait...') {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+    },
+    closeLoading() {
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+        }
+    }
+};
+
 // Check authentication on load
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('admin_token');
