@@ -188,53 +188,119 @@ function showKYCNotification() {
 
 /**
  * Disable all sidebar menu items until KYC is complete
+ * This applies to ALL users who haven't completed onboarding, including existing users
  */
 function disableSidebarMenus() {
+    console.log('Disabling sidebar menus due to incomplete KYC');
     const menuItems = document.querySelectorAll('.menu-item, .submenu-item');
 
     menuItems.forEach(item => {
-        // Skip the overview/dashboard tab - allow it to stay active
+        // Skip the overview/dashboard/home tab - allow it to stay active
         const tabName = item.getAttribute('data-tab');
-        if (tabName === 'overview' || tabName === 'dashboard') {
+        if (tabName === 'overview' || tabName === 'dashboard' || tabName === 'home') {
             return;
         }
 
-        // Add disabled styling
+        // Skip the logout button - users should always be able to logout
+        if (item.classList.contains('logout-btn') || item.onclick?.toString().includes('logout')) {
+            return;
+        }
+
+        // Add disabled styling with lock icon
         item.style.opacity = '0.5';
         item.style.cursor = 'not-allowed';
-        item.style.pointerEvents = 'none';
+        item.style.pointerEvents = 'auto'; // Keep auto so click handler works
+        item.style.position = 'relative';
 
         // Add a data attribute to track disabled state
         item.setAttribute('data-kyc-disabled', 'true');
+        item.setAttribute('title', '🔒 Complete KYC verification to unlock this feature');
+
+        // Add lock icon if not already present
+        if (!item.querySelector('.kyc-lock-icon')) {
+            const lockIcon = document.createElement('i');
+            lockIcon.className = 'fas fa-lock kyc-lock-icon';
+            lockIcon.style.cssText = `
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #f59e0b;
+                font-size: 12px;
+            `;
+            item.style.position = 'relative';
+            item.appendChild(lockIcon);
+        }
+
+        // Add click handler to show warning message
+        const clickHandler = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '🔒 Feature Locked',
+                    html: '<p style="font-size: 16px; line-height: 1.6;">Complete your KYC verification to unlock all platform features.</p>',
+                    confirmButtonText: '✓ Complete KYC Now',
+                    confirmButtonColor: '#ea580c',
+                    showCancelButton: true,
+                    cancelButtonText: 'Later',
+                    cancelButtonColor: '#6b7280'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/onboarding';
+                    }
+                });
+            } else {
+                alert('Please complete your KYC verification to access this feature.');
+            }
+            return false;
+        };
+
+        // Remove any existing listeners
+        item.removeEventListener('click', clickHandler, true);
+        // Add click handler with capture to intercept all clicks
+        item.addEventListener('click', clickHandler, true);
     });
+
+    console.log(`Disabled ${document.querySelectorAll('[data-kyc-disabled="true"]').length} menu items`);
 }
 
 /**
  * Enable all sidebar menu items after KYC completion
  */
 function enableSidebarMenus() {
+    console.log('Enabling sidebar menus - KYC completed');
     const menuItems = document.querySelectorAll('[data-kyc-disabled="true"]');
 
     menuItems.forEach(item => {
+        // Remove disabled styling
         item.style.opacity = '';
         item.style.cursor = '';
         item.style.pointerEvents = '';
+        item.style.position = '';
         item.removeAttribute('data-kyc-disabled');
+        item.removeAttribute('title');
+
+        // Remove lock icon
+        const lockIcon = item.querySelector('.kyc-lock-icon');
+        if (lockIcon) {
+            lockIcon.remove();
+        }
     });
 
     // Remove KYC notification banner if it exists
     const banner = document.getElementById('kyc-notification-banner');
     if (banner) {
-        banner.style.animation = 'slideUp 0.4s ease-out';
+        banner.style.animation = 'fadeOut 0.4s ease-out';
         setTimeout(() => {
             banner.remove();
-            // Reset main content padding
-            const mainContent = document.querySelector('.main-content');
-            if (mainContent) {
-                mainContent.style.paddingTop = '';
-            }
         }, 400);
     }
+
+    console.log('Sidebar menus enabled - user can now access all features');
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
