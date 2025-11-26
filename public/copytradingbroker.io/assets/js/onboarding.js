@@ -245,20 +245,29 @@ function setupKYCForm() {
 
             // Show success message and redirect to dashboard
             Swal.fire({
-                title: 'Verification Complete!',
+                title: 'Verification Submitted!',
                 html: `
                     <div style="text-align: center;">
-                        <i class="fas fa-check-circle" style="color: #48bb78; font-size: 64px; margin-bottom: 20px;"></i>
-                        <p style="font-size: 16px; margin-bottom: 12px;">
-                            Your KYC verification has been successfully submitted!
+                        <i class="fas fa-clock" style="color: #ff9800; font-size: 64px; margin-bottom: 20px;"></i>
+                        <p style="font-size: 18px; font-weight: bold; color: #2d3748; margin-bottom: 16px;">
+                            Thank you for submitting your verification documents!
                         </p>
-                        <p style="font-size: 18px; font-weight: bold; color: #2d3748;">
-                            You can now start your investment journey with TEDbrokers
+                        <p style="font-size: 16px; margin-bottom: 12px; color: #4a5568; line-height: 1.6;">
+                            Your information is currently under review by our team.
+                        </p>
+                        <div style="background: #fff3cd; padding: 16px; border-radius: 8px; border-left: 4px solid #ff9800; margin: 20px 0;">
+                            <p style="font-size: 15px; color: #856404; margin: 0; font-weight: 600;">
+                                <i class="fas fa-info-circle"></i> Approval typically takes less than 24 hours
+                            </p>
+                        </div>
+                        <p style="font-size: 14px; color: #6b7280; margin-top: 16px;">
+                            You will receive a notification once your account has been approved and you can start trading.
                         </p>
                     </div>
                 `,
-                icon: 'success',
+                icon: 'info',
                 confirmButtonText: 'Go to Dashboard',
+                confirmButtonColor: '#D32F2F',
                 allowOutsideClick: false,
                 allowEscapeKey: false
             }).then(() => {

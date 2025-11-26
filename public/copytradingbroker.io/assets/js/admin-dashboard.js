@@ -360,9 +360,16 @@ async function loadUsers(search = '') {
                                 </div>
                                 <div>
                                     <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Document Photo</label>
-                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">
-                                        ${kyc.document_photo ? '<i class="fas fa-check-circle" style="color: #4caf50;"></i> Uploaded' : '<i class="fas fa-times-circle" style="color: #f44336;"></i> Not Uploaded'}
-                                    </p>
+                                    ${kyc.document_photo ? `
+                                        <a href="${kyc.document_photo}" target="_blank" style="text-decoration: none;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <img src="${kyc.document_photo}" alt="ID Document" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover; border: 2px solid #4caf50;">
+                                                <span style="color: #4caf50; font-weight: 600;">
+                                                    <i class="fas fa-check-circle"></i> View Document
+                                                </span>
+                                            </div>
+                                        </a>
+                                    ` : '<p style="margin: 0; color: #2D3748; font-weight: 600;"><i class="fas fa-times-circle" style="color: #f44336;"></i> Not Uploaded</p>'}
                                 </div>
                                 <div>
                                     <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">KYC Submitted</label>
@@ -459,7 +466,20 @@ async function viewUser(userId) {
         // KYC document photo
         const docContainer = document.getElementById('kyc-document-container');
         if (kyc.document_photo) {
-            docContainer.innerHTML = `<img src="${kyc.document_photo}" alt="KYC Document" style="max-width: 100%; max-height: 500px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">`;
+            // Add a clickable link to open the image in a new tab for full-size viewing
+            docContainer.innerHTML = `
+                <div style="text-align: center;">
+                    <a href="${kyc.document_photo}" target="_blank" style="display: inline-block; position: relative;">
+                        <img src="${kyc.document_photo}" alt="KYC Document" style="max-width: 100%; max-height: 500px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer;">
+                        <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px;">
+                            <i class="fas fa-external-link-alt"></i> Click to open full size
+                        </div>
+                    </a>
+                    <p style="margin-top: 12px; font-size: 13px; color: #8b93a7;">
+                        <i class="fas fa-file-image"></i> Document uploaded
+                    </p>
+                </div>
+            `;
         } else {
             docContainer.innerHTML = '<p style="color: #8b93a7;">No document uploaded</p>';
         }

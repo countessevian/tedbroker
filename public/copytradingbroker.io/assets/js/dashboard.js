@@ -1555,7 +1555,7 @@ async function handleDeposit(event) {
                 <p><strong>Payment Method:</strong> ${paymentMethod}</p>
                 <p><strong>Reference:</strong> ${result.transaction.reference_number}</p>
                 <p style="color: #ff9800; margin-top: 15px;">
-                    <i class="fa fa-info-circle"></i> Your funds will be available once approved by admin.
+                    <i class="fa fa-info-circle"></i> Your deposit is being processed and will be credited to your account shortly.
                 </p>
             `,
             confirmButtonColor: '#D32F2F'
