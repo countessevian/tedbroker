@@ -76,6 +76,7 @@ class UserResponse(BaseModel):
     is_verified: bool = False
     two_fa_enabled: bool = False
     auth_provider: str = "local"  # "local" or "google"
+    access_granted: bool = False  # Admin approval for dashboard access
     selected_traders: List[str] = Field(default=[], description="List of trader IDs selected for copy trading")
     created_at: datetime
     updated_at: datetime

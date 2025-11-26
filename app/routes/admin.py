@@ -283,6 +283,7 @@ async def get_all_users(
             "wallet_balance": user.get("wallet_balance", 0.0),
             "is_active": user.get("is_active", True),
             "is_verified": user.get("is_verified", False),
+            "access_granted": user.get("access_granted", False),
             "created_at": user["created_at"].isoformat() if user.get("created_at") else None,
             "referral_code": user.get("referral_code"),
             "referred_by": user.get("referred_by")
@@ -452,6 +453,80 @@ async def deactivate_user(
         )
 
     return {"message": "User deactivated successfully"}
+
+
+@router.put("/users/{user_id}/grant-access")
+async def grant_user_access(
+    user_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Grant dashboard access to a user (admin approval)
+
+    Args:
+        user_id: User ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    users = get_collection(USERS_COLLECTION)
+
+    try:
+        result = users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"access_granted": True, "updated_at": datetime.utcnow()}}
+        )
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID"
+        )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    return {"message": "Dashboard access granted to user successfully"}
+
+
+@router.put("/users/{user_id}/revoke-access")
+async def revoke_user_access(
+    user_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Revoke dashboard access from a user
+
+    Args:
+        user_id: User ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    users = get_collection(USERS_COLLECTION)
+
+    try:
+        result = users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"access_granted": False, "updated_at": datetime.utcnow()}}
+        )
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID"
+        )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    return {"message": "Dashboard access revoked from user successfully"}
 
 
 @router.delete("/users/{user_id}")

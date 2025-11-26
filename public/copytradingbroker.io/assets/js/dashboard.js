@@ -401,6 +401,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Protect the page - redirect to login if not authenticated
     TED_AUTH.protectPage();
 
+    // Get user data to check access status
+    TED_AUTH.showLoading('Verifying access...');
+    const accessCheck = await TED_AUTH.fetchCurrentUser();
+    TED_AUTH.closeLoading();
+
+    if (!accessCheck.success) {
+        TED_AUTH.showError('Failed to verify access. Please login again.');
+        TED_AUTH.logout();
+        return;
+    }
+
+    // Store access_granted status for use throughout dashboard
+    const hasAccess = accessCheck.data.access_granted;
+
+    // Check if user has been granted dashboard access
+    if (!hasAccess) {
+        // Disable all sidebar menu items except logout
+        disableSidebarMenus();
+
+        // Show notification banner about pending approval
+        showPendingApprovalBanner();
+    }
+
     // Check onboarding status - redirect if incomplete
     await checkOnboardingStatus();
 
@@ -3629,3 +3652,164 @@ function escapeHtml(text) {
 // Export notification functions
 window.loadNotifications = loadNotifications;
 window.dismissNotification = dismissNotification;
+
+/**
+ * Disable sidebar menu items (except logout) for users without access_granted
+ */
+function disableSidebarMenus() {
+    // Get all sidebar menu items
+    const menuItems = document.querySelectorAll('.sidebar a, .sidebar .menu-item');
+
+    menuItems.forEach(item => {
+        // NEVER disable logout button - check multiple conditions to be safe
+        const onclick = item.getAttribute('onclick') || '';
+        const classList = item.classList || [];
+
+        // Skip if this is a logout button (check class, onclick, or text content)
+        if (classList.contains('logout-btn') ||
+            onclick.includes('logout') ||
+            onclick.includes('handleLogout') ||
+            onclick.includes('TED_AUTH.logout')) {
+            return; // Skip logout button - NEVER disable it
+        }
+
+        // Disable the menu item
+        item.style.opacity = '0.5';
+        item.style.cursor = 'not-allowed';
+        item.style.pointerEvents = 'none';
+
+        // Add a title attribute to explain why it's disabled
+        item.setAttribute('title', 'Dashboard access pending admin approval');
+    });
+
+    // Also disable any action buttons in the main content area
+    // Explicitly exclude logout buttons by class and any button with logout in onclick
+    const actionButtons = document.querySelectorAll('.btn');
+    actionButtons.forEach(btn => {
+        // NEVER disable logout button - multiple safety checks
+        const onclick = btn.getAttribute('onclick') || '';
+        const classList = btn.classList || [];
+
+        if (classList.contains('logout-btn') ||
+            onclick.includes('logout') ||
+            onclick.includes('handleLogout') ||
+            onclick.includes('TED_AUTH.logout')) {
+            return; // Skip logout button - NEVER disable it
+        }
+
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        btn.setAttribute('title', 'Dashboard access pending admin approval');
+    });
+}
+
+/**
+ * Show a banner notification about pending approval status
+ */
+function showPendingApprovalBanner() {
+    // Check if banner already exists
+    if (document.getElementById('pending-approval-banner')) {
+        return;
+    }
+
+    // Create banner element
+    const banner = document.createElement('div');
+    banner.id = 'pending-approval-banner';
+    banner.style.cssText = `
+        background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+        border: 2px solid #ffc107;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        animation: slideDown 0.5s ease;
+    `;
+
+    banner.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 40px;">
+                <i class="fas fa-hourglass-half" style="color: #f39c12; animation: pulse 2s infinite;"></i>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="margin: 0 0 8px 0; color: #856404; font-size: 20px;">
+                    <i class="fas fa-lock"></i> Dashboard Access Pending Approval
+                </h3>
+                <p style="margin: 0; color: #856404; line-height: 1.5;">
+                    Your account has been created and your onboarding information is under review.
+                    Dashboard features will be unlocked once an admin approves your account.
+                    This typically takes <strong>less than 24 hours</strong>.
+                </p>
+                <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center;">
+                    <button onclick="checkAccessStatus()" class="btn btn-primary" style="padding: 8px 16px; font-size: 14px;">
+                        <i class="fas fa-sync-alt"></i> Check Status
+                    </button>
+                    <span style="color: #856404; font-size: 13px;">
+                        <i class="fas fa-info-circle"></i> Auto-checking every 30 seconds
+                    </span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add pulse animation style if not already present
+    if (!document.getElementById('pulse-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'pulse-animation-style';
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+            }
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Insert banner at the top of main content area
+    const mainContent = document.querySelector('.main-content') || document.querySelector('main') || document.body;
+    mainContent.insertBefore(banner, mainContent.firstChild);
+
+    // Set up auto-check every 30 seconds
+    window.accessCheckInterval = setInterval(checkAccessStatus, 30000);
+}
+
+/**
+ * Check if user's access has been granted and reload if so
+ */
+async function checkAccessStatus() {
+    try {
+        const result = await TED_AUTH.fetchCurrentUser();
+
+        if (result.success && result.data.access_granted) {
+            // Access has been granted! Show success message and reload
+            TED_AUTH.showSuccess('Dashboard access granted! Reloading...');
+
+            // Clear the interval
+            if (window.accessCheckInterval) {
+                clearInterval(window.accessCheckInterval);
+            }
+
+            // Reload the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+    } catch (error) {
+        console.error('Error checking access status:', error);
+    }
+}
+
+// Export access control functions
+window.disableSidebarMenus = disableSidebarMenus;
+window.showPendingApprovalBanner = showPendingApprovalBanner;
+window.checkAccessStatus = checkAccessStatus;

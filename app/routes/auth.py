@@ -99,6 +99,7 @@ async def register(request: Request, user_data: UserRegister):
         "is_active": True,
         "is_verified": False,
         "two_fa_enabled": False,  # 2FA disabled by default
+        "access_granted": False,  # Requires admin approval to access dashboard
         "auth_provider": "local",  # Local registration
         "google_id": None,
         "profile_picture": None,
@@ -331,6 +332,7 @@ async def get_current_user(current_user: dict = Depends(get_current_user_token))
         is_verified=user.get("is_verified", False),
         two_fa_enabled=user.get("two_fa_enabled", False),
         auth_provider=user.get("auth_provider", "local"),
+        access_granted=user.get("access_granted", False),
         selected_traders=user.get("selected_traders", []),
         created_at=user["created_at"],
         updated_at=user["updated_at"]
@@ -443,6 +445,7 @@ async def update_profile(
         is_verified=updated_user.get("is_verified", False),
         two_fa_enabled=updated_user.get("two_fa_enabled", False),
         auth_provider=updated_user.get("auth_provider", "local"),
+        access_granted=updated_user.get("access_granted", False),
         selected_traders=updated_user.get("selected_traders", []),
         created_at=updated_user["created_at"],
         updated_at=updated_user["updated_at"]
@@ -1086,6 +1089,7 @@ async def google_callback(code: str, request: Request):
                 "is_active": True,
                 "is_verified": True,  # Google accounts are pre-verified
                 "two_fa_enabled": False,
+                "access_granted": False,  # Requires admin approval to access dashboard
                 "auth_provider": "google",
                 "google_id": google_id,
                 "profile_picture": profile_picture,

@@ -75,3 +75,44 @@ async def get_current_user_token(token: str = Depends(oauth2_scheme)) -> dict:
         result["role"] = role
 
     return result
+
+
+async def get_current_user_with_access(current_user: dict = Depends(get_current_user_token)) -> dict:
+    """
+    Dependency to verify user has been granted dashboard access by admin.
+    This should be used for all protected dashboard routes.
+    """
+    from app.database import get_collection, USERS_COLLECTION
+    from bson import ObjectId
+
+    # Get user from database to check access_granted status
+    users = get_collection(USERS_COLLECTION)
+    try:
+        user = users.find_one({"_id": ObjectId(current_user["user_id"])})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user credentials"
+        )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+
+    # Check if user's access has been granted by admin
+    if not user.get("access_granted", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Dashboard access pending admin approval"
+        )
+
+    # Check if user is active
+    if not user.get("is_active", True):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive"
+        )
+
+    return current_user

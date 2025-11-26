@@ -195,10 +195,18 @@ async function loadUsers(search = '') {
                                 ${user.email}
                             </p>
                         </div>
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <button class="btn btn-primary" style="padding: 10px 18px;" onclick="viewUser('${user.id}')">
                                 <i class="fas fa-eye"></i> Full Details
                             </button>
+                            ${user.access_granted ?
+                                `<button class="btn btn-danger" style="padding: 10px 18px;" onclick="revokeAccess('${user.id}')">
+                                    <i class="fas fa-lock"></i> Revoke Access
+                                </button>` :
+                                `<button class="btn btn-success" style="padding: 10px 18px;" onclick="grantAccess('${user.id}')">
+                                    <i class="fas fa-unlock"></i> Grant Access
+                                </button>`
+                            }
                             ${user.is_active ?
                                 `<button class="btn btn-danger" style="padding: 10px 18px;" onclick="deactivateUser('${user.id}')">
                                     <i class="fas fa-ban"></i> Deactivate
@@ -589,6 +597,52 @@ async function deactivateUser(userId) {
     } catch (error) {
         TED_AUTH.closeLoading();
         Swal.fire({ title: 'Error!', text: 'Error deactivating user', icon: 'error' });
+    }
+}
+
+// Grant dashboard access to user
+async function grantAccess(userId) {
+    if (!(await Swal.fire({
+                title: 'Grant Dashboard Access',
+                text: 'Allow this user to access dashboard features?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Grant Access',
+                cancelButtonText: 'Cancel'
+            })).isConfirmed) return;
+
+    try {
+        TED_AUTH.showLoading('Granting access...');
+        await adminFetch(`/api/admin/users/${userId}/grant-access`, { method: 'PUT' });
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Success!', text: 'Dashboard access granted to user', icon: 'success' });
+        loadUsers();
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Error!', text: 'Error granting access', icon: 'error' });
+    }
+}
+
+// Revoke dashboard access from user
+async function revokeAccess(userId) {
+    if (!(await Swal.fire({
+                title: 'Revoke Dashboard Access',
+                text: 'Remove dashboard access from this user?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Revoke Access',
+                cancelButtonText: 'Cancel'
+            })).isConfirmed) return;
+
+    try {
+        TED_AUTH.showLoading('Revoking access...');
+        await adminFetch(`/api/admin/users/${userId}/revoke-access`, { method: 'PUT' });
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Success!', text: 'Dashboard access revoked from user', icon: 'success' });
+        loadUsers();
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        Swal.fire({ title: 'Error!', text: 'Error revoking access', icon: 'error' });
     }
 }
 
