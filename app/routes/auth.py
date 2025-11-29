@@ -210,6 +210,23 @@ async def login(request: Request, user_credentials: UserLogin):
             success=True
         )
 
+        # Send login notification email
+        ip_address = login_history_service.get_ip_address(request)
+        device_info = login_history_service.get_device_info(request)
+        location = login_history_service.get_location_from_ip(ip_address)
+        username = user.get("full_name", user.get("username", "User"))
+
+        try:
+            email_service.send_login_notification(
+                to_email=user["email"],
+                username=username,
+                ip_address=ip_address,
+                device_info=device_info,
+                location=location
+            )
+        except Exception as e:
+            print(f"Failed to send login notification email: {e}")
+
         # Create access token immediately
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
@@ -515,6 +532,23 @@ async def verify_2fa(request: Request, verification_data: TwoFAVerify):
         request=request,
         success=True
     )
+
+    # Send login notification email
+    ip_address = login_history_service.get_ip_address(request)
+    device_info = login_history_service.get_device_info(request)
+    location = login_history_service.get_location_from_ip(ip_address)
+    username = user.get("full_name", user.get("username", "User"))
+
+    try:
+        email_service.send_login_notification(
+            to_email=user["email"],
+            username=username,
+            ip_address=ip_address,
+            device_info=device_info,
+            location=location
+        )
+    except Exception as e:
+        print(f"Failed to send login notification email: {e}")
 
     # Clean up 2FA session
     twofa_service.delete_session(verification_data.email)
@@ -1054,6 +1088,23 @@ async def google_callback(code: str, request: Request):
                 success=True
             )
 
+            # Send login notification email
+            ip_address = login_history_service.get_ip_address(request)
+            device_info = login_history_service.get_device_info(request)
+            location = login_history_service.get_location_from_ip(ip_address)
+            username = user.get("full_name", user.get("username", "User"))
+
+            try:
+                email_service.send_login_notification(
+                    to_email=user["email"],
+                    username=username,
+                    ip_address=ip_address,
+                    device_info=device_info,
+                    location=location
+                )
+            except Exception as e:
+                print(f"Failed to send login notification email: {e}")
+
             # Create access token
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             access_token = create_access_token(
@@ -1116,6 +1167,23 @@ async def google_callback(code: str, request: Request):
                 request=request,
                 success=True
             )
+
+            # Send login notification email
+            ip_address = login_history_service.get_ip_address(request)
+            device_info = login_history_service.get_device_info(request)
+            location = login_history_service.get_location_from_ip(ip_address)
+            username = user_dict.get("full_name", user_dict.get("username", "User"))
+
+            try:
+                email_service.send_login_notification(
+                    to_email=user_dict["email"],
+                    username=username,
+                    ip_address=ip_address,
+                    device_info=device_info,
+                    location=location
+                )
+            except Exception as e:
+                print(f"Failed to send login notification email: {e}")
 
             # Create access token
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

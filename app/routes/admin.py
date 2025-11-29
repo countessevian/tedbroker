@@ -1237,6 +1237,21 @@ async def approve_deposit_request(
         }
     )
 
+    # Send deposit approval notification email
+    try:
+        user = users.find_one({"_id": ObjectId(user_id)})
+        if user:
+            from app.email_service import email_service
+            username = user.get("full_name", user.get("username", "User"))
+            email_service.send_deposit_notification(
+                to_email=user["email"],
+                username=username,
+                amount=amount,
+                payment_method=deposit_request["payment_method"]
+            )
+    except Exception as e:
+        print(f"Failed to send deposit notification email: {e}")
+
     return {
         "message": "Deposit request approved successfully",
         "amount": amount,
@@ -1708,6 +1723,20 @@ async def approve_withdrawal_request(
             }
         }
     )
+
+    # Send withdrawal approval notification email
+    try:
+        from app.email_service import email_service
+        username = user.get("full_name", user.get("username", "User"))
+        email_service.send_withdrawal_notification(
+            to_email=user["email"],
+            username=username,
+            amount=amount,
+            withdrawal_method=withdrawal_request["withdrawal_method"],
+            account_details=withdrawal_request["account_details"]
+        )
+    except Exception as e:
+        print(f"Failed to send withdrawal notification email: {e}")
 
     return {
         "message": "Withdrawal request approved and completed successfully",
