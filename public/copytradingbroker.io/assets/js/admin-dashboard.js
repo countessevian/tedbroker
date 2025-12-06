@@ -103,6 +103,9 @@ function switchTab(tab) {
     if (tab === 'users') loadUsers();
     if (tab === 'traders') loadTraders();
     if (tab === 'plans') loadPlans();
+    if (tab === 'etf-plans') loadETFPlans();
+    if (tab === 'defi-plans') loadDeFiPlans();
+    if (tab === 'options-plans') loadOptionsPlans();
     if (tab === 'deposits') loadDepositRequests();
     if (tab === 'withdrawals') loadWithdrawalRequests();
     if (tab === 'bank-accounts') loadBankAccounts();
@@ -1031,6 +1034,574 @@ async function deletePlan(planId) {
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to delete plan'));
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// ============================================================
+// ETF PLANS
+// ============================================================
+
+// Load ETF plans
+async function loadETFPlans() {
+    const container = document.getElementById('etf-plans-container');
+    container.innerHTML = 'Loading...';
+
+    try {
+        const response = await adminFetch('/api/admin/etf-plans');
+        const plans = await response.json();
+
+        if (plans.length === 0) {
+            container.innerHTML = '<p>No ETF plans found. <button class="btn btn-primary" onclick="showAddETFPlanModal()">Add First ETF Plan</button></p>';
+            return;
+        }
+
+        let html = '<div style="display: grid; gap: 20px;">';
+        plans.forEach(plan => {
+            html += `
+                <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px;">
+                    <h4>${plan.name}</h4>
+                    <p><strong>Type:</strong> ${plan.plan_type}</p>
+                    ${plan.description ? `<p>${plan.description}</p>` : ''}
+                    <p><strong>Expected Return:</strong> ${plan.expected_return_percent}% | <strong>Duration:</strong> ${plan.duration_months} months</p>
+                    <p><strong>Min Investment:</strong> $${plan.minimum_investment.toLocaleString()}</p>
+                    <p><span class="badge badge-${plan.is_active ? 'active' : 'inactive'}">${plan.is_active ? 'Active' : 'Inactive'}</span></p>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-primary" style="padding: 8px 16px;" onclick="showEditETFPlanModal('${plan.id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deleteETFPlan('${plan.id}')">Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (error) {
+        container.innerHTML = '<p style="color: red;">Error loading ETF plans</p>';
+        console.error(error);
+    }
+}
+
+// Show add ETF plan modal
+function showAddETFPlanModal() {
+    const modal = document.getElementById('add-etf-plan-modal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+// Hide add ETF plan modal
+function hideAddETFPlanModal() {
+    const modal = document.getElementById('add-etf-plan-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('add-etf-plan-form').reset();
+    }
+}
+
+// Submit new ETF plan
+async function submitNewETFPlan(event) {
+    event.preventDefault();
+
+    const planData = {
+        name: document.getElementById('etf-plan-name').value,
+        plan_type: document.getElementById('etf-plan-type').value,
+        expected_return_percent: parseFloat(document.getElementById('etf-plan-return').value),
+        duration_months: parseInt(document.getElementById('etf-plan-duration').value),
+        minimum_investment: parseFloat(document.getElementById('etf-plan-min-investment').value),
+        description: document.getElementById('etf-plan-description').value || null,
+        is_active: document.getElementById('etf-plan-active').checked
+    };
+
+    try {
+        const response = await adminFetch('/api/admin/etf-plans', {
+            method: 'POST',
+            body: JSON.stringify(planData)
+        });
+
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'ETF plan created successfully!', icon: 'success' });
+            hideAddETFPlanModal();
+            loadETFPlans();
+        } else {
+            const error = await response.json();
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to create ETF plan'}`, icon: 'error' });
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Show edit ETF plan modal
+async function showEditETFPlanModal(planId) {
+    try {
+        // Fetch ETF plan details
+        const response = await adminFetch(`/api/admin/etf-plans/${planId}`);
+        const plan = await response.json();
+
+        // Populate form fields
+        document.getElementById('edit-etf-plan-id').value = plan.id;
+        document.getElementById('edit-etf-plan-name').value = plan.name;
+        document.getElementById('edit-etf-plan-type').value = plan.plan_type;
+        document.getElementById('edit-etf-plan-return').value = plan.expected_return_percent;
+        document.getElementById('edit-etf-plan-duration').value = plan.duration_months;
+        document.getElementById('edit-etf-plan-min-investment').value = plan.minimum_investment;
+        document.getElementById('edit-etf-plan-description').value = plan.description || '';
+        document.getElementById('edit-etf-plan-active').checked = plan.is_active;
+
+        // Show modal
+        const modal = document.getElementById('edit-etf-plan-modal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Error loading ETF plan details', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Hide edit ETF plan modal
+function hideEditETFPlanModal() {
+    const modal = document.getElementById('edit-etf-plan-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('edit-etf-plan-form').reset();
+    }
+}
+
+// Submit edited ETF plan
+async function submitEditedETFPlan(event) {
+    event.preventDefault();
+
+    const planId = document.getElementById('edit-etf-plan-id').value;
+    const planData = {
+        name: document.getElementById('edit-etf-plan-name').value,
+        plan_type: document.getElementById('edit-etf-plan-type').value,
+        expected_return_percent: parseFloat(document.getElementById('edit-etf-plan-return').value),
+        duration_months: parseInt(document.getElementById('edit-etf-plan-duration').value),
+        minimum_investment: parseFloat(document.getElementById('edit-etf-plan-min-investment').value),
+        description: document.getElementById('edit-etf-plan-description').value || null,
+        is_active: document.getElementById('edit-etf-plan-active').checked
+    };
+
+    try {
+        const response = await adminFetch(`/api/admin/etf-plans/${planId}`, {
+            method: 'PUT',
+            body: JSON.stringify(planData)
+        });
+
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'ETF plan updated successfully!', icon: 'success' });
+            hideEditETFPlanModal();
+            loadETFPlans();
+        } else {
+            const error = await response.json();
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to update ETF plan'}`, icon: 'error' });
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Delete ETF plan
+async function deleteETFPlan(planId) {
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Are you sure you want to delete this ETF plan? This action cannot be undone.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/etf-plans/${planId}`, { method: 'DELETE' });
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'ETF plan deleted successfully', icon: 'success' });
+            loadETFPlans();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to delete ETF plan'));
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// DeFi Plans Management
+async function loadDeFiPlans() {
+    const container = document.getElementById('defi-plans-container');
+    container.innerHTML = 'Loading...';
+
+    try {
+        const response = await adminFetch('/api/admin/defi-plans');
+        const plans = await response.json();
+
+        if (plans.length === 0) {
+            container.innerHTML = '<p>No DeFi plans found. <button class="btn btn-primary" onclick="showAddDeFiPlanModal()">Add First DeFi Plan</button></p>';
+            return;
+        }
+
+        let html = '<div style="display: grid; gap: 20px;">';
+        plans.forEach(plan => {
+            html += `
+                <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px;">
+                    <h4>${plan.name}</h4>
+                    <p><strong>Portfolio Type:</strong> ${plan.portfolio_type}</p>
+                    ${plan.description ? `<p>${plan.description}</p>` : ''}
+                    <p><strong>Expected Return:</strong> ${plan.expected_return_percent}% | <strong>Duration:</strong> ${plan.duration_months} months</p>
+                    <p><strong>Min Investment:</strong> $${plan.minimum_investment.toLocaleString()}</p>
+                    <p><span class="badge badge-${plan.is_active ? 'active' : 'inactive'}">${plan.is_active ? 'Active' : 'Inactive'}</span></p>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-primary" style="padding: 8px 16px;" onclick="showEditDeFiPlanModal('${plan.id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deleteDeFiPlan('${plan.id}')">Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (error) {
+        container.innerHTML = '<p style="color: red;">Error loading DeFi plans</p>';
+        console.error(error);
+    }
+}
+
+// Show add DeFi plan modal
+function showAddDeFiPlanModal() {
+    const modal = document.getElementById('add-defi-plan-modal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+// Hide add DeFi plan modal
+function hideAddDeFiPlanModal() {
+    const modal = document.getElementById('add-defi-plan-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('add-defi-plan-form').reset();
+    }
+}
+
+// Submit new DeFi plan
+async function submitNewDeFiPlan(event) {
+    event.preventDefault();
+
+    const planData = {
+        name: document.getElementById('defi-plan-name').value,
+        portfolio_type: document.getElementById('defi-plan-portfolio-type').value,
+        expected_return_percent: parseFloat(document.getElementById('defi-plan-return').value),
+        duration_months: parseInt(document.getElementById('defi-plan-duration').value),
+        minimum_investment: parseFloat(document.getElementById('defi-plan-min-investment').value),
+        description: document.getElementById('defi-plan-description').value || null,
+        is_active: document.getElementById('defi-plan-active').checked
+    };
+
+    try {
+        const response = await adminFetch('/api/admin/defi-plans', {
+            method: 'POST',
+            body: JSON.stringify(planData)
+        });
+
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'DeFi plan created successfully!', icon: 'success' });
+            hideAddDeFiPlanModal();
+            loadDeFiPlans();
+        } else {
+            const error = await response.json();
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to create DeFi plan'}`, icon: 'error' });
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Show edit DeFi plan modal
+async function showEditDeFiPlanModal(planId) {
+    try {
+        // Fetch DeFi plan details
+        const response = await adminFetch(`/api/admin/defi-plans/${planId}`);
+        const plan = await response.json();
+
+        // Populate form fields
+        document.getElementById('edit-defi-plan-id').value = plan.id;
+        document.getElementById('edit-defi-plan-name').value = plan.name;
+        document.getElementById('edit-defi-plan-portfolio-type').value = plan.portfolio_type;
+        document.getElementById('edit-defi-plan-return').value = plan.expected_return_percent;
+        document.getElementById('edit-defi-plan-duration').value = plan.duration_months;
+        document.getElementById('edit-defi-plan-min-investment').value = plan.minimum_investment;
+        document.getElementById('edit-defi-plan-description').value = plan.description || '';
+        document.getElementById('edit-defi-plan-active').checked = plan.is_active;
+
+        // Show modal
+        const modal = document.getElementById('edit-defi-plan-modal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Error loading DeFi plan details', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Hide edit DeFi plan modal
+function hideEditDeFiPlanModal() {
+    const modal = document.getElementById('edit-defi-plan-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('edit-defi-plan-form').reset();
+    }
+}
+
+// Submit edited DeFi plan
+async function submitEditedDeFiPlan(event) {
+    event.preventDefault();
+
+    const planId = document.getElementById('edit-defi-plan-id').value;
+    const planData = {
+        name: document.getElementById('edit-defi-plan-name').value,
+        portfolio_type: document.getElementById('edit-defi-plan-portfolio-type').value,
+        expected_return_percent: parseFloat(document.getElementById('edit-defi-plan-return').value),
+        duration_months: parseInt(document.getElementById('edit-defi-plan-duration').value),
+        minimum_investment: parseFloat(document.getElementById('edit-defi-plan-min-investment').value),
+        description: document.getElementById('edit-defi-plan-description').value || null,
+        is_active: document.getElementById('edit-defi-plan-active').checked
+    };
+
+    try {
+        const response = await adminFetch(`/api/admin/defi-plans/${planId}`, {
+            method: 'PUT',
+            body: JSON.stringify(planData)
+        });
+
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'DeFi plan updated successfully!', icon: 'success' });
+            hideEditDeFiPlanModal();
+            loadDeFiPlans();
+        } else {
+            const error = await response.json();
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to update DeFi plan'}`, icon: 'error' });
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Delete DeFi plan
+async function deleteDeFiPlan(planId) {
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Are you sure you want to delete this DeFi plan? This action cannot be undone.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/defi-plans/${planId}`, { method: 'DELETE' });
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'DeFi plan deleted successfully', icon: 'success' });
+            loadDeFiPlans();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to delete DeFi plan'));
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Options Plans Management
+async function loadOptionsPlans() {
+    const container = document.getElementById('options-plans-container');
+    container.innerHTML = 'Loading...';
+
+    try {
+        const response = await adminFetch('/api/admin/options-plans');
+        const plans = await response.json();
+
+        if (plans.length === 0) {
+            container.innerHTML = '<p>No Options plans found. <button class="btn btn-primary" onclick="showAddOptionsPlanModal()">Add First Options Plan</button></p>';
+            return;
+        }
+
+        let html = '<div style="display: grid; gap: 20px;">';
+        plans.forEach(plan => {
+            html += `
+                <div style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px;">
+                    <h4>${plan.name}</h4>
+                    <p><strong>Plan Type:</strong> ${plan.plan_type}</p>
+                    ${plan.description ? `<p>${plan.description}</p>` : ''}
+                    <p><strong>Expected Return:</strong> ${plan.expected_return_percent}% | <strong>Duration:</strong> ${plan.duration_months > 0 ? plan.duration_months + ' months' : 'Ongoing'}</p>
+                    <p><strong>Min Investment:</strong> $${plan.minimum_investment.toLocaleString()}</p>
+                    <p><span class="badge badge-${plan.is_active ? 'active' : 'inactive'}">${plan.is_active ? 'Active' : 'Inactive'}</span></p>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-primary" style="padding: 8px 16px;" onclick="showEditOptionsPlanModal('${plan.id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deleteOptionsPlan('${plan.id}')">Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (error) {
+        container.innerHTML = '<p style="color: red;">Error loading Options plans</p>';
+        console.error(error);
+    }
+}
+
+// Show add Options plan modal
+function showAddOptionsPlanModal() {
+    const modal = document.getElementById('add-options-plan-modal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+// Hide add Options plan modal
+function hideAddOptionsPlanModal() {
+    const modal = document.getElementById('add-options-plan-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('add-options-plan-form').reset();
+    }
+}
+
+// Submit new Options plan
+async function submitNewOptionsPlan(event) {
+    event.preventDefault();
+
+    const planData = {
+        name: document.getElementById('options-plan-name').value,
+        plan_type: document.getElementById('options-plan-type').value,
+        expected_return_percent: parseFloat(document.getElementById('options-plan-return').value),
+        duration_months: parseInt(document.getElementById('options-plan-duration').value),
+        minimum_investment: parseFloat(document.getElementById('options-plan-min-investment').value),
+        description: document.getElementById('options-plan-description').value || null,
+        is_active: document.getElementById('options-plan-active').checked
+    };
+
+    try {
+        const response = await adminFetch('/api/admin/options-plans', {
+            method: 'POST',
+            body: JSON.stringify(planData)
+        });
+
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'Options plan created successfully!', icon: 'success' });
+            hideAddOptionsPlanModal();
+            loadOptionsPlans();
+        } else {
+            const error = await response.json();
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to create Options plan'}`, icon: 'error' });
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Show edit Options plan modal
+async function showEditOptionsPlanModal(planId) {
+    try {
+        // Fetch Options plan details
+        const response = await adminFetch(`/api/admin/options-plans/${planId}`);
+        const plan = await response.json();
+
+        // Populate form fields
+        document.getElementById('edit-options-plan-id').value = plan.id;
+        document.getElementById('edit-options-plan-name').value = plan.name;
+        document.getElementById('edit-options-plan-type').value = plan.plan_type;
+        document.getElementById('edit-options-plan-return').value = plan.expected_return_percent;
+        document.getElementById('edit-options-plan-duration').value = plan.duration_months;
+        document.getElementById('edit-options-plan-min-investment').value = plan.minimum_investment;
+        document.getElementById('edit-options-plan-description').value = plan.description || '';
+        document.getElementById('edit-options-plan-active').checked = plan.is_active;
+
+        // Show modal
+        const modal = document.getElementById('edit-options-plan-modal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Error loading Options plan details', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Hide edit Options plan modal
+function hideEditOptionsPlanModal() {
+    const modal = document.getElementById('edit-options-plan-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('edit-options-plan-form').reset();
+    }
+}
+
+// Submit edited Options plan
+async function submitEditedOptionsPlan(event) {
+    event.preventDefault();
+
+    const planId = document.getElementById('edit-options-plan-id').value;
+    const planData = {
+        name: document.getElementById('edit-options-plan-name').value,
+        plan_type: document.getElementById('edit-options-plan-type').value,
+        expected_return_percent: parseFloat(document.getElementById('edit-options-plan-return').value),
+        duration_months: parseInt(document.getElementById('edit-options-plan-duration').value),
+        minimum_investment: parseFloat(document.getElementById('edit-options-plan-min-investment').value),
+        description: document.getElementById('edit-options-plan-description').value || null,
+        is_active: document.getElementById('edit-options-plan-active').checked
+    };
+
+    try {
+        const response = await adminFetch(`/api/admin/options-plans/${planId}`, {
+            method: 'PUT',
+            body: JSON.stringify(planData)
+        });
+
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'Options plan updated successfully!', icon: 'success' });
+            hideEditOptionsPlanModal();
+            loadOptionsPlans();
+        } else {
+            const error = await response.json();
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to update Options plan'}`, icon: 'error' });
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Delete Options plan
+async function deleteOptionsPlan(planId) {
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Are you sure you want to delete this Options plan? This action cannot be undone.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            })).isConfirmed) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/options-plans/${planId}`, { method: 'DELETE' });
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'Options plan deleted successfully', icon: 'success' });
+            loadOptionsPlans();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to delete Options plan'));
         }
     } catch (error) {
         Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });

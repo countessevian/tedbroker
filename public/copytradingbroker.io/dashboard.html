@@ -269,11 +269,13 @@
             height: 100vh;
             left: 0;
             top: 0;
-            overflow-y: auto;
+            overflow-y: hidden;
             z-index: 1000;
             transition: all 0.3s ease;
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08),
                         2px 0 10px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
         }
 
         .sidebar.collapsed {
@@ -317,6 +319,69 @@
 
         .sidebar-menu {
             padding: 20px 0;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-user-profile {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            background: #2D3748;
+        }
+
+        .sidebar-user-profile .user-avatar {
+            width: 45px;
+            height: 45px;
+            font-size: 16px;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-profile .user-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sidebar-user-profile .user-full-name {
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-user-profile .user-username {
+            color: #a0aec0;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar.collapsed .sidebar-user-profile {
+            flex-direction: column;
+            gap: 0;
+            padding: 12px 10px;
+        }
+
+        .sidebar.collapsed .sidebar-user-profile .user-info {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-user-profile .user-avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
         }
 
         .menu-item {
@@ -639,6 +704,147 @@
                         0 4px 12px var(--shadow);
             transform: translateY(-2px);
             background: var(--card-hover);
+        }
+
+        /* Active Plan Progress Card Styles */
+        .active-plan-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .active-plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .active-plan-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 4px 0;
+        }
+
+        .active-plan-amount {
+            font-size: 13px;
+            color: #8b93a7;
+        }
+
+        .active-plan-performance {
+            text-align: right;
+        }
+
+        .performance-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .performance-value.positive {
+            color: #11998e;
+        }
+
+        .performance-value.negative {
+            color: #D32F2F;
+        }
+
+        .performance-label {
+            font-size: 12px;
+            color: #8b93a7;
+        }
+
+        .progress-section {
+            margin: 16px 0;
+        }
+
+        .progress-bar-wrapper {
+            background: rgba(139, 147, 167, 0.1);
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #8b93a7;
+        }
+
+        .traders-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .traders-label {
+            font-size: 12px;
+            color: #8b93a7;
+            font-weight: 500;
+        }
+
+        .trader-avatars {
+            display: flex;
+            gap: -8px;
+        }
+
+        .trader-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-card);
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .trader-avatar:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .trader-avatar-placeholder {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-card);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .trader-avatar-placeholder:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .no-active-plans {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8b93a7;
+            font-size: 14px;
         }
 
         .stat-grid {
@@ -1282,7 +1488,7 @@
             border-bottom: 1px solid var(--border-color);
             display: none;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             padding: 0 16px;
             z-index: 1001;
         }
@@ -1296,7 +1502,7 @@
             height: 50px;
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
-            z-index: 999;
+            z-index: 998;
             transition: left 0.3s ease, background-color 0.3s ease;
             overflow: hidden;
         }
@@ -1322,30 +1528,6 @@
             overflow: hidden;
         }
 
-        .mobile-user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .mobile-user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #D32F2F, #5a9abf);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .mobile-user-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
 
         /* Hamburger Menu */
         .hamburger-btn {
@@ -1489,8 +1671,9 @@
 
             .sidebar {
                 transform: translateX(-100%);
-                top: 110px;
-                height: calc(100vh - 110px);
+                top: 0;
+                height: 100vh;
+                z-index: 1002;
             }
 
             .sidebar.mobile-open {
@@ -1498,8 +1681,9 @@
             }
 
             .sidebar-overlay {
-                top: 110px;
-                height: calc(100% - 110px);
+                top: 0;
+                height: 100%;
+                z-index: 1001;
             }
 
             .main-content {
@@ -1668,20 +1852,6 @@
 
         /* Small Mobile Styles */
         @media (max-width: 480px) {
-            .mobile-user-name {
-                font-size: 11px;
-                max-width: 150px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .mobile-user-avatar {
-                width: 35px;
-                height: 35px;
-                font-size: 13px;
-            }
-
             .content-header h1 {
                 font-size: 18px;
             }
@@ -1865,10 +2035,6 @@
 
     <!-- Mobile App Bar -->
     <header class="mobile-app-bar">
-        <div class="mobile-user-info">
-            <div class="mobile-user-avatar" id="mobile-user-avatar">U</div>
-            <span class="mobile-user-name" id="mobile-user-name">User</span>
-        </div>
         <button class="hamburger-btn" id="hamburger-btn">
             <span></span>
             <span></span>
@@ -1926,8 +2092,20 @@
                             <i class="fa-solid fa-robot"></i>
                             <span>Robo Advisor</span>
                         </a>
-                        <a class="submenu-item" data-tab="staking">
+                        <a class="submenu-item" data-tab="etf-plans">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>ETF Plans</span>
+                        </a>
+                        <a class="submenu-item" data-tab="defi-earnings">
                             <i class="fa-solid fa-coins"></i>
+                            <span>DeFi Earnings</span>
+                        </a>
+                        <a class="submenu-item" data-tab="options">
+                            <i class="fa-solid fa-file-alt"></i>
+                            <span>Options Trading</span>
+                        </a>
+                        <a class="submenu-item" data-tab="staking">
+                            <i class="fa-solid fa-layer-group"></i>
                             <span>Staking</span>
                         </a>
                     </div>
@@ -1969,6 +2147,15 @@
                     <span>Log Out</span>
                 </a>
             </nav>
+
+            <!-- User Profile Section -->
+            <div class="sidebar-user-profile">
+                <div class="user-avatar" id="sidebar-user-avatar">U</div>
+                <div class="user-info">
+                    <div class="user-full-name" id="sidebar-user-full-name">User</div>
+                    <div class="user-username" id="sidebar-user-username">@username</div>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Content -->
@@ -1998,7 +2185,7 @@
                     </div>
                 </div>
 
-                <div class="dashboard-card">
+                <div class="dashboard-card" id="quick-actions-card">
                     <h3 style="margin-bottom: 20px;">Quick Actions</h3>
                     <div class="quick-actions-grid">
                         <button class="btn-primary-custom" onclick="quickActionStartRoboAdvisor()">
@@ -2107,18 +2294,177 @@
                 </div>
 
                 <!-- Wallet Balance Display -->
-                <div class="dashboard-card" style="margin-bottom: 30px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="dashboard-card" style="margin-bottom: 30px; padding: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
                         <div>
                             <p style="color: #8b93a7; margin: 0; font-size: 13px;">Available Balance</p>
                             <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 20px;" id="wallet-balance">$0.00</h2>
                         </div>
-                        <button class="btn-primary-custom">Add Funds</button>
+                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;">Add Funds</button>
                     </div>
                 </div>
 
+                <!-- Active Plans Progress -->
+                <div id="general-active-plans-container" style="margin-bottom: 30px;"></div>
+
                 <div class="subscription-grid" id="plans-container">
                     <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading investment plans...</p>
+                </div>
+            </div>
+
+            <!-- ETF Plans Tab -->
+            <div class="tab-content-wrapper" id="tab-etf-plans">
+                <div class="content-header">
+                    <h1>ETF Plans</h1>
+                    <p>Diversified ETF portfolios for long-term growth</p>
+                </div>
+
+                <!-- Wallet Balance Display -->
+                <div class="dashboard-card" style="margin-bottom: 30px; padding: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+                        <div>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Available Balance</p>
+                            <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 20px;" id="etf-wallet-balance">$0.00</h2>
+                        </div>
+                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;">Add Funds</button>
+                    </div>
+                </div>
+
+                <!-- Active ETF Plans Progress -->
+                <div id="etf-active-plans-container" style="margin-bottom: 30px;"></div>
+
+                <!-- ETF Plans Info Banner -->
+                <div class="dashboard-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 30px; border: none;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="font-size: 48px; opacity: 0.9;">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0 0 8px 0; font-size: 20px;">Exchange Traded Funds (ETFs)</h3>
+                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;">
+                                Invest in professionally managed ETF portfolios. Choose from Conservative, Moderate, or Aggressive strategies based on your risk tolerance and investment horizon.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TradingView Market Overview Widget -->
+                <div class="dashboard-card" style="margin-bottom: 30px;">
+                    <h3 style="margin: 0 0 20px 0; font-size: 18px; color: var(--text-primary);">
+                        <i class="fa-solid fa-chart-line" style="margin-right: 8px; color: #667eea;"></i>
+                        ETF Market Overview
+                    </h3>
+                    <div class="tradingview-widget-container" id="etf-market-overview">
+                        <div class="tradingview-widget-container__widget"></div>
+                    </div>
+                </div>
+
+                <div class="subscription-grid" id="etf-plans-container">
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading ETF plans...</p>
+                </div>
+            </div>
+
+            <!-- DeFi Earnings Tab -->
+            <div class="tab-content-wrapper" id="tab-defi-earnings">
+                <div class="content-header">
+                    <h1>DeFi Earnings</h1>
+                    <p>Copy trades from professional DeFi traders</p>
+                </div>
+
+                <!-- Wallet Balance Display -->
+                <div class="dashboard-card" style="margin-bottom: 30px; padding: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+                        <div>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Available Balance</p>
+                            <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 20px;" id="defi-wallet-balance">$0.00</h2>
+                        </div>
+                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;">Add Funds</button>
+                    </div>
+                </div>
+
+                <!-- Active DeFi Plans Progress -->
+                <div id="defi-active-plans-container" style="margin-bottom: 30px;"></div>
+
+                <!-- DeFi Plans Info Banner -->
+                <div class="dashboard-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; margin-bottom: 30px; border: none;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="font-size: 48px; opacity: 0.9;">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0 0 8px 0; font-size: 20px;">Decentralized Finance (DeFi)</h3>
+                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;">
+                                Copy trading strategies from professional DeFi traders. Choose from Conservative, Moderate, Aggressive, or Balanced portfolios based on your investment goals and risk appetite.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TradingView Market Overview Widget -->
+                <div class="dashboard-card" style="margin-bottom: 30px;">
+                    <h3 style="margin: 0 0 20px 0; font-size: 18px; color: var(--text-primary);">
+                        <i class="fa-solid fa-chart-line" style="margin-right: 8px; color: #11998e;"></i>
+                        Cryptocurrency Market Overview
+                    </h3>
+                    <div class="tradingview-widget-container" id="defi-market-overview">
+                        <div class="tradingview-widget-container__widget"></div>
+                    </div>
+                </div>
+
+                <div class="subscription-grid" id="defi-plans-container">
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading DeFi plans...</p>
+                </div>
+            </div>
+
+            <!-- Options Trading Tab -->
+            <div class="tab-content-wrapper" id="tab-options">
+                <div class="content-header">
+                    <h1>Options Trading</h1>
+                    <p>Copy trades from professional options traders</p>
+                </div>
+
+                <!-- Wallet Balance Display -->
+                <div class="dashboard-card" style="margin-bottom: 30px; padding: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+                        <div>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Available Balance</p>
+                            <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 20px;" id="options-wallet-balance">$0.00</h2>
+                        </div>
+                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;">Add Funds</button>
+                    </div>
+                </div>
+
+                <!-- Active Options Plans Progress -->
+                <div id="options-active-plans-container" style="margin-bottom: 30px;"></div>
+
+                <!-- Options Plans Info Banner -->
+                <div class="dashboard-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 30px; border: none;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="font-size: 48px; opacity: 0.9;">
+                            <i class="fa-solid fa-file-alt"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0 0 8px 0; font-size: 20px;">Options Trading Strategies</h3>
+                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;">
+                                Copy trading strategies from professional options traders. Choose from Beginner, Intermediate, Advanced, or Expert plans based on your experience level and risk tolerance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TradingView Market Overview Widget -->
+                <div class="dashboard-card" style="margin-bottom: 30px;">
+                    <h3 style="margin: 0 0 20px 0; font-size: 18px; color: var(--text-primary);">
+                        <i class="fa-solid fa-chart-line" style="margin-right: 8px; color: #764ba2;"></i>
+                        Options Market Overview
+                    </h3>
+                    <div class="tradingview-widget-container" id="options-market-overview">
+                        <div class="tradingview-widget-container__widget"></div>
+                    </div>
+                </div>
+
+                <div class="subscription-grid" id="options-plans-container">
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading Options plans...</p>
                 </div>
             </div>
 
@@ -2955,6 +3301,9 @@
 
                 // Show selected tab content
                 document.getElementById('tab-' + tabName).classList.add('active');
+
+                // Scroll to top of page
+                window.scrollTo(0, 0);
             });
         });
 
@@ -2975,6 +3324,9 @@
 
                 // Show selected tab content
                 document.getElementById('tab-' + tabName).classList.add('active');
+
+                // Scroll to top of page
+                window.scrollTo(0, 0);
 
                 // Close mobile sidebar if open
                 if (window.innerWidth <= 768) {
@@ -3151,6 +3503,188 @@
             tickerWidget.appendChild(script);
         }
 
+        // Load TradingView Market Overview Widget for DeFi
+        function loadDefiMarketOverview(theme) {
+            const marketOverview = document.getElementById('defi-market-overview');
+            if (!marketOverview) return;
+
+            // Clear existing widget
+            marketOverview.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+
+            // Create script element
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js';
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "colorTheme": theme === 'dark' ? 'dark' : 'light',
+                "dateRange": "12M",
+                "showChart": true,
+                "locale": "en",
+                "width": "100%",
+                "height": "600",
+                "largeChartUrl": "",
+                "isTransparent": false,
+                "showSymbolLogo": true,
+                "showFloatingTooltip": false,
+                "plotLineColorGrowing": "rgba(41, 98, 255, 1)",
+                "plotLineColorFalling": "rgba(41, 98, 255, 1)",
+                "gridLineColor": "rgba(240, 243, 250, 0)",
+                "scaleFontColor": "rgba(106, 109, 120, 1)",
+                "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)",
+                "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)",
+                "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)",
+                "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0)",
+                "symbolActiveColor": "rgba(41, 98, 255, 0.12)",
+                "tabs": [
+                    {
+                        "title": "Crypto",
+                        "symbols": [
+                            {"s": "BINANCE:BTCUSDT", "d": "Bitcoin"},
+                            {"s": "BINANCE:ETHUSDT", "d": "Ethereum"},
+                            {"s": "BINANCE:BNBUSDT", "d": "Binance Coin"},
+                            {"s": "BINANCE:ADAUSDT", "d": "Cardano"},
+                            {"s": "BINANCE:SOLUSDT", "d": "Solana"},
+                            {"s": "BINANCE:XRPUSDT", "d": "Ripple"},
+                            {"s": "BINANCE:DOGEUSDT", "d": "Dogecoin"},
+                            {"s": "BINANCE:DOTUSDT", "d": "Polkadot"},
+                            {"s": "BINANCE:AVAXUSDT", "d": "Avalanche"},
+                            {"s": "BINANCE:MATICUSDT", "d": "Polygon"},
+                            {"s": "BINANCE:LINKUSDT", "d": "Chainlink"},
+                            {"s": "BINANCE:UNIUSDT", "d": "Uniswap"}
+                        ],
+                        "originalTitle": "Crypto"
+                    }
+                ]
+            });
+
+            marketOverview.appendChild(script);
+        }
+
+        // Load TradingView Market Overview Widget for ETFs
+        function loadEtfMarketOverview(theme) {
+            const etfOverview = document.getElementById('etf-market-overview');
+            if (!etfOverview) return;
+
+            // Clear existing widget
+            etfOverview.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+
+            // Create script element
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js';
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "colorTheme": theme === 'dark' ? 'dark' : 'light',
+                "dateRange": "12M",
+                "showChart": true,
+                "locale": "en",
+                "width": "100%",
+                "height": "600",
+                "largeChartUrl": "",
+                "isTransparent": false,
+                "showSymbolLogo": true,
+                "showFloatingTooltip": false,
+                "plotLineColorGrowing": "rgba(41, 98, 255, 1)",
+                "plotLineColorFalling": "rgba(41, 98, 255, 1)",
+                "gridLineColor": "rgba(240, 243, 250, 0)",
+                "scaleFontColor": "rgba(106, 109, 120, 1)",
+                "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)",
+                "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)",
+                "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)",
+                "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0)",
+                "symbolActiveColor": "rgba(41, 98, 255, 0.12)",
+                "tabs": [
+                    {
+                        "title": "ETFs",
+                        "symbols": [
+                            {"s": "AMEX:SPY", "d": "SPDR S&P 500 ETF"},
+                            {"s": "NASDAQ:QQQ", "d": "Invesco QQQ Trust"},
+                            {"s": "AMEX:IWM", "d": "iShares Russell 2000 ETF"},
+                            {"s": "AMEX:DIA", "d": "SPDR Dow Jones Industrial Average ETF"},
+                            {"s": "AMEX:VTI", "d": "Vanguard Total Stock Market ETF"},
+                            {"s": "NASDAQ:VOO", "d": "Vanguard S&P 500 ETF"},
+                            {"s": "AMEX:EEM", "d": "iShares MSCI Emerging Markets ETF"},
+                            {"s": "AMEX:VWO", "d": "Vanguard Emerging Markets ETF"},
+                            {"s": "AMEX:GLD", "d": "SPDR Gold Trust"},
+                            {"s": "AMEX:SLV", "d": "iShares Silver Trust"},
+                            {"s": "AMEX:TLT", "d": "iShares 20+ Year Treasury Bond ETF"},
+                            {"s": "AMEX:LQD", "d": "iShares iBoxx Investment Grade Corporate Bond ETF"},
+                            {"s": "AMEX:HYG", "d": "iShares iBoxx High Yield Corporate Bond ETF"},
+                            {"s": "AMEX:VNQ", "d": "Vanguard Real Estate ETF"},
+                            {"s": "AMEX:XLE", "d": "Energy Select Sector SPDR Fund"},
+                            {"s": "AMEX:XLF", "d": "Financial Select Sector SPDR Fund"}
+                        ],
+                        "originalTitle": "ETFs"
+                    }
+                ]
+            });
+
+            etfOverview.appendChild(script);
+        }
+
+        // Load TradingView Market Overview Widget for Options
+        function loadOptionsMarketOverview(theme) {
+            const optionsOverview = document.getElementById('options-market-overview');
+            if (!optionsOverview) return;
+
+            // Clear existing widget
+            optionsOverview.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+
+            // Create script element
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js';
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "colorTheme": theme === 'dark' ? 'dark' : 'light',
+                "dateRange": "12M",
+                "showChart": true,
+                "locale": "en",
+                "width": "100%",
+                "height": "600",
+                "largeChartUrl": "",
+                "isTransparent": false,
+                "showSymbolLogo": true,
+                "showFloatingTooltip": false,
+                "plotLineColorGrowing": "rgba(41, 98, 255, 1)",
+                "plotLineColorFalling": "rgba(41, 98, 255, 1)",
+                "gridLineColor": "rgba(240, 243, 250, 0)",
+                "scaleFontColor": "rgba(106, 109, 120, 1)",
+                "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)",
+                "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)",
+                "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)",
+                "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0)",
+                "symbolActiveColor": "rgba(41, 98, 255, 0.12)",
+                "tabs": [
+                    {
+                        "title": "Options Active Stocks",
+                        "symbols": [
+                            {"s": "NASDAQ:AAPL", "d": "Apple Inc."},
+                            {"s": "NASDAQ:TSLA", "d": "Tesla Inc."},
+                            {"s": "NASDAQ:NVDA", "d": "NVIDIA Corporation"},
+                            {"s": "NASDAQ:MSFT", "d": "Microsoft Corporation"},
+                            {"s": "NASDAQ:AMZN", "d": "Amazon.com Inc."},
+                            {"s": "NASDAQ:META", "d": "Meta Platforms Inc."},
+                            {"s": "NASDAQ:GOOGL", "d": "Alphabet Inc."},
+                            {"s": "NYSE:AMD", "d": "Advanced Micro Devices"},
+                            {"s": "NASDAQ:NFLX", "d": "Netflix Inc."},
+                            {"s": "NYSE:BA", "d": "Boeing Company"},
+                            {"s": "NYSE:DIS", "d": "Walt Disney Company"},
+                            {"s": "AMEX:SPY", "d": "SPDR S&P 500 ETF"},
+                            {"s": "NASDAQ:QQQ", "d": "Invesco QQQ Trust"},
+                            {"s": "NYSE:JPM", "d": "JPMorgan Chase & Co."},
+                            {"s": "NYSE:BAC", "d": "Bank of America Corp"},
+                            {"s": "NYSE:XOM", "d": "Exxon Mobil Corporation"}
+                        ],
+                        "originalTitle": "Options Active Stocks"
+                    }
+                ]
+            });
+
+            optionsOverview.appendChild(script);
+        }
+
         // Update TradingView chart theme
         function updateTradingViewTheme(theme) {
             const chartContainer = document.getElementById('tradingview_chart');
@@ -3176,6 +3710,15 @@
 
             // Load ticker tape with correct theme
             loadTickerTape(savedTheme);
+
+            // Load DeFi market overview with correct theme
+            loadDefiMarketOverview(savedTheme);
+
+            // Load ETF market overview with correct theme
+            loadEtfMarketOverview(savedTheme);
+
+            // Load Options market overview with correct theme
+            loadOptionsMarketOverview(savedTheme);
 
             // Update chart theme
             updateTradingViewTheme(savedTheme);

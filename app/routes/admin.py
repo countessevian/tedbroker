@@ -6,7 +6,7 @@ from bson import ObjectId
 
 from app.admin_service import admin_service
 from app.auth import create_access_token, get_current_user_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, TRANSACTIONS_COLLECTION, CRYPTO_WALLETS_COLLECTION, BANK_ACCOUNTS_COLLECTION, USER_BANK_ACCOUNTS_COLLECTION, USER_CRYPTO_ADDRESSES_COLLECTION, WITHDRAWAL_REQUESTS_COLLECTION, CHAT_CONVERSATIONS_COLLECTION, CHAT_MESSAGES_COLLECTION, NOTIFICATIONS_COLLECTION
+from app.database import get_collection, USERS_COLLECTION, TRADERS_COLLECTION, INVESTMENT_PLANS_COLLECTION, ETF_PLANS_COLLECTION, DEFI_PLANS_COLLECTION, OPTIONS_PLANS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, TRANSACTIONS_COLLECTION, CRYPTO_WALLETS_COLLECTION, BANK_ACCOUNTS_COLLECTION, USER_BANK_ACCOUNTS_COLLECTION, USER_CRYPTO_ADDRESSES_COLLECTION, WITHDRAWAL_REQUESTS_COLLECTION, CHAT_CONVERSATIONS_COLLECTION, CHAT_MESSAGES_COLLECTION, NOTIFICATIONS_COLLECTION
 from app.schemas import Token, Trade, NotificationCreate, NotificationResponse
 import secrets
 
@@ -2446,3 +2446,727 @@ async def delete_notification(
         )
 
     return {"message": "Notification deleted successfully"}
+
+
+# ============================================================
+# ETF PLANS MANAGEMENT
+# ============================================================
+
+class CreateETFPlan(BaseModel):
+    """Schema for creating an ETF plan"""
+    name: str = Field(..., min_length=1, max_length=100, description="ETF plan name")
+    plan_type: str = Field(..., description="Plan type (e.g., Conservative, Moderate, Aggressive)")
+    expected_return_percent: float = Field(..., description="Expected return percentage")
+    duration_months: int = Field(..., gt=0, description="Duration in months")
+    minimum_investment: float = Field(default=0.0, ge=0, description="Minimum investment amount")
+    description: Optional[str] = Field(None, description="Plan description")
+    is_active: bool = Field(default=True, description="Whether the plan is active")
+
+
+@router.get("/etf-plans")
+async def get_all_etf_plans(
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get all ETF plans (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+
+    Returns:
+        list: All ETF plans
+    """
+    etf_plans = get_collection(ETF_PLANS_COLLECTION)
+
+    plans_list = []
+    for plan in etf_plans.find().sort("created_at", -1):
+        plans_list.append({
+            "id": str(plan["_id"]),
+            "name": plan["name"],
+            "plan_type": plan["plan_type"],
+            "expected_return_percent": plan["expected_return_percent"],
+            "duration_months": plan["duration_months"],
+            "minimum_investment": plan.get("minimum_investment", 0.0),
+            "description": plan.get("description"),
+            "is_active": plan.get("is_active", True),
+            "created_at": plan["created_at"].isoformat() if plan.get("created_at") else None,
+            "updated_at": plan["updated_at"].isoformat() if plan.get("updated_at") else None
+        })
+
+    return plans_list
+
+
+@router.get("/etf-plans/{plan_id}")
+async def get_etf_plan_details(
+    plan_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get details of a specific ETF plan (admin only)
+
+    Args:
+        plan_id: ETF Plan ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: ETF Plan details
+    """
+    etf_plans = get_collection(ETF_PLANS_COLLECTION)
+
+    try:
+        plan = etf_plans.find_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="ETF plan not found"
+        )
+
+    return {
+        "id": str(plan["_id"]),
+        "name": plan["name"],
+        "plan_type": plan["plan_type"],
+        "expected_return_percent": plan["expected_return_percent"],
+        "duration_months": plan["duration_months"],
+        "minimum_investment": plan.get("minimum_investment", 0.0),
+        "description": plan.get("description"),
+        "is_active": plan.get("is_active", True),
+        "created_at": plan["created_at"].isoformat() if plan.get("created_at") else None,
+        "updated_at": plan["updated_at"].isoformat() if plan.get("updated_at") else None
+    }
+
+
+@router.post("/etf-plans")
+async def create_etf_plan(
+    plan_data: CreateETFPlan,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Create a new ETF plan (admin only)
+
+    Args:
+        plan_data: ETF Plan information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Created ETF plan data
+    """
+    etf_plans = get_collection(ETF_PLANS_COLLECTION)
+
+    # Create plan document
+    plan_dict = {
+        "name": plan_data.name,
+        "plan_type": plan_data.plan_type,
+        "expected_return_percent": plan_data.expected_return_percent,
+        "duration_months": plan_data.duration_months,
+        "minimum_investment": plan_data.minimum_investment,
+        "description": plan_data.description,
+        "is_active": plan_data.is_active,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+
+    # Insert plan into database
+    result = etf_plans.insert_one(plan_dict)
+    plan_dict["_id"] = result.inserted_id
+
+    return {
+        "id": str(plan_dict["_id"]),
+        "name": plan_dict["name"],
+        "plan_type": plan_dict["plan_type"],
+        "expected_return_percent": plan_dict["expected_return_percent"],
+        "duration_months": plan_dict["duration_months"],
+        "minimum_investment": plan_dict["minimum_investment"],
+        "description": plan_dict["description"],
+        "is_active": plan_dict["is_active"],
+        "created_at": plan_dict["created_at"].isoformat()
+    }
+
+
+@router.put("/etf-plans/{plan_id}")
+async def update_etf_plan(
+    plan_id: str,
+    plan_data: CreateETFPlan,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Update an existing ETF plan (admin only)
+
+    Args:
+        plan_id: ETF Plan ID
+        plan_data: Updated ETF plan information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Updated ETF plan data
+    """
+    etf_plans = get_collection(ETF_PLANS_COLLECTION)
+
+    try:
+        plan = etf_plans.find_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="ETF plan not found"
+        )
+
+    # Update plan document
+    update_dict = {
+        "name": plan_data.name,
+        "plan_type": plan_data.plan_type,
+        "expected_return_percent": plan_data.expected_return_percent,
+        "duration_months": plan_data.duration_months,
+        "minimum_investment": plan_data.minimum_investment,
+        "description": plan_data.description,
+        "is_active": plan_data.is_active,
+        "updated_at": datetime.utcnow()
+    }
+
+    # Update plan in database
+    etf_plans.update_one(
+        {"_id": ObjectId(plan_id)},
+        {"$set": update_dict}
+    )
+
+    # Get updated plan
+    updated_plan = etf_plans.find_one({"_id": ObjectId(plan_id)})
+
+    return {
+        "id": str(updated_plan["_id"]),
+        "name": updated_plan["name"],
+        "plan_type": updated_plan["plan_type"],
+        "expected_return_percent": updated_plan["expected_return_percent"],
+        "duration_months": updated_plan["duration_months"],
+        "minimum_investment": updated_plan.get("minimum_investment", 0.0),
+        "description": updated_plan.get("description"),
+        "is_active": updated_plan["is_active"],
+        "created_at": updated_plan["created_at"].isoformat() if updated_plan.get("created_at") else None,
+        "updated_at": updated_plan["updated_at"].isoformat()
+    }
+
+
+@router.delete("/etf-plans/{plan_id}")
+async def delete_etf_plan(
+    plan_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Delete an ETF plan (admin only)
+
+    Args:
+        plan_id: ETF Plan ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    etf_plans = get_collection(ETF_PLANS_COLLECTION)
+
+    try:
+        result = etf_plans.delete_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="ETF plan not found"
+        )
+
+    return {"message": "ETF plan deleted successfully"}
+
+# ============================================================
+# DEFI PLANS MANAGEMENT
+# ============================================================
+
+class CreateDeFiPlan(BaseModel):
+    """Schema for creating a DeFi plan"""
+    name: str = Field(..., min_length=1, max_length=100, description="DeFi plan name")
+    portfolio_type: str = Field(..., description="Portfolio type (e.g., Conservative, Moderate, Aggressive, Balanced)")
+    expected_return_percent: float = Field(..., description="Expected return percentage")
+    duration_months: int = Field(..., gt=0, description="Duration in months")
+    minimum_investment: float = Field(default=0.0, ge=0, description="Minimum investment amount")
+    description: Optional[str] = Field(None, description="Plan description")
+    is_active: bool = Field(default=True, description="Whether the plan is active")
+
+
+@router.get("/defi-plans")
+async def get_all_defi_plans(
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get all DeFi plans (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+
+    Returns:
+        list: All DeFi plans
+    """
+    defi_plans = get_collection(DEFI_PLANS_COLLECTION)
+
+    plans_list = []
+    for plan in defi_plans.find().sort("created_at", -1):
+        plans_list.append({
+            "id": str(plan["_id"]),
+            "name": plan["name"],
+            "portfolio_type": plan["portfolio_type"],
+            "expected_return_percent": plan["expected_return_percent"],
+            "duration_months": plan["duration_months"],
+            "minimum_investment": plan.get("minimum_investment", 0.0),
+            "description": plan.get("description"),
+            "is_active": plan.get("is_active", True),
+            "created_at": plan["created_at"].isoformat() if plan.get("created_at") else None,
+            "updated_at": plan["updated_at"].isoformat() if plan.get("updated_at") else None
+        })
+
+    return plans_list
+
+
+@router.get("/defi-plans/{plan_id}")
+async def get_defi_plan_details(
+    plan_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get details of a specific DeFi plan (admin only)
+
+    Args:
+        plan_id: DeFi Plan ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: DeFi Plan details
+    """
+    defi_plans = get_collection(DEFI_PLANS_COLLECTION)
+
+    try:
+        plan = defi_plans.find_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="DeFi plan not found"
+        )
+
+    return {
+        "id": str(plan["_id"]),
+        "name": plan["name"],
+        "portfolio_type": plan["portfolio_type"],
+        "expected_return_percent": plan["expected_return_percent"],
+        "duration_months": plan["duration_months"],
+        "minimum_investment": plan.get("minimum_investment", 0.0),
+        "description": plan.get("description"),
+        "is_active": plan.get("is_active", True),
+        "created_at": plan["created_at"].isoformat() if plan.get("created_at") else None,
+        "updated_at": plan["updated_at"].isoformat() if plan.get("updated_at") else None
+    }
+
+
+@router.post("/defi-plans")
+async def create_defi_plan(
+    plan_data: CreateDeFiPlan,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Create a new DeFi plan (admin only)
+
+    Args:
+        plan_data: DeFi Plan information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Created DeFi plan data
+    """
+    defi_plans = get_collection(DEFI_PLANS_COLLECTION)
+
+    # Create plan document
+    plan_dict = {
+        "name": plan_data.name,
+        "portfolio_type": plan_data.portfolio_type,
+        "expected_return_percent": plan_data.expected_return_percent,
+        "duration_months": plan_data.duration_months,
+        "minimum_investment": plan_data.minimum_investment,
+        "description": plan_data.description,
+        "is_active": plan_data.is_active,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+
+    # Insert plan into database
+    result = defi_plans.insert_one(plan_dict)
+    plan_dict["_id"] = result.inserted_id
+
+    return {
+        "id": str(plan_dict["_id"]),
+        "name": plan_dict["name"],
+        "portfolio_type": plan_dict["portfolio_type"],
+        "expected_return_percent": plan_dict["expected_return_percent"],
+        "duration_months": plan_dict["duration_months"],
+        "minimum_investment": plan_dict["minimum_investment"],
+        "description": plan_dict["description"],
+        "is_active": plan_dict["is_active"],
+        "created_at": plan_dict["created_at"].isoformat()
+    }
+
+
+@router.put("/defi-plans/{plan_id}")
+async def update_defi_plan(
+    plan_id: str,
+    plan_data: CreateDeFiPlan,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Update an existing DeFi plan (admin only)
+
+    Args:
+        plan_id: DeFi Plan ID
+        plan_data: Updated DeFi plan information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Updated DeFi plan data
+    """
+    defi_plans = get_collection(DEFI_PLANS_COLLECTION)
+
+    try:
+        plan = defi_plans.find_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="DeFi plan not found"
+        )
+
+    # Update plan document
+    update_dict = {
+        "name": plan_data.name,
+        "portfolio_type": plan_data.portfolio_type,
+        "expected_return_percent": plan_data.expected_return_percent,
+        "duration_months": plan_data.duration_months,
+        "minimum_investment": plan_data.minimum_investment,
+        "description": plan_data.description,
+        "is_active": plan_data.is_active,
+        "updated_at": datetime.utcnow()
+    }
+
+    # Update plan in database
+    defi_plans.update_one(
+        {"_id": ObjectId(plan_id)},
+        {"$set": update_dict}
+    )
+
+    # Get updated plan
+    updated_plan = defi_plans.find_one({"_id": ObjectId(plan_id)})
+
+    return {
+        "id": str(updated_plan["_id"]),
+        "name": updated_plan["name"],
+        "portfolio_type": updated_plan["portfolio_type"],
+        "expected_return_percent": updated_plan["expected_return_percent"],
+        "duration_months": updated_plan["duration_months"],
+        "minimum_investment": updated_plan.get("minimum_investment", 0.0),
+        "description": updated_plan.get("description"),
+        "is_active": updated_plan["is_active"],
+        "created_at": updated_plan["created_at"].isoformat() if updated_plan.get("created_at") else None,
+        "updated_at": updated_plan["updated_at"].isoformat()
+    }
+
+
+@router.delete("/defi-plans/{plan_id}")
+async def delete_defi_plan(
+    plan_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Delete a DeFi plan (admin only)
+
+    Args:
+        plan_id: DeFi Plan ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    defi_plans = get_collection(DEFI_PLANS_COLLECTION)
+
+    try:
+        result = defi_plans.delete_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="DeFi plan not found"
+        )
+
+    return {"message": "DeFi plan deleted successfully"}
+
+# ============================================================
+# OPTIONS PLANS MANAGEMENT
+# ============================================================
+
+class CreateOptionsPlan(BaseModel):
+    """Schema for creating an Options plan"""
+    name: str = Field(..., min_length=1, max_length=100, description="Options plan name")
+    plan_type: str = Field(..., description="Plan type (e.g., Beginner, Intermediate, Advanced, Expert)")
+    expected_return_percent: float = Field(..., description="Expected return percentage")
+    duration_months: int = Field(default=0, ge=0, description="Duration in months (0 for ongoing)")
+    minimum_investment: float = Field(default=0.0, ge=0, description="Minimum investment amount")
+    description: Optional[str] = Field(None, description="Plan description")
+    is_active: bool = Field(default=True, description="Whether the plan is active")
+
+
+@router.get("/options-plans")
+async def get_all_options_plans(
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get all Options plans (admin only)
+
+    Args:
+        current_admin: Current authenticated admin
+
+    Returns:
+        list: All Options plans
+    """
+    options_plans = get_collection(OPTIONS_PLANS_COLLECTION)
+
+    plans_list = []
+    for plan in options_plans.find().sort("created_at", -1):
+        plans_list.append({
+            "id": str(plan["_id"]),
+            "name": plan["name"],
+            "plan_type": plan["plan_type"],
+            "expected_return_percent": plan["expected_return_percent"],
+            "duration_months": plan.get("duration_months", 0),
+            "minimum_investment": plan.get("minimum_investment", 0.0),
+            "description": plan.get("description"),
+            "is_active": plan.get("is_active", True),
+            "created_at": plan["created_at"].isoformat() if plan.get("created_at") else None,
+            "updated_at": plan["updated_at"].isoformat() if plan.get("updated_at") else None
+        })
+
+    return plans_list
+
+
+@router.get("/options-plans/{plan_id}")
+async def get_options_plan_details(
+    plan_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get details of a specific Options plan (admin only)
+
+    Args:
+        plan_id: Options Plan ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Options Plan details
+    """
+    options_plans = get_collection(OPTIONS_PLANS_COLLECTION)
+
+    try:
+        plan = options_plans.find_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Options plan not found"
+        )
+
+    return {
+        "id": str(plan["_id"]),
+        "name": plan["name"],
+        "plan_type": plan["plan_type"],
+        "expected_return_percent": plan["expected_return_percent"],
+        "duration_months": plan.get("duration_months", 0),
+        "minimum_investment": plan.get("minimum_investment", 0.0),
+        "description": plan.get("description"),
+        "is_active": plan.get("is_active", True),
+        "created_at": plan["created_at"].isoformat() if plan.get("created_at") else None,
+        "updated_at": plan["updated_at"].isoformat() if plan.get("updated_at") else None
+    }
+
+
+@router.post("/options-plans")
+async def create_options_plan(
+    plan_data: CreateOptionsPlan,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Create a new Options plan (admin only)
+
+    Args:
+        plan_data: Options Plan information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Created Options plan data
+    """
+    options_plans = get_collection(OPTIONS_PLANS_COLLECTION)
+
+    # Create plan document
+    plan_dict = {
+        "name": plan_data.name,
+        "plan_type": plan_data.plan_type,
+        "expected_return_percent": plan_data.expected_return_percent,
+        "duration_months": plan_data.duration_months,
+        "minimum_investment": plan_data.minimum_investment,
+        "description": plan_data.description,
+        "is_active": plan_data.is_active,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+
+    # Insert plan into database
+    result = options_plans.insert_one(plan_dict)
+    plan_dict["_id"] = result.inserted_id
+
+    return {
+        "id": str(plan_dict["_id"]),
+        "name": plan_dict["name"],
+        "plan_type": plan_dict["plan_type"],
+        "expected_return_percent": plan_dict["expected_return_percent"],
+        "duration_months": plan_dict["duration_months"],
+        "minimum_investment": plan_dict["minimum_investment"],
+        "description": plan_dict["description"],
+        "is_active": plan_dict["is_active"],
+        "created_at": plan_dict["created_at"].isoformat()
+    }
+
+
+@router.put("/options-plans/{plan_id}")
+async def update_options_plan(
+    plan_id: str,
+    plan_data: CreateOptionsPlan,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Update an existing Options plan (admin only)
+
+    Args:
+        plan_id: Options Plan ID
+        plan_data: Updated Options plan information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Updated Options plan data
+    """
+    options_plans = get_collection(OPTIONS_PLANS_COLLECTION)
+
+    try:
+        plan = options_plans.find_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Options plan not found"
+        )
+
+    # Update plan document
+    update_dict = {
+        "name": plan_data.name,
+        "plan_type": plan_data.plan_type,
+        "expected_return_percent": plan_data.expected_return_percent,
+        "duration_months": plan_data.duration_months,
+        "minimum_investment": plan_data.minimum_investment,
+        "description": plan_data.description,
+        "is_active": plan_data.is_active,
+        "updated_at": datetime.utcnow()
+    }
+
+    # Update plan in database
+    options_plans.update_one(
+        {"_id": ObjectId(plan_id)},
+        {"$set": update_dict}
+    )
+
+    # Get updated plan
+    updated_plan = options_plans.find_one({"_id": ObjectId(plan_id)})
+
+    return {
+        "id": str(updated_plan["_id"]),
+        "name": updated_plan["name"],
+        "plan_type": updated_plan["plan_type"],
+        "expected_return_percent": updated_plan["expected_return_percent"],
+        "duration_months": updated_plan.get("duration_months", 0),
+        "minimum_investment": updated_plan.get("minimum_investment", 0.0),
+        "description": updated_plan.get("description"),
+        "is_active": updated_plan["is_active"],
+        "created_at": updated_plan["created_at"].isoformat() if updated_plan.get("created_at") else None,
+        "updated_at": updated_plan["updated_at"].isoformat()
+    }
+
+
+@router.delete("/options-plans/{plan_id}")
+async def delete_options_plan(
+    plan_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Delete an Options plan (admin only)
+
+    Args:
+        plan_id: Options Plan ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    options_plans = get_collection(OPTIONS_PLANS_COLLECTION)
+
+    try:
+        result = options_plans.delete_one({"_id": ObjectId(plan_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan ID"
+        )
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Options plan not found"
+        )
+
+    return {"message": "Options plan deleted successfully"}

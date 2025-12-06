@@ -323,6 +323,15 @@
                 <div class="menu-item" data-tab="plans">
                     <i class="fas fa-chart-line"></i> <span>Investment Plans</span>
                 </div>
+                <div class="menu-item" data-tab="etf-plans">
+                    <i class="fas fa-chart-pie"></i> <span>ETF Plans</span>
+                </div>
+                <div class="menu-item" data-tab="defi-plans">
+                    <i class="fas fa-coins"></i> <span>DeFi Plans</span>
+                </div>
+                <div class="menu-item" data-tab="options-plans">
+                    <i class="fas fa-file-alt"></i> <span>Options Plans</span>
+                </div>
                 <div class="menu-item" data-tab="deposits">
                     <i class="fas fa-money-bill-transfer"></i> <span>Deposit Requests</span>
                 </div>
@@ -414,6 +423,42 @@
 
                 <div class="card">
                     <div id="plans-container">Loading plans...</div>
+                </div>
+            </div>
+
+            <!-- ETF Plans Tab -->
+            <div class="tab-content" id="tab-etf-plans">
+                <div class="header">
+                    <h1>ETF Plans</h1>
+                    <button class="btn btn-primary" onclick="showAddETFPlanModal()"><i class="fas fa-plus"></i> Add ETF Plan</button>
+                </div>
+
+                <div class="card">
+                    <div id="etf-plans-container">Loading ETF plans...</div>
+                </div>
+            </div>
+
+            <!-- DeFi Plans Tab -->
+            <div class="tab-content" id="tab-defi-plans">
+                <div class="header">
+                    <h1>DeFi Plans</h1>
+                    <button class="btn btn-primary" onclick="showAddDeFiPlanModal()"><i class="fas fa-plus"></i> Add DeFi Plan</button>
+                </div>
+
+                <div class="card">
+                    <div id="defi-plans-container">Loading DeFi plans...</div>
+                </div>
+            </div>
+
+            <!-- Options Plans Tab -->
+            <div class="tab-content" id="tab-options-plans">
+                <div class="header">
+                    <h1>Options Plans</h1>
+                    <button class="btn btn-primary" onclick="showAddOptionsPlanModal()"><i class="fas fa-plus"></i> Add Options Plan</button>
+                </div>
+
+                <div class="card">
+                    <div id="options-plans-container">Loading Options plans...</div>
                 </div>
             </div>
 
@@ -1078,6 +1123,372 @@
                         <i class="fas fa-plus"></i> Add Account
                     </button>
                     <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddBankAccountModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add ETF Plan Modal -->
+    <div class="modal" id="add-etf-plan-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-chart-pie"></i> Add New ETF Plan</h2>
+            <form id="add-etf-plan-form" onsubmit="submitNewETFPlan(event)">
+                <div class="form-group">
+                    <label for="etf-plan-name">Plan Name *</label>
+                    <input type="text" id="etf-plan-name" required maxlength="100" placeholder="e.g., Conservative ETF Portfolio">
+                </div>
+
+                <div class="form-group">
+                    <label for="etf-plan-type">Plan Type *</label>
+                    <select id="etf-plan-type" required>
+                        <option value="">Select type</option>
+                        <option value="Conservative">Conservative</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Aggressive">Aggressive</option>
+                        <option value="Balanced">Balanced</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="etf-plan-return">Expected Return (%) *</label>
+                    <input type="number" id="etf-plan-return" required step="0.01" placeholder="e.g., 12.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="etf-plan-duration">Duration (Months) *</label>
+                    <input type="number" id="etf-plan-duration" required min="1" step="1" placeholder="e.g., 12">
+                </div>
+
+                <div class="form-group">
+                    <label for="etf-plan-min-investment">Minimum Investment (USD)</label>
+                    <input type="number" id="etf-plan-min-investment" min="0" step="0.01" value="0" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="etf-plan-description">Description</label>
+                    <textarea id="etf-plan-description" rows="4" placeholder="Describe the ETF plan"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="etf-plan-active" checked style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Create ETF Plan
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddETFPlanModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit ETF Plan Modal -->
+    <div class="modal" id="edit-etf-plan-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-edit"></i> Edit ETF Plan</h2>
+            <form id="edit-etf-plan-form" onsubmit="submitEditedETFPlan(event)">
+                <input type="hidden" id="edit-etf-plan-id">
+
+                <div class="form-group">
+                    <label for="edit-etf-plan-name">Plan Name *</label>
+                    <input type="text" id="edit-etf-plan-name" required maxlength="100" placeholder="e.g., Conservative ETF Portfolio">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-etf-plan-type">Plan Type *</label>
+                    <select id="edit-etf-plan-type" required>
+                        <option value="">Select type</option>
+                        <option value="Conservative">Conservative</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Aggressive">Aggressive</option>
+                        <option value="Balanced">Balanced</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-etf-plan-return">Expected Return (%) *</label>
+                    <input type="number" id="edit-etf-plan-return" required step="0.01" placeholder="e.g., 12.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-etf-plan-duration">Duration (Months) *</label>
+                    <input type="number" id="edit-etf-plan-duration" required min="1" step="1" placeholder="e.g., 12">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-etf-plan-min-investment">Minimum Investment (USD)</label>
+                    <input type="number" id="edit-etf-plan-min-investment" min="0" step="0.01" value="0" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-etf-plan-description">Description</label>
+                    <textarea id="edit-etf-plan-description" rows="4" placeholder="Describe the ETF plan"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="edit-etf-plan-active" checked style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-save"></i> Update ETF Plan
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideEditETFPlanModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add DeFi Plan Modal -->
+    <div class="modal" id="add-defi-plan-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-coins"></i> Add New DeFi Plan</h2>
+            <form id="add-defi-plan-form" onsubmit="submitNewDeFiPlan(event)">
+                <div class="form-group">
+                    <label for="defi-plan-name">Plan Name *</label>
+                    <input type="text" id="defi-plan-name" required maxlength="100" placeholder="e.g., Conservative DeFi Portfolio">
+                </div>
+
+                <div class="form-group">
+                    <label for="defi-plan-portfolio-type">Portfolio Type *</label>
+                    <select id="defi-plan-portfolio-type" required>
+                        <option value="">Select portfolio type</option>
+                        <option value="Conservative">Conservative</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Aggressive">Aggressive</option>
+                        <option value="Balanced">Balanced</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="defi-plan-return">Expected Return (%) *</label>
+                    <input type="number" id="defi-plan-return" required step="0.01" placeholder="e.g., 15.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="defi-plan-duration">Duration (Months) *</label>
+                    <input type="number" id="defi-plan-duration" required min="1" step="1" placeholder="e.g., 12">
+                </div>
+
+                <div class="form-group">
+                    <label for="defi-plan-min-investment">Minimum Investment (USD)</label>
+                    <input type="number" id="defi-plan-min-investment" min="0" step="0.01" value="0" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="defi-plan-description">Description</label>
+                    <textarea id="defi-plan-description" rows="4" placeholder="Describe the DeFi plan"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="defi-plan-active" checked style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Create DeFi Plan
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddDeFiPlanModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit DeFi Plan Modal -->
+    <div class="modal" id="edit-defi-plan-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-edit"></i> Edit DeFi Plan</h2>
+            <form id="edit-defi-plan-form" onsubmit="submitEditedDeFiPlan(event)">
+                <input type="hidden" id="edit-defi-plan-id">
+
+                <div class="form-group">
+                    <label for="edit-defi-plan-name">Plan Name *</label>
+                    <input type="text" id="edit-defi-plan-name" required maxlength="100" placeholder="e.g., Conservative DeFi Portfolio">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-defi-plan-portfolio-type">Portfolio Type *</label>
+                    <select id="edit-defi-plan-portfolio-type" required>
+                        <option value="">Select portfolio type</option>
+                        <option value="Conservative">Conservative</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Aggressive">Aggressive</option>
+                        <option value="Balanced">Balanced</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-defi-plan-return">Expected Return (%) *</label>
+                    <input type="number" id="edit-defi-plan-return" required step="0.01" placeholder="e.g., 15.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-defi-plan-duration">Duration (Months) *</label>
+                    <input type="number" id="edit-defi-plan-duration" required min="1" step="1" placeholder="e.g., 12">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-defi-plan-min-investment">Minimum Investment (USD)</label>
+                    <input type="number" id="edit-defi-plan-min-investment" min="0" step="0.01" value="0" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-defi-plan-description">Description</label>
+                    <textarea id="edit-defi-plan-description" rows="4" placeholder="Describe the DeFi plan"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="edit-defi-plan-active" checked style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-save"></i> Update DeFi Plan
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideEditDeFiPlanModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Options Plan Modal -->
+    <div class="modal" id="add-options-plan-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-file-alt"></i> Add New Options Plan</h2>
+            <form id="add-options-plan-form" onsubmit="submitNewOptionsPlan(event)">
+                <div class="form-group">
+                    <label for="options-plan-name">Plan Name *</label>
+                    <input type="text" id="options-plan-name" required maxlength="100" placeholder="e.g., Beginner Options Strategy">
+                </div>
+
+                <div class="form-group">
+                    <label for="options-plan-type">Plan Type *</label>
+                    <select id="options-plan-type" required>
+                        <option value="">Select type</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                        <option value="Expert">Expert</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="options-plan-return">Expected Return (%) *</label>
+                    <input type="number" id="options-plan-return" required step="0.01" placeholder="e.g., 20.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="options-plan-duration">Duration (Months)</label>
+                    <input type="number" id="options-plan-duration" min="0" step="1" value="0" placeholder="0 for ongoing">
+                </div>
+
+                <div class="form-group">
+                    <label for="options-plan-min-investment">Minimum Investment (USD)</label>
+                    <input type="number" id="options-plan-min-investment" min="0" step="0.01" value="0" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="options-plan-description">Description</label>
+                    <textarea id="options-plan-description" rows="4" placeholder="Describe the Options plan"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="options-plan-active" checked style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Create Options Plan
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddOptionsPlanModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Options Plan Modal -->
+    <div class="modal" id="edit-options-plan-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fas fa-edit"></i> Edit Options Plan</h2>
+            <form id="edit-options-plan-form" onsubmit="submitEditedOptionsPlan(event)">
+                <input type="hidden" id="edit-options-plan-id">
+
+                <div class="form-group">
+                    <label for="edit-options-plan-name">Plan Name *</label>
+                    <input type="text" id="edit-options-plan-name" required maxlength="100" placeholder="e.g., Beginner Options Strategy">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-options-plan-type">Plan Type *</label>
+                    <select id="edit-options-plan-type" required>
+                        <option value="">Select type</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                        <option value="Expert">Expert</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-options-plan-return">Expected Return (%) *</label>
+                    <input type="number" id="edit-options-plan-return" required step="0.01" placeholder="e.g., 20.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-options-plan-duration">Duration (Months)</label>
+                    <input type="number" id="edit-options-plan-duration" min="0" step="1" value="0" placeholder="0 for ongoing">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-options-plan-min-investment">Minimum Investment (USD)</label>
+                    <input type="number" id="edit-options-plan-min-investment" min="0" step="0.01" value="0" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-options-plan-description">Description</label>
+                    <textarea id="edit-options-plan-description" rows="4" placeholder="Describe the Options plan"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="edit-options-plan-active" checked style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-save"></i> Update Options Plan
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideEditOptionsPlanModal()">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>

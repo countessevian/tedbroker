@@ -323,6 +323,16 @@ class UserInvestment(BaseModel):
         from_attributes = True
 
 
+class TraderInfo(BaseModel):
+    """Schema for trader information in investments"""
+    id: str
+    full_name: str
+    profile_photo: str
+
+    class Config:
+        from_attributes = True
+
+
 class UserInvestmentResponse(BaseModel):
     """Schema for user investment response"""
     id: str
@@ -339,6 +349,7 @@ class UserInvestmentResponse(BaseModel):
     days_elapsed: int
     days_remaining: int
     status: str
+    selected_traders: List[TraderInfo] = Field(default=[], description="Selected traders for this investment")
 
     class Config:
         from_attributes = True
@@ -655,6 +666,102 @@ class NotificationResponse(BaseModel):
     is_dismissed: bool
     created_by: str
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ETFPlan(BaseModel):
+    """Schema for an ETF plan"""
+    id: str
+    name: str = Field(..., min_length=1, max_length=100)
+    plan_type: str = Field(..., description="Plan type (e.g., 'Conservative', 'Moderate', 'Aggressive')")
+    expected_return_percent: float = Field(..., description="Expected return percentage")
+    duration_months: int = Field(..., gt=0, description="Plan duration in months")
+    minimum_investment: float = Field(default=0.0, ge=0, description="Minimum investment amount in USD")
+    description: Optional[str] = Field(None, description="Plan description")
+    is_active: bool = Field(default=True, description="Whether the plan is currently available")
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ETFPlanResponse(BaseModel):
+    """Schema for ETF plan response"""
+    id: str
+    name: str
+    plan_type: str
+    expected_return_percent: float
+    duration_months: int
+    minimum_investment: float
+    description: Optional[str]
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+class DeFiPlan(BaseModel):
+    """Schema for a DeFi plan"""
+    id: str
+    name: str = Field(..., min_length=1, max_length=100)
+    portfolio_type: str = Field(..., description="Portfolio type (e.g., 'Conservative', 'Moderate', 'Aggressive', 'Balanced')")
+    expected_return_percent: float = Field(..., description="Expected return percentage")
+    duration_months: int = Field(..., gt=0, description="Plan duration in months")
+    minimum_investment: float = Field(default=0.0, ge=0, description="Minimum investment amount in USD")
+    description: Optional[str] = Field(None, description="Plan description")
+    is_active: bool = Field(default=True, description="Whether the plan is currently available")
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DeFiPlanResponse(BaseModel):
+    """Schema for DeFi plan response"""
+    id: str
+    name: str
+    portfolio_type: str
+    expected_return_percent: float
+    duration_months: int
+    minimum_investment: float
+    description: Optional[str]
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+class OptionsPlan(BaseModel):
+    """Schema for an Options plan"""
+    id: str
+    name: str = Field(..., min_length=1, max_length=100)
+    plan_type: str = Field(..., description="Plan type (e.g., 'Beginner', 'Intermediate', 'Advanced', 'Expert')")
+    expected_return_percent: float = Field(..., description="Expected return percentage")
+    duration_months: int = Field(default=0, ge=0, description="Plan duration in months (0 for ongoing)")
+    minimum_investment: float = Field(default=0.0, ge=0, description="Minimum investment amount in USD")
+    description: Optional[str] = Field(None, description="Plan description")
+    is_active: bool = Field(default=True, description="Whether the plan is currently available")
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class OptionsPlanResponse(BaseModel):
+    """Schema for Options plan response"""
+    id: str
+    name: str
+    plan_type: str
+    expected_return_percent: float
+    duration_months: int
+    minimum_investment: float
+    description: Optional[str]
+    is_active: bool
 
     class Config:
         from_attributes = True

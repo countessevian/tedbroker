@@ -4,8 +4,8 @@ from bson import ObjectId
 from datetime import datetime, timedelta
 import secrets
 
-from app.database import get_collection, INVESTMENT_PLANS_COLLECTION, USER_INVESTMENTS_COLLECTION, USERS_COLLECTION, TRANSACTIONS_COLLECTION
-from app.schemas import InvestInPlanRequest, UserInvestmentResponse, PortfolioSummary
+from app.database import get_collection, INVESTMENT_PLANS_COLLECTION, USER_INVESTMENTS_COLLECTION, USERS_COLLECTION, TRANSACTIONS_COLLECTION, TRADERS_COLLECTION
+from app.schemas import InvestInPlanRequest, UserInvestmentResponse, PortfolioSummary, TraderInfo
 from app.auth import get_current_user_token
 
 router = APIRouter(prefix="/api/investments", tags=["investments"])
@@ -178,7 +178,27 @@ async def get_user_portfolio(current_user: dict = Depends(get_current_user_token
     """
     try:
         investments_collection = get_collection(USER_INVESTMENTS_COLLECTION)
+        users_collection = get_collection(USERS_COLLECTION)
+        traders_collection = get_collection(TRADERS_COLLECTION)
         user_id = current_user["user_id"]
+
+        # Get user to access selected traders
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
+        selected_trader_ids = user.get("selected_traders", []) if user else []
+
+        # Get trader details for selected traders
+        traders_info = []
+        for trader_id in selected_trader_ids:
+            try:
+                trader = traders_collection.find_one({"_id": ObjectId(trader_id)})
+                if trader:
+                    traders_info.append({
+                        "id": str(trader["_id"]),
+                        "full_name": trader["full_name"],
+                        "profile_photo": trader.get("profile_photo", "")
+                    })
+            except:
+                continue
 
         # Get all user investments
         investments = list(investments_collection.find({"user_id": user_id}))
@@ -210,6 +230,15 @@ async def get_user_portfolio(current_user: dict = Depends(get_current_user_token
                 )
                 inv["status"] = "matured"
 
+            # Convert trader info to TraderInfo objects
+            trader_info_list = []
+            for trader_dict in traders_info:
+                trader_info_list.append(TraderInfo(
+                    id=trader_dict["id"],
+                    full_name=trader_dict["full_name"],
+                    profile_photo=trader_dict["profile_photo"]
+                ))
+
             investment_response = UserInvestmentResponse(
                 id=str(inv["_id"]),
                 plan_id=inv["plan_id"],
@@ -224,7 +253,8 @@ async def get_user_portfolio(current_user: dict = Depends(get_current_user_token
                 profit_loss_percent=round(profit_loss_percent, 2),
                 days_elapsed=days_elapsed,
                 days_remaining=days_remaining,
-                status=inv["status"]
+                status=inv["status"],
+                selected_traders=trader_info_list
             )
 
             investment_responses.append(investment_response)
@@ -300,3 +330,104 @@ async def get_investment_details(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch investment details: {str(e)}")
+
+
+@router.get("/active-plans")
+async def get_active_plans_with_progress(current_user: dict = Depends(get_current_user_token)):
+    """
+    Get active investment plans with progress, selected traders, and performance metrics
+    Organized by plan type (ETF, DeFi, Options)
+    """
+    try:
+        investments_collection = get_collection(USER_INVESTMENTS_COLLECTION)
+        users_collection = get_collection(USERS_COLLECTION)
+        traders_collection = get_collection(TRADERS_COLLECTION)
+        user_id = current_user["user_id"]
+
+        # Get user to access selected traders
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        selected_trader_ids = user.get("selected_traders", [])
+
+        # Get trader details for selected traders
+        traders_info = []
+        for trader_id in selected_trader_ids:
+            try:
+                trader = traders_collection.find_one({"_id": ObjectId(trader_id)})
+                if trader:
+                    traders_info.append({
+                        "id": str(trader["_id"]),
+                        "full_name": trader["full_name"],
+                        "profile_photo": trader.get("profile_photo", "")
+                    })
+            except:
+                continue
+
+        # Get all active investments for this user
+        active_investments = list(investments_collection.find({
+            "user_id": user_id,
+            "status": "active"
+        }))
+
+        # Group investments by plan type
+        etf_plans = []
+        defi_plans = []
+        options_plans = []
+        general_plans = []
+
+        for inv in active_investments:
+            current_value, profit_loss, profit_loss_percent, days_elapsed, days_remaining = calculate_current_value(inv)
+
+            # Calculate progress percentage
+            total_days = (inv["maturity_date"] - inv["start_date"]).days
+            progress_percent = (days_elapsed / total_days * 100) if total_days > 0 else 0
+            progress_percent = min(100, max(0, progress_percent))
+
+            # Calculate time remaining in human-readable format
+            if days_remaining > 30:
+                months_remaining = days_remaining // 30
+                days_rem = days_remaining % 30
+                time_remaining = f"{months_remaining}mo {days_rem}d" if days_rem > 0 else f"{months_remaining}mo"
+            else:
+                time_remaining = f"{days_remaining}d"
+
+            plan_data = {
+                "id": str(inv["_id"]),
+                "plan_id": inv["plan_id"],
+                "plan_name": inv["plan_name"],
+                "amount_invested": inv["amount_invested"],
+                "current_value": round(current_value, 2),
+                "profit_loss_percent": round(profit_loss_percent, 2),
+                "progress_percent": round(progress_percent, 2),
+                "time_remaining": time_remaining,
+                "days_remaining": days_remaining,
+                "start_date": inv["start_date"].isoformat(),
+                "maturity_date": inv["maturity_date"].isoformat(),
+                "selected_traders": traders_info
+            }
+
+            # Categorize by plan type based on plan name
+            plan_name_lower = inv["plan_name"].lower()
+            if "etf" in plan_name_lower:
+                etf_plans.append(plan_data)
+            elif "defi" in plan_name_lower:
+                defi_plans.append(plan_data)
+            elif "option" in plan_name_lower:
+                options_plans.append(plan_data)
+            else:
+                general_plans.append(plan_data)
+
+        return {
+            "etf_plans": etf_plans,
+            "defi_plans": defi_plans,
+            "options_plans": options_plans,
+            "general_plans": general_plans,
+            "total_active": len(active_investments)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch active plans: {str(e)}")

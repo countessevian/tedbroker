@@ -347,6 +347,14 @@ function disableSidebarMenus() {
     });
 
     console.log(`Disabled ${document.querySelectorAll('[data-kyc-disabled="true"]').length} menu items`);
+
+    // Also hide the Quick Actions card
+    const quickActionsCard = document.getElementById('quick-actions-card');
+    if (quickActionsCard) {
+        quickActionsCard.style.display = 'none';
+        quickActionsCard.setAttribute('data-kyc-hidden', 'true');
+        console.log('Hidden Quick Actions card due to incomplete KYC');
+    }
 }
 
 /**
@@ -379,6 +387,14 @@ function enableSidebarMenus() {
         setTimeout(() => {
             banner.remove();
         }, 400);
+    }
+
+    // Show the Quick Actions card again
+    const quickActionsCard = document.getElementById('quick-actions-card');
+    if (quickActionsCard && quickActionsCard.getAttribute('data-kyc-hidden') === 'true') {
+        quickActionsCard.style.display = '';
+        quickActionsCard.removeAttribute('data-kyc-hidden');
+        console.log('Shown Quick Actions card - KYC completed');
     }
 
     console.log('Sidebar menus enabled - user can now access all features');
@@ -479,6 +495,33 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
+    // Load ETF plans when ETF plans tab is clicked
+    const etfPlansTab = document.querySelector('.submenu-item[data-tab="etf-plans"], .menu-item[data-tab="etf-plans"]');
+    if (etfPlansTab) {
+        etfPlansTab.addEventListener('click', function() {
+            // Force reload each time to ensure fresh data
+            loadETFPlans(true);
+        });
+    }
+
+    // Load DeFi plans when DeFi Earnings tab is clicked
+    const defiPlansTab = document.querySelector('.submenu-item[data-tab="defi-earnings"], .menu-item[data-tab="defi-earnings"]');
+    if (defiPlansTab) {
+        defiPlansTab.addEventListener('click', function() {
+            // Force reload each time to ensure fresh data
+            loadDeFiPlans(true);
+        });
+    }
+
+    // Load Options plans when Options tab is clicked
+    const optionsPlansTab = document.querySelector('.submenu-item[data-tab="options"], .menu-item[data-tab="options"]');
+    if (optionsPlansTab) {
+        optionsPlansTab.addEventListener('click', function() {
+            // Force reload each time to ensure fresh data
+            loadOptionsPlans(true);
+        });
+    }
+
     // Load wallet data when wallet tab is clicked
     const walletTab = document.querySelector('.menu-item[data-tab="wallet"]');
     if (walletTab) {
@@ -502,11 +545,24 @@ function populateDashboard(userData) {
 
     // User avatar (first letter of name)
     const avatarLetter = displayName.charAt(0).toUpperCase();
-    document.getElementById('user-avatar').textContent = avatarLetter;
+    const userAvatarElement = document.getElementById('user-avatar');
+    if (userAvatarElement) {
+        userAvatarElement.textContent = avatarLetter;
+    }
 
-    // Populate mobile app bar
-    document.getElementById('mobile-user-avatar').textContent = avatarLetter;
-    document.getElementById('mobile-user-name').textContent = displayName;
+    // Populate sidebar user profile
+    const sidebarAvatarElement = document.getElementById('sidebar-user-avatar');
+    if (sidebarAvatarElement) {
+        sidebarAvatarElement.textContent = avatarLetter;
+    }
+    const sidebarFullNameElement = document.getElementById('sidebar-user-full-name');
+    if (sidebarFullNameElement) {
+        sidebarFullNameElement.textContent = displayName;
+    }
+    const sidebarUsernameElement = document.getElementById('sidebar-user-username');
+    if (sidebarUsernameElement) {
+        sidebarUsernameElement.textContent = '@' + userData.username;
+    }
 
     // Full name
     document.getElementById('user-fullname').textContent = userData.full_name || userData.username;
@@ -716,6 +772,11 @@ function createTraderCard(trader) {
     const buttonText = isSelected ? 'Stop Copying' : (hasSufficientFunds ? 'Copy Trader' : 'Insufficient Funds');
     const buttonStyle = isSelected ? 'background: #ff6b6b;' : '';
 
+    // Create profile photo HTML with fallback
+    const profilePhotoHTML = trader.profile_photo
+        ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-profile-photo" />`
+        : `<div class="trader-profile-photo" style="display: flex; align-items: center; justify-content: center; background: rgba(123, 182, 218, 0.1);"><i class="fa fa-user" style="font-size: 32px; color: #8b93a7;"></i></div>`;
+
     // Create trades HTML
     const tradesHTML = trader.trades && trader.trades.length > 0 ? `
         <div class="trader-trades">
@@ -734,7 +795,7 @@ function createTraderCard(trader) {
 
     card.innerHTML = `
         <div class="trader-profile">
-            <img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-profile-photo" />
+            ${profilePhotoHTML}
             <div>
                 <h3 style="margin: 0;">${trader.full_name}${isSelected ? ' <span style="color: #4caf50; font-size: 14px;"><i class="fa fa-check-circle"></i> Selected</span>' : ''}</h3>
                 <p style="color: #8b93a7; margin: 5px 0 0 0; font-size: 14px;">${trader.specialization}</p>
@@ -803,7 +864,7 @@ async function copyTrader(traderId, traderName) {
             // Unselect trader
             if (!(await Swal.fire({
                 title: 'Confirm Action',
-                text: 'Stop copying ${traderName}?',
+                text: `Stop copying ${traderName}?`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
@@ -1165,6 +1226,607 @@ async function investInPlan(planId, planName, minimumInvestment) {
         console.error('Investment error:', error);
         Swal.fire({ title: 'Error!', text: `Investment failed: ${error.message}`, icon: 'error' });
     }
+}
+
+// ==============================================
+// ETF PLANS MANAGEMENT
+// ==============================================
+
+let etfPlansLoaded = false; // Flag to prevent multiple loads
+let etfPlansCache = null; // Cache for ETF plans data
+
+/**
+ * Load ETF plans
+ */
+async function loadETFPlans(forceReload = false) {
+    // Skip if already loaded and not forcing reload
+    if (etfPlansLoaded && !forceReload && etfPlansCache) {
+        console.log('Displaying cached ETF plans:', etfPlansCache.length);
+        displayETFPlans(etfPlansCache);
+        return;
+    }
+
+    const container = document.getElementById('etf-plans-container');
+    container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading ETF plans...</p>';
+
+    try {
+        console.log('Starting to load ETF plans...');
+
+        // Check authentication
+        const token = TED_AUTH.getToken();
+        if (!token) {
+            console.error('No authentication token found');
+            throw new Error('Please login to view ETF plans');
+        }
+
+        // Fetch user data to get wallet balance
+        const userData = TED_AUTH.getUser();
+        if (!userData || userData.wallet_balance === undefined || userData.wallet_balance === null) {
+            const userResponse = await TED_AUTH.apiCall('/api/auth/me');
+            if (userResponse.ok) {
+                const freshUserData = await userResponse.json();
+                userWalletBalance = freshUserData.wallet_balance !== undefined ? freshUserData.wallet_balance : 0;
+                TED_AUTH.saveUser(freshUserData);
+            } else {
+                userWalletBalance = 0;
+            }
+        } else {
+            userWalletBalance = userData.wallet_balance;
+        }
+
+        // Update wallet balance display
+        const etfWalletBalanceElement = document.getElementById('etf-wallet-balance');
+        if (etfWalletBalanceElement) {
+            etfWalletBalanceElement.textContent = `$${userWalletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // Fetch ETF plans from API
+        console.log('Fetching ETF plans from /api/etf-plans/...');
+        const response = await TED_AUTH.apiCall('/api/etf-plans/', {
+            method: 'GET'
+        });
+
+        console.log('ETF Plans API response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('ETF Plans API error:', errorData);
+            throw new Error(errorData.detail || `Failed to fetch ETF plans: ${response.statusText}`);
+        }
+
+        const etfPlans = await response.json();
+        console.log('Successfully fetched ETF plans:', etfPlans.length, etfPlans);
+
+        // Cache the ETF plans
+        etfPlansCache = etfPlans;
+        etfPlansLoaded = true;
+
+        // Display ETF plans
+        displayETFPlans(etfPlans);
+    } catch (error) {
+        console.error('Error loading ETF plans:', error);
+        etfPlansLoaded = false;
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px 0;">
+                <p style="color: #ff6b6b; margin-bottom: 15px;">
+                    <i class="fa fa-exclamation-circle" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                    Failed to load ETF plans
+                </p>
+                <p style="color: #8b93a7; font-size: 14px; margin-bottom: 20px;">${error.message}</p>
+                <button class="btn-primary-custom" onclick="loadETFPlans(true)">
+                    <i class="fa fa-refresh"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Display ETF plans in the container
+ */
+function displayETFPlans(etfPlans) {
+    const container = document.getElementById('etf-plans-container');
+
+    if (etfPlans.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No ETF plans available at the moment.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    etfPlans.forEach(plan => {
+        const planCard = createETFPlanCard(plan);
+        container.appendChild(planCard);
+    });
+}
+
+/**
+ * Create an ETF plan card element
+ */
+function createETFPlanCard(plan) {
+    const card = document.createElement('div');
+    card.className = 'plan-card';
+
+    // Check if user has sufficient funds
+    const hasSufficientFunds = userWalletBalance >= plan.minimum_investment;
+    const buttonDisabled = !hasSufficientFunds;
+
+    // Add visual indicator for unaffordable plans
+    if (!hasSufficientFunds) {
+        card.style.opacity = '0.85';
+        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
+    }
+
+    // Plan type badge color
+    let badgeColor = '#667eea';
+    if (plan.plan_type === 'Conservative') {
+        badgeColor = '#4caf50';
+    } else if (plan.plan_type === 'Moderate') {
+        badgeColor = '#ff9800';
+    } else if (plan.plan_type === 'Aggressive') {
+        badgeColor = '#f44336';
+    }
+
+    card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #D32F2F; margin: 0;">${plan.name}</h3>
+            <span style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                ${plan.plan_type}
+            </span>
+        </div>
+
+        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 20px; line-height: 1.6;">${plan.description}</p>` : ''}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(102, 126, 234, 0.08); border-radius: 8px;">
+            <div>
+                <div style="font-size: 24px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
+                <div style="font-size: 12px; color: #8b93a7;">Expected Return</div>
+            </div>
+            <div>
+                <div style="font-size: 24px; font-weight: bold; color: #D32F2F;">${plan.duration_months} mo</div>
+                <div style="font-size: 12px; color: #8b93a7;">Duration</div>
+            </div>
+        </div>
+
+        ${plan.minimum_investment > 0 ? `
+            <div style="padding: 12px; background: rgba(102, 126, 234, 0.08); border-radius: 8px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #8b93a7; font-size: 14px;">Minimum Investment:</span>
+                    <span style="color: #D32F2F; font-weight: 700; font-size: 16px;">$${plan.minimum_investment.toLocaleString()}</span>
+                </div>
+            </div>
+        ` : ''}
+
+        ${!hasSufficientFunds && plan.minimum_investment > 0 ? `
+            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
+                <p style="color: #ff6b6b; font-size: 13px; margin: 0;">
+                    <i class="fa fa-exclamation-triangle"></i> Insufficient funds. You need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more.
+                </p>
+            </div>
+        ` : ''}
+    `;
+
+    return card;
+}
+
+/**
+ * Show ETF plan details
+ */
+async function showETFPlanDetails(planId) {
+    Swal.fire({
+        title: 'ETF Plan Details',
+        html: `
+            <p style="color: #8b93a7; margin-bottom: 15px;">
+                ETF investment functionality is currently being implemented.
+            </p>
+            <p style="color: #8b93a7; font-size: 14px;">
+                <i class="fa fa-info-circle"></i> Contact support for more information about investing in this ETF plan.
+            </p>
+        `,
+        icon: 'info',
+        confirmButtonText: 'OK'
+    });
+}
+
+// ==============================================
+// DEFI PLANS MANAGEMENT
+// ==============================================
+
+let defiPlansLoaded = false; // Flag to prevent multiple loads
+let defiPlansCache = null; // Cache for DeFi plans data
+
+/**
+ * Load DeFi plans
+ */
+async function loadDeFiPlans(forceReload = false) {
+    // Skip if already loaded and not forcing reload
+    if (defiPlansLoaded && !forceReload && defiPlansCache) {
+        console.log('Displaying cached DeFi plans:', defiPlansCache.length);
+        displayDeFiPlans(defiPlansCache);
+        return;
+    }
+
+    const container = document.getElementById('defi-plans-container');
+    container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading DeFi plans...</p>';
+
+    try {
+        console.log('Starting to load DeFi plans...');
+
+        // Check authentication
+        const token = TED_AUTH.getToken();
+        if (!token) {
+            console.error('No authentication token found');
+            throw new Error('Please login to view DeFi plans');
+        }
+
+        // Fetch user data to get wallet balance
+        const userData = TED_AUTH.getUser();
+        if (!userData || userData.wallet_balance === undefined || userData.wallet_balance === null) {
+            const userResponse = await TED_AUTH.apiCall('/api/auth/me');
+            if (userResponse.ok) {
+                const freshUserData = await userResponse.json();
+                userWalletBalance = freshUserData.wallet_balance !== undefined ? freshUserData.wallet_balance : 0;
+                TED_AUTH.saveUser(freshUserData);
+            } else {
+                userWalletBalance = 0;
+            }
+        } else {
+            userWalletBalance = userData.wallet_balance;
+        }
+
+        // Update wallet balance display
+        const defiWalletBalanceElement = document.getElementById('defi-wallet-balance');
+        if (defiWalletBalanceElement) {
+            defiWalletBalanceElement.textContent = `$${userWalletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // Fetch DeFi plans from API
+        console.log('Fetching DeFi plans from /api/defi-plans/...');
+        const response = await TED_AUTH.apiCall('/api/defi-plans/', {
+            method: 'GET'
+        });
+
+        console.log('DeFi Plans API response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('DeFi Plans API error:', errorData);
+            throw new Error(errorData.detail || `Failed to fetch DeFi plans: ${response.statusText}`);
+        }
+
+        const defiPlans = await response.json();
+        console.log('Successfully fetched DeFi plans:', defiPlans.length, defiPlans);
+
+        // Cache the DeFi plans
+        defiPlansCache = defiPlans;
+        defiPlansLoaded = true;
+
+        // Display DeFi plans
+        displayDeFiPlans(defiPlans);
+    } catch (error) {
+        console.error('Error loading DeFi plans:', error);
+        defiPlansLoaded = false;
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px 0;">
+                <p style="color: #ff6b6b; margin-bottom: 15px;">
+                    <i class="fa fa-exclamation-circle" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                    Failed to load DeFi plans
+                </p>
+                <p style="color: #8b93a7; font-size: 14px; margin-bottom: 20px;">${error.message}</p>
+                <button class="btn-primary-custom" onclick="loadDeFiPlans(true)">
+                    <i class="fa fa-refresh"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Display DeFi plans in the container
+ */
+function displayDeFiPlans(defiPlans) {
+    const container = document.getElementById('defi-plans-container');
+
+    if (defiPlans.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No DeFi plans available at the moment.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    defiPlans.forEach(plan => {
+        const planCard = createDeFiPlanCard(plan);
+        container.appendChild(planCard);
+    });
+}
+
+/**
+ * Create a DeFi plan card element
+ */
+function createDeFiPlanCard(plan) {
+    const card = document.createElement('div');
+    card.className = 'plan-card';
+
+    // Check if user has sufficient funds
+    const hasSufficientFunds = userWalletBalance >= plan.minimum_investment;
+    const buttonDisabled = !hasSufficientFunds;
+
+    // Add visual indicator for unaffordable plans
+    if (!hasSufficientFunds) {
+        card.style.opacity = '0.85';
+        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
+    }
+
+    // Portfolio type badge color
+    let badgeColor = '#11998e';
+    if (plan.portfolio_type === 'Conservative') {
+        badgeColor = '#4caf50';
+    } else if (plan.portfolio_type === 'Moderate') {
+        badgeColor = '#ff9800';
+    } else if (plan.portfolio_type === 'Aggressive') {
+        badgeColor = '#f44336';
+    } else if (plan.portfolio_type === 'Balanced') {
+        badgeColor = '#667eea';
+    }
+
+    card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #D32F2F; margin: 0;">${plan.name}</h3>
+            <span style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                ${plan.portfolio_type}
+            </span>
+        </div>
+
+        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 20px; line-height: 1.6;">${plan.description}</p>` : ''}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(17, 153, 142, 0.08); border-radius: 8px;">
+            <div>
+                <div style="font-size: 24px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
+                <div style="font-size: 12px; color: #8b93a7;">Expected Return</div>
+            </div>
+            <div>
+                <div style="font-size: 24px; font-weight: bold; color: #D32F2F;">${plan.duration_months} mo</div>
+                <div style="font-size: 12px; color: #8b93a7;">Duration</div>
+            </div>
+        </div>
+
+        ${plan.minimum_investment > 0 ? `
+            <div style="padding: 12px; background: rgba(17, 153, 142, 0.08); border-radius: 8px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #8b93a7; font-size: 14px;">Minimum Investment:</span>
+                    <span style="color: #D32F2F; font-weight: 700; font-size: 16px;">$${plan.minimum_investment.toLocaleString()}</span>
+                </div>
+            </div>
+        ` : ''}
+
+        ${!hasSufficientFunds && plan.minimum_investment > 0 ? `
+            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
+                <p style="color: #ff6b6b; font-size: 13px; margin: 0;">
+                    <i class="fa fa-exclamation-triangle"></i> Insufficient funds. You need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more.
+                </p>
+            </div>
+        ` : ''}
+    `;
+
+    return card;
+}
+
+/**
+ * Show DeFi plan details
+ */
+async function showDeFiPlanDetails(planId) {
+    Swal.fire({
+        title: 'DeFi Plan Details',
+        html: `
+            <p style="color: #8b93a7; margin-bottom: 15px;">
+                DeFi copy trading functionality is currently being implemented.
+            </p>
+            <p style="color: #8b93a7; font-size: 14px;">
+                <i class="fa fa-info-circle"></i> Contact support for more information about copying trades from professional DeFi traders.
+            </p>
+        `,
+        icon: 'info',
+        confirmButtonText: 'OK'
+    });
+}
+
+// ==============================================
+// OPTIONS PLANS MANAGEMENT
+// ==============================================
+
+let optionsPlansLoaded = false; // Flag to prevent multiple loads
+let optionsPlansCache = null; // Cache for Options plans data
+
+/**
+ * Load Options plans
+ */
+async function loadOptionsPlans(forceReload = false) {
+    // Skip if already loaded and not forcing reload
+    if (optionsPlansLoaded && !forceReload && optionsPlansCache) {
+        console.log('Displaying cached Options plans:', optionsPlansCache.length);
+        displayOptionsPlans(optionsPlansCache);
+        return;
+    }
+
+    const container = document.getElementById('options-plans-container');
+    container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading Options plans...</p>';
+
+    try {
+        console.log('Starting to load Options plans...');
+
+        // Check authentication
+        const token = TED_AUTH.getToken();
+        if (!token) {
+            console.error('No authentication token found');
+            throw new Error('Please login to view Options plans');
+        }
+
+        // Fetch user data to get wallet balance
+        const userData = TED_AUTH.getUser();
+        if (!userData || userData.wallet_balance === undefined || userData.wallet_balance === null) {
+            const userResponse = await TED_AUTH.apiCall('/api/auth/me');
+            if (userResponse.ok) {
+                const freshUserData = await userResponse.json();
+                userWalletBalance = freshUserData.wallet_balance !== undefined ? freshUserData.wallet_balance : 0;
+                TED_AUTH.saveUser(freshUserData);
+            } else {
+                userWalletBalance = 0;
+            }
+        } else {
+            userWalletBalance = userData.wallet_balance;
+        }
+
+        // Update wallet balance display
+        const optionsWalletBalanceElement = document.getElementById('options-wallet-balance');
+        if (optionsWalletBalanceElement) {
+            optionsWalletBalanceElement.textContent = `$${userWalletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // Fetch Options plans from API
+        console.log('Fetching Options plans from /api/options-plans/...');
+        const response = await TED_AUTH.apiCall('/api/options-plans/', {
+            method: 'GET'
+        });
+
+        console.log('Options Plans API response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Options Plans API error:', errorData);
+            throw new Error(errorData.detail || `Failed to fetch Options plans: ${response.statusText}`);
+        }
+
+        const optionsPlans = await response.json();
+        console.log('Successfully fetched Options plans:', optionsPlans.length, optionsPlans);
+
+        // Cache the Options plans
+        optionsPlansCache = optionsPlans;
+        optionsPlansLoaded = true;
+
+        // Display Options plans
+        displayOptionsPlans(optionsPlans);
+    } catch (error) {
+        console.error('Error loading Options plans:', error);
+        optionsPlansLoaded = false;
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px 0;">
+                <p style="color: #ff6b6b; margin-bottom: 15px;">
+                    <i class="fa fa-exclamation-circle" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                    Failed to load Options plans
+                </p>
+                <p style="color: #8b93a7; font-size: 14px; margin-bottom: 20px;">${error.message}</p>
+                <button class="btn-primary-custom" onclick="loadOptionsPlans(true)">
+                    <i class="fa fa-refresh"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Display Options plans in the container
+ */
+function displayOptionsPlans(optionsPlans) {
+    const container = document.getElementById('options-plans-container');
+
+    if (optionsPlans.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No Options plans available at the moment.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    optionsPlans.forEach(plan => {
+        const planCard = createOptionsPlanCard(plan);
+        container.appendChild(planCard);
+    });
+}
+
+/**
+ * Create an Options plan card element
+ */
+function createOptionsPlanCard(plan) {
+    const card = document.createElement('div');
+    card.className = 'plan-card';
+
+    // Check if user has sufficient funds
+    const hasSufficientFunds = userWalletBalance >= plan.minimum_investment;
+    const buttonDisabled = !hasSufficientFunds;
+
+    // Add visual indicator for unaffordable plans
+    if (!hasSufficientFunds) {
+        card.style.opacity = '0.85';
+        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
+    }
+
+    // Plan type badge color
+    let badgeColor = '#667eea';
+    if (plan.plan_type === 'Beginner') {
+        badgeColor = '#4caf50';
+    } else if (plan.plan_type === 'Intermediate') {
+        badgeColor = '#ff9800';
+    } else if (plan.plan_type === 'Advanced') {
+        badgeColor = '#f44336';
+    } else if (plan.plan_type === 'Expert') {
+        badgeColor = '#764ba2';
+    }
+
+    card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #D32F2F; margin: 0;">${plan.name}</h3>
+            <span style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                ${plan.plan_type}
+            </span>
+        </div>
+
+        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 20px; line-height: 1.6;">${plan.description}</p>` : ''}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(102, 126, 234, 0.08); border-radius: 8px;">
+            <div>
+                <div style="font-size: 24px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
+                <div style="font-size: 12px; color: #8b93a7;">Expected Return</div>
+            </div>
+            <div>
+                <div style="font-size: 24px; font-weight: bold; color: #D32F2F;">${plan.duration_months > 0 ? plan.duration_months + ' mo' : 'Ongoing'}</div>
+                <div style="font-size: 12px; color: #8b93a7;">Duration</div>
+            </div>
+        </div>
+
+        ${plan.minimum_investment > 0 ? `
+            <div style="padding: 12px; background: rgba(102, 126, 234, 0.08); border-radius: 8px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #8b93a7; font-size: 14px;">Minimum Investment:</span>
+                    <span style="color: #D32F2F; font-weight: 700; font-size: 16px;">$${plan.minimum_investment.toLocaleString()}</span>
+                </div>
+            </div>
+        ` : ''}
+
+        ${!hasSufficientFunds && plan.minimum_investment > 0 ? `
+            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
+                <p style="color: #ff6b6b; font-size: 13px; margin: 0;">
+                    <i class="fa fa-exclamation-triangle"></i> Insufficient funds. You need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more.
+                </p>
+            </div>
+        ` : ''}
+    `;
+
+    return card;
+}
+
+/**
+ * Show Options plan details
+ */
+async function showOptionsPlanDetails(planId) {
+    Swal.fire({
+        title: 'Options Plan Details',
+        html: `
+            <p style="color: #8b93a7; margin-bottom: 15px;">
+                Options copy trading functionality is currently being implemented.
+            </p>
+            <p style="color: #8b93a7; font-size: 14px;">
+                <i class="fa fa-info-circle"></i> Contact support for more information about copying trades from professional options traders.
+            </p>
+        `,
+        icon: 'info',
+        confirmButtonText: 'OK'
+    });
 }
 
 /**
@@ -2512,6 +3174,27 @@ function createInvestmentCard(investment) {
     const totalDays = investment.days_elapsed + investment.days_remaining;
     const progressPercent = totalDays > 0 ? (investment.days_elapsed / totalDays * 100) : 0;
 
+    // Build trader avatars HTML
+    let tradersHTML = '';
+    if (investment.selected_traders && investment.selected_traders.length > 0) {
+        const traderAvatarsHTML = investment.selected_traders.map(trader => {
+            return trader.profile_photo
+                ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-avatar" title="${trader.full_name}">`
+                : `<div class="trader-avatar-placeholder" title="${trader.full_name}"><i class="fa fa-user" style="font-size: 16px; color: #8b93a7;"></i></div>`;
+        }).join('');
+
+        tradersHTML = `
+            <div style="background: rgba(123, 182, 218, 0.05); border-radius: 8px; padding: 12px; margin-top: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="color: #8b93a7; font-size: 13px;">Copying Traders:</span>
+                    <div class="trader-avatars" style="display: flex; gap: 6px;">
+                        ${traderAvatarsHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="color: #D32F2F; margin: 0;">${investment.plan_name}</h3>
@@ -2568,6 +3251,8 @@ function createInvestmentCard(investment) {
                 <span style="color: #000; font-weight: 600; font-size: 13px;">${maturityDate}</span>
             </div>
         </div>
+
+        ${tradersHTML}
     `;
 
     return card;
@@ -2652,6 +3337,27 @@ function createDashboardInvestmentCard(investment) {
     const totalDays = investment.days_elapsed + investment.days_remaining;
     const progressPercent = totalDays > 0 ? (investment.days_elapsed / totalDays * 100) : 0;
 
+    // Build trader avatars HTML
+    let tradersHTML = '';
+    if (investment.selected_traders && investment.selected_traders.length > 0) {
+        const traderAvatarsHTML = investment.selected_traders.map(trader => {
+            return trader.profile_photo
+                ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-avatar" title="${trader.full_name}">`
+                : `<div class="trader-avatar-placeholder" title="${trader.full_name}"><i class="fa fa-user" style="font-size: 16px; color: #8b93a7;"></i></div>`;
+        }).join('');
+
+        tradersHTML = `
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(123, 182, 218, 0.2);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #8b93a7; font-size: 11px;">Copying:</span>
+                    <div class="trader-avatars" style="display: flex; gap: 6px;">
+                        ${traderAvatarsHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
             <div>
@@ -2692,6 +3398,8 @@ function createDashboardInvestmentCard(investment) {
                 <span style="color: #8b93a7; font-size: 10px;">Matures: ${maturityDate}</span>
             </div>
         </div>
+
+        ${tradersHTML}
     `;
 
     return card;
@@ -3808,6 +4516,100 @@ async function checkAccessStatus() {
         console.error('Error checking access status:', error);
     }
 }
+
+// Fetch and Display Active Plans with Progress
+async function loadActivePlans() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch('/api/investments/active-plans', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        // Render General Plans
+        renderActivePlans(data.general_plans, 'general-active-plans-container', 'General');
+
+        // Render ETF Plans
+        renderActivePlans(data.etf_plans, 'etf-active-plans-container', 'ETF');
+
+        // Render DeFi Plans
+        renderActivePlans(data.defi_plans, 'defi-active-plans-container', 'DeFi');
+
+        // Render Options Plans
+        renderActivePlans(data.options_plans, 'options-active-plans-container', 'Options');
+
+    } catch (error) {
+        console.error('Error loading active plans:', error);
+    }
+}
+
+function renderActivePlans(plans, containerId, planType) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!plans || plans.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const plansHTML = plans.map(plan => {
+        const performanceClass = plan.profit_loss_percent >= 0 ? 'positive' : 'negative';
+        const performanceSign = plan.profit_loss_percent >= 0 ? '+' : '';
+
+        // Render trader avatars
+        const tradersHTML = plan.selected_traders && plan.selected_traders.length > 0
+            ? plan.selected_traders.map(trader => {
+                return trader.profile_photo
+                    ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-avatar" title="${trader.full_name}">`
+                    : `<div class="trader-avatar-placeholder" title="${trader.full_name}"><i class="fa fa-user" style="font-size: 16px; color: #8b93a7;"></i></div>`;
+            }).join('')
+            : '<span style="font-size: 12px; color: #8b93a7;">No traders selected</span>';
+
+        return `
+            <div class="active-plan-card">
+                <div class="active-plan-header">
+                    <div>
+                        <h4 class="active-plan-title">${plan.plan_name}</h4>
+                        <p class="active-plan-amount">Invested: $${plan.amount_invested.toLocaleString()}</p>
+                    </div>
+                    <div class="active-plan-performance">
+                        <p class="performance-value ${performanceClass}">${performanceSign}${plan.profit_loss_percent}%</p>
+                        <p class="performance-label">Return</p>
+                    </div>
+                </div>
+                <div class="progress-section">
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar-fill" style="width: ${plan.progress_percent}%"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span>${Math.round(plan.progress_percent)}% Complete</span>
+                        <span>${plan.time_remaining} remaining</span>
+                    </div>
+                </div>
+                <div class="traders-section">
+                    <span class="traders-label">Copying:</span>
+                    <div class="trader-avatars">
+                        ${tradersHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = plansHTML;
+}
+
+// Call loadActivePlans when dashboard loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadActivePlans();
+});
 
 // Export access control functions
 window.disableSidebarMenus = disableSidebarMenus;
