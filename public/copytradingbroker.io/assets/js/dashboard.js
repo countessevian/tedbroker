@@ -85,10 +85,10 @@ function showKYCNotification() {
                 <i class="fas fa-exclamation-triangle" style="font-size: 32px; color: ${iconColor}; animation: shake 0.5s ease-in-out infinite alternate;"></i>
             </div>
             <div>
-                <div style="font-weight: 700; font-size: 19px; margin-bottom: 8px; color: ${textColor}; letter-spacing: -0.2px;">
+                <div style="font-weight: 700; font-size: 10px; margin-bottom: 4px; color: ${textColor}; letter-spacing: -0.1px;">
                     ⚠️ Action Required: Complete Your KYC Verification
                 </div>
-                <div style="font-size: 15px; line-height: 1.5; color: ${textColor}; opacity: 0.9;">
+                <div style="font-size: 8px; line-height: 1.5; color: ${textColor}; opacity: 0.9;">
                     Your account access is limited. Please complete your identity verification to unlock all features, start investing, and access the full platform.
                 </div>
             </div>
