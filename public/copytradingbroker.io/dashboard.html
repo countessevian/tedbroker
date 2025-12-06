@@ -860,6 +860,37 @@
             gap: 15px;
         }
 
+        /* Disabled/blurred quick action buttons for unapproved KYC */
+        .quick-actions-grid.disabled {
+            filter: blur(3px);
+            opacity: 0.5;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .quick-actions-grid button.disabled {
+            cursor: not-allowed !important;
+            opacity: 0.6;
+            filter: grayscale(50%);
+        }
+
+        #quick-actions-card.kyc-pending {
+            position: relative;
+        }
+
+        #quick-actions-card.kyc-pending::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+            border-radius: 12px;
+        }
+
         .subscription-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

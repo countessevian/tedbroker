@@ -15,7 +15,7 @@ async function checkOnboardingStatus() {
             // Show KYC notification banner
             showKYCNotification();
             // Disable sidebar menu items until KYC is complete
-            disableSidebarMenus();
+            disableSidebarMenusForKYC();
             return false;
         }
         return true;
@@ -271,7 +271,7 @@ function showKYCNotification() {
  * Disable all sidebar menu items until KYC is complete
  * This applies to ALL users who haven't completed onboarding, including existing users
  */
-function disableSidebarMenus() {
+function disableSidebarMenusForKYC() {
     console.log('Disabling sidebar menus due to incomplete KYC');
     const menuItems = document.querySelectorAll('.menu-item, .submenu-item');
 
@@ -348,12 +348,63 @@ function disableSidebarMenus() {
 
     console.log(`Disabled ${document.querySelectorAll('[data-kyc-disabled="true"]').length} menu items`);
 
-    // Also hide the Quick Actions card
+    // Disable and blur the Quick Actions card instead of hiding it
     const quickActionsCard = document.getElementById('quick-actions-card');
     if (quickActionsCard) {
-        quickActionsCard.style.display = 'none';
-        quickActionsCard.setAttribute('data-kyc-hidden', 'true');
-        console.log('Hidden Quick Actions card due to incomplete KYC');
+        quickActionsCard.classList.add('kyc-pending');
+        quickActionsCard.setAttribute('data-kyc-disabled', 'true');
+
+        // Get the quick actions grid and disable it
+        const quickActionsGrid = quickActionsCard.querySelector('.quick-actions-grid');
+        if (quickActionsGrid) {
+            quickActionsGrid.classList.add('disabled');
+
+            // Disable all buttons individually
+            const buttons = quickActionsGrid.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.classList.add('disabled');
+                button.setAttribute('disabled', 'true');
+                button.style.cursor = 'not-allowed';
+
+                // Store original onclick handler
+                const originalOnclick = button.getAttribute('onclick');
+                if (originalOnclick) {
+                    button.setAttribute('data-original-onclick', originalOnclick);
+                    button.removeAttribute('onclick');
+                }
+
+                // Add click handler to show KYC warning
+                const kycWarningHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '🔒 Feature Locked',
+                            html: '<p style="font-size: 16px; line-height: 1.6;">Please complete your KYC verification and wait for admin approval to access Quick Actions.</p>',
+                            confirmButtonText: '✓ Complete KYC Now',
+                            confirmButtonColor: '#ea580c',
+                            showCancelButton: true,
+                            cancelButtonText: 'Later',
+                            cancelButtonColor: '#6b7280'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/onboarding';
+                            }
+                        });
+                    } else {
+                        alert('Please complete your KYC verification to access this feature.');
+                    }
+                    return false;
+                };
+
+                button.addEventListener('click', kycWarningHandler, true);
+                button.setAttribute('data-kyc-warning-attached', 'true');
+            });
+        }
+
+        console.log('Disabled and blurred Quick Actions card due to incomplete KYC');
     }
 }
 
@@ -389,12 +440,45 @@ function enableSidebarMenus() {
         }, 400);
     }
 
-    // Show the Quick Actions card again
+    // Re-enable the Quick Actions card
     const quickActionsCard = document.getElementById('quick-actions-card');
-    if (quickActionsCard && quickActionsCard.getAttribute('data-kyc-hidden') === 'true') {
+    if (quickActionsCard) {
+        // Remove disabled state from card
+        quickActionsCard.classList.remove('kyc-pending');
+        quickActionsCard.removeAttribute('data-kyc-disabled');
         quickActionsCard.style.display = '';
         quickActionsCard.removeAttribute('data-kyc-hidden');
-        console.log('Shown Quick Actions card - KYC completed');
+
+        // Re-enable the quick actions grid
+        const quickActionsGrid = quickActionsCard.querySelector('.quick-actions-grid');
+        if (quickActionsGrid) {
+            quickActionsGrid.classList.remove('disabled');
+
+            // Re-enable all buttons
+            const buttons = quickActionsGrid.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.classList.remove('disabled');
+                button.removeAttribute('disabled');
+                button.style.cursor = '';
+
+                // Restore original onclick handler
+                const originalOnclick = button.getAttribute('data-original-onclick');
+                if (originalOnclick) {
+                    button.setAttribute('onclick', originalOnclick);
+                    button.removeAttribute('data-original-onclick');
+                }
+
+                // Remove KYC warning handler
+                if (button.getAttribute('data-kyc-warning-attached') === 'true') {
+                    // Clone and replace to remove event listeners
+                    const newButton = button.cloneNode(true);
+                    newButton.removeAttribute('data-kyc-warning-attached');
+                    button.parentNode.replaceChild(newButton, button);
+                }
+            });
+        }
+
+        console.log('Re-enabled Quick Actions card - KYC completed and approved');
     }
 
     console.log('Sidebar menus enabled - user can now access all features');
@@ -433,11 +517,18 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Check if user has been granted dashboard access
     if (!hasAccess) {
+        console.log('⚠️ User access_granted = false. Disabling dashboard features...');
         // Disable all sidebar menu items except logout
-        disableSidebarMenus();
+        // Use setTimeout to ensure DOM elements are fully rendered
+        setTimeout(() => {
+            console.log('⏳ Calling disableSidebarMenus() for unapproved user...');
+            disableSidebarMenus();
+        }, 100);
 
         // Show notification banner about pending approval
         showPendingApprovalBanner();
+    } else {
+        console.log('✅ User access_granted = true. Full dashboard access enabled.');
     }
 
     // Check onboarding status - redirect if incomplete
@@ -4410,6 +4501,67 @@ function disableSidebarMenus() {
         btn.style.cursor = 'not-allowed';
         btn.setAttribute('title', 'Dashboard access pending admin approval');
     });
+
+    // Disable and blur the Quick Actions card for users without access_granted
+    const quickActionsCard = document.getElementById('quick-actions-card');
+    if (quickActionsCard) {
+        console.log('Found Quick Actions card, disabling it now...');
+        quickActionsCard.classList.add('kyc-pending');
+        quickActionsCard.setAttribute('data-kyc-disabled', 'true');
+
+        // Get the quick actions grid and disable it
+        const quickActionsGrid = quickActionsCard.querySelector('.quick-actions-grid');
+        if (quickActionsGrid) {
+            quickActionsGrid.classList.add('disabled');
+            console.log('Applied disabled class to quick-actions-grid');
+
+            // Disable all buttons individually
+            const buttons = quickActionsGrid.querySelectorAll('button');
+            console.log(`Found ${buttons.length} quick action buttons to disable`);
+
+            buttons.forEach((button, index) => {
+                button.classList.add('disabled');
+                button.setAttribute('disabled', 'true');
+                button.style.cursor = 'not-allowed';
+
+                // Store original onclick handler
+                const originalOnclick = button.getAttribute('onclick');
+                if (originalOnclick) {
+                    button.setAttribute('data-original-onclick', originalOnclick);
+                    button.removeAttribute('onclick');
+                }
+
+                // Add click handler to show access pending warning
+                const accessPendingHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '⏳ Access Pending',
+                            html: '<p style="font-size: 16px; line-height: 1.6;">Your KYC documents are under review. You will be able to access Quick Actions once admin approves your account.</p>',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#ea580c'
+                        });
+                    } else {
+                        alert('Your account is pending admin approval. Please wait for verification.');
+                    }
+                    return false;
+                };
+
+                button.addEventListener('click', accessPendingHandler, true);
+                button.setAttribute('data-access-pending-attached', 'true');
+                console.log(`Disabled quick action button ${index + 1}: ${button.textContent.trim()}`);
+            });
+        } else {
+            console.warn('Quick Actions grid not found inside card');
+        }
+
+        console.log('✓ Successfully disabled and blurred Quick Actions card - pending admin approval');
+    } else {
+        console.warn('Quick Actions card element not found in DOM');
+    }
 }
 
 /**
@@ -4435,25 +4587,25 @@ function showPendingApprovalBanner() {
     `;
 
     banner.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="font-size: 40px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="font-size: 20px;">
                 <i class="fas fa-hourglass-half" style="color: #f39c12; animation: pulse 2s infinite;"></i>
             </div>
             <div style="flex: 1;">
-                <h3 style="margin: 0 0 8px 0; color: #856404; font-size: 20px;">
-                    <i class="fas fa-lock"></i> Dashboard Access Pending Approval
+                <h3 style="margin: 0 0 4px 0; color: #856404; font-size: 12px; font-weight: 600;">
+                    <i class="fas fa-lock" style="font-size: 10px;"></i> Dashboard Access Pending Approval
                 </h3>
-                <p style="margin: 0; color: #856404; line-height: 1.5;">
+                <p style="margin: 0; color: #856404; line-height: 1.4; font-size: 11px;">
                     Your account has been created and your onboarding information is under review.
                     Dashboard features will be unlocked once an admin approves your account.
                     This typically takes <strong>less than 24 hours</strong>.
                 </p>
-                <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center;">
-                    <button onclick="checkAccessStatus()" class="btn btn-primary" style="padding: 8px 16px; font-size: 14px;">
-                        <i class="fas fa-sync-alt"></i> Check Status
+                <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
+                    <button onclick="checkAccessStatus()" class="btn btn-primary" style="padding: 4px 10px; font-size: 11px;">
+                        <i class="fas fa-sync-alt" style="font-size: 10px;"></i> Check Status
                     </button>
-                    <span style="color: #856404; font-size: 13px;">
-                        <i class="fas fa-info-circle"></i> Auto-checking every 30 seconds
+                    <span style="color: #856404; font-size: 10px;">
+                        <i class="fas fa-info-circle" style="font-size: 9px;"></i> Auto-checking every 30 seconds
                     </span>
                 </div>
             </div>
