@@ -1494,9 +1494,111 @@ function createETFPlanCard(plan) {
                 </p>
             </div>
         ` : ''}
+
+        <button
+            class="activate-plan-btn"
+            onclick="activateETFPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"
+            ${buttonDisabled ? 'disabled' : ''}
+            style="width: 100%; padding: 12px; background: ${buttonDisabled ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: ${buttonDisabled ? 'not-allowed' : 'pointer'}; transition: all 0.3s;"
+        >
+            <i class="fa fa-rocket"></i> Activate Plan
+        </button>
     `;
 
     return card;
+}
+
+/**
+ * Activate an ETF plan
+ */
+async function activateETFPlan(planId, planName, minInvestment) {
+    const { value: amount } = await Swal.fire({
+        title: `Activate ${planName}`,
+        html: `
+            <p style="color: #8b93a7; margin-bottom: 15px;">
+                Enter the amount you wish to invest in this ETF plan.
+            </p>
+            <p style="color: #8b93a7; font-size: 14px; margin-bottom: 10px;">
+                Minimum Investment: <strong>$${minInvestment.toLocaleString()}</strong>
+            </p>
+            <p style="color: #8b93a7; font-size: 14px; margin-bottom: 20px;">
+                Your Wallet Balance: <strong>$${userWalletBalance.toLocaleString()}</strong>
+            </p>
+        `,
+        input: 'number',
+        inputPlaceholder: `Enter amount (min $${minInvestment})`,
+        inputAttributes: {
+            min: minInvestment,
+            step: '0.01'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Activate Plan',
+        cancelButtonText: 'Cancel',
+        inputValidator: (value) => {
+            if (!value || parseFloat(value) < minInvestment) {
+                return `Amount must be at least $${minInvestment}`;
+            }
+            if (parseFloat(value) > userWalletBalance) {
+                return 'Insufficient wallet balance';
+            }
+        }
+    });
+
+    if (!amount) return;
+
+    try {
+        const response = await fetch(`/api/etf-plans/activate/${planId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ amount: parseFloat(amount) })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Failed to activate plan');
+        }
+
+        // Update wallet balance
+        userWalletBalance = data.new_wallet_balance;
+        updateWalletDisplay();
+
+        // Show success message
+        await Swal.fire({
+            title: 'Plan Activated!',
+            html: `
+                <p style="color: #4caf50; font-weight: 600; margin-bottom: 15px;">
+                    Successfully activated ${planName}
+                </p>
+                <div style="text-align: left; background: rgba(102, 126, 234, 0.08); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <p style="margin: 5px 0;"><strong>Amount Invested:</strong> $${parseFloat(amount).toLocaleString()}</p>
+                    <p style="margin: 5px 0;"><strong>New Wallet Balance:</strong> $${data.new_wallet_balance.toLocaleString()}</p>
+                    <p style="margin: 5px 0;"><strong>Maturity Date:</strong> ${new Date(data.maturity_date).toLocaleDateString()}</p>
+                </div>
+                <p style="color: #8b93a7; font-size: 14px;">
+                    <i class="fa fa-info-circle"></i> View your active plan in the Portfolio tab
+                </p>
+            `,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+
+        // Refresh portfolio to show new investment
+        if (typeof loadPortfolioData === 'function') {
+            await loadPortfolioData();
+        }
+
+    } catch (error) {
+        Swal.fire({
+            title: 'Activation Failed',
+            text: error.message,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
 }
 
 /**
@@ -1695,9 +1797,111 @@ function createDeFiPlanCard(plan) {
                 </p>
             </div>
         ` : ''}
+
+        <button
+            class="activate-plan-btn"
+            onclick="activateDeFiPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"
+            ${buttonDisabled ? 'disabled' : ''}
+            style="width: 100%; padding: 12px; background: ${buttonDisabled ? '#ccc' : 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'}; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: ${buttonDisabled ? 'not-allowed' : 'pointer'}; transition: all 0.3s;"
+        >
+            <i class="fa fa-rocket"></i> Activate Plan
+        </button>
     `;
 
     return card;
+}
+
+/**
+ * Activate a DeFi plan
+ */
+async function activateDeFiPlan(planId, planName, minInvestment) {
+    const { value: amount } = await Swal.fire({
+        title: `Activate ${planName}`,
+        html: `
+            <p style="color: #8b93a7; margin-bottom: 15px;">
+                Enter the amount you wish to invest in this DeFi plan.
+            </p>
+            <p style="color: #8b93a7; font-size: 14px; margin-bottom: 10px;">
+                Minimum Investment: <strong>$${minInvestment.toLocaleString()}</strong>
+            </p>
+            <p style="color: #8b93a7; font-size: 14px; margin-bottom: 20px;">
+                Your Wallet Balance: <strong>$${userWalletBalance.toLocaleString()}</strong>
+            </p>
+        `,
+        input: 'number',
+        inputPlaceholder: `Enter amount (min $${minInvestment})`,
+        inputAttributes: {
+            min: minInvestment,
+            step: '0.01'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Activate Plan',
+        cancelButtonText: 'Cancel',
+        inputValidator: (value) => {
+            if (!value || parseFloat(value) < minInvestment) {
+                return `Amount must be at least $${minInvestment}`;
+            }
+            if (parseFloat(value) > userWalletBalance) {
+                return 'Insufficient wallet balance';
+            }
+        }
+    });
+
+    if (!amount) return;
+
+    try {
+        const response = await fetch(`/api/defi-plans/activate/${planId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ amount: parseFloat(amount) })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Failed to activate plan');
+        }
+
+        // Update wallet balance
+        userWalletBalance = data.new_wallet_balance;
+        updateWalletDisplay();
+
+        // Show success message
+        await Swal.fire({
+            title: 'Plan Activated!',
+            html: `
+                <p style="color: #4caf50; font-weight: 600; margin-bottom: 15px;">
+                    Successfully activated ${planName}
+                </p>
+                <div style="text-align: left; background: rgba(17, 153, 142, 0.08); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <p style="margin: 5px 0;"><strong>Amount Invested:</strong> $${parseFloat(amount).toLocaleString()}</p>
+                    <p style="margin: 5px 0;"><strong>New Wallet Balance:</strong> $${data.new_wallet_balance.toLocaleString()}</p>
+                    <p style="margin: 5px 0;"><strong>Maturity Date:</strong> ${new Date(data.maturity_date).toLocaleDateString()}</p>
+                </div>
+                <p style="color: #8b93a7; font-size: 14px;">
+                    <i class="fa fa-info-circle"></i> View your active plan in the Portfolio tab
+                </p>
+            `,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+
+        // Refresh portfolio to show new investment
+        if (typeof loadPortfolioData === 'function') {
+            await loadPortfolioData();
+        }
+
+    } catch (error) {
+        Swal.fire({
+            title: 'Activation Failed',
+            text: error.message,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
 }
 
 /**
@@ -1896,9 +2100,111 @@ function createOptionsPlanCard(plan) {
                 </p>
             </div>
         ` : ''}
+
+        <button
+            class="activate-plan-btn"
+            onclick="activateOptionsPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"
+            ${buttonDisabled ? 'disabled' : ''}
+            style="width: 100%; padding: 12px; background: ${buttonDisabled ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: ${buttonDisabled ? 'not-allowed' : 'pointer'}; transition: all 0.3s;"
+        >
+            <i class="fa fa-rocket"></i> Activate Plan
+        </button>
     `;
 
     return card;
+}
+
+/**
+ * Activate an Options plan
+ */
+async function activateOptionsPlan(planId, planName, minInvestment) {
+    const { value: amount } = await Swal.fire({
+        title: `Activate ${planName}`,
+        html: `
+            <p style="color: #8b93a7; margin-bottom: 15px;">
+                Enter the amount you wish to invest in this Options plan.
+            </p>
+            <p style="color: #8b93a7; font-size: 14px; margin-bottom: 10px;">
+                Minimum Investment: <strong>$${minInvestment.toLocaleString()}</strong>
+            </p>
+            <p style="color: #8b93a7; font-size: 14px; margin-bottom: 20px;">
+                Your Wallet Balance: <strong>$${userWalletBalance.toLocaleString()}</strong>
+            </p>
+        `,
+        input: 'number',
+        inputPlaceholder: `Enter amount (min $${minInvestment})`,
+        inputAttributes: {
+            min: minInvestment,
+            step: '0.01'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Activate Plan',
+        cancelButtonText: 'Cancel',
+        inputValidator: (value) => {
+            if (!value || parseFloat(value) < minInvestment) {
+                return `Amount must be at least $${minInvestment}`;
+            }
+            if (parseFloat(value) > userWalletBalance) {
+                return 'Insufficient wallet balance';
+            }
+        }
+    });
+
+    if (!amount) return;
+
+    try {
+        const response = await fetch(`/api/options-plans/activate/${planId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ amount: parseFloat(amount) })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Failed to activate plan');
+        }
+
+        // Update wallet balance
+        userWalletBalance = data.new_wallet_balance;
+        updateWalletDisplay();
+
+        // Show success message
+        await Swal.fire({
+            title: 'Plan Activated!',
+            html: `
+                <p style="color: #4caf50; font-weight: 600; margin-bottom: 15px;">
+                    Successfully activated ${planName}
+                </p>
+                <div style="text-align: left; background: rgba(102, 126, 234, 0.08); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <p style="margin: 5px 0;"><strong>Amount Invested:</strong> $${parseFloat(amount).toLocaleString()}</p>
+                    <p style="margin: 5px 0;"><strong>New Wallet Balance:</strong> $${data.new_wallet_balance.toLocaleString()}</p>
+                    <p style="margin: 5px 0;"><strong>Maturity Date:</strong> ${new Date(data.maturity_date).toLocaleDateString()}</p>
+                </div>
+                <p style="color: #8b93a7; font-size: 14px;">
+                    <i class="fa fa-info-circle"></i> View your active plan in the Portfolio tab
+                </p>
+            `,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+
+        // Refresh portfolio to show new investment
+        if (typeof loadPortfolioData === 'function') {
+            await loadPortfolioData();
+        }
+
+    } catch (error) {
+        Swal.fire({
+            title: 'Activation Failed',
+            text: error.message,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
 }
 
 /**
