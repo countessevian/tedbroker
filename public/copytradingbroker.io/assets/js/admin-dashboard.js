@@ -202,6 +202,11 @@ async function loadUsers(search = '') {
                             <button class="btn btn-primary" style="padding: 10px 18px;" onclick="viewUser('${user.id}')">
                                 <i class="fas fa-eye"></i> Full Details
                             </button>
+                            ${kyc.kyc_completed || kyc.address_completed || kyc.personal_info_completed ?
+                                `<button class="btn btn-warning" style="padding: 10px 18px;" onclick="rejectKYC('${user.id}')">
+                                    <i class="fas fa-times-circle"></i> Reject KYC
+                                </button>` : ''
+                            }
                             ${user.access_granted ?
                                 `<button class="btn btn-danger" style="padding: 10px 18px;" onclick="revokeAccess('${user.id}')">
                                     <i class="fas fa-lock"></i> Revoke Access
@@ -666,6 +671,50 @@ async function revokeAccess(userId) {
     } catch (error) {
         TED_AUTH.closeLoading();
         Swal.fire({ title: 'Error!', text: 'Error revoking access', icon: 'error' });
+    }
+}
+
+// Reject KYC
+async function rejectKYC(userId) {
+    const result = await Swal.fire({
+        title: 'Reject KYC?',
+        html: `
+            <p style="color: #666; margin-bottom: 15px;">This will delete all KYC/onboarding information for this user, including:</p>
+            <ul style="text-align: left; color: #666; margin: 10px 0; padding-left: 30px;">
+                <li>Personal information (name, gender)</li>
+                <li>Address details (street, city, state, zip, country)</li>
+                <li>Verification document photo</li>
+                <li>Document number</li>
+            </ul>
+            <p style="color: #d32f2f; font-weight: 600; margin-top: 15px;">The user will be required to complete KYC/onboarding again.</p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d32f2f',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Reject KYC',
+        cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        TED_AUTH.showLoading('Rejecting KYC...');
+        await adminFetch(`/api/admin/users/${userId}/reject-kyc`, { method: 'PUT' });
+        TED_AUTH.closeLoading();
+        Swal.fire({
+            title: 'Success!',
+            text: 'KYC rejected successfully. User will need to complete onboarding again.',
+            icon: 'success'
+        });
+        loadUsers();
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        Swal.fire({
+            title: 'Error!',
+            text: error.message || 'Error rejecting KYC',
+            icon: 'error'
+        });
     }
 }
 

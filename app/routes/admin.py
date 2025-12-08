@@ -529,6 +529,92 @@ async def revoke_user_access(
     return {"message": "Dashboard access revoked from user successfully"}
 
 
+@router.put("/users/{user_id}/reject-kyc")
+async def reject_user_kyc(
+    user_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Reject user's KYC and delete all onboarding data
+
+    This will:
+    - Delete all personal information
+    - Delete all address information
+    - Delete verification document photo from disk
+    - Delete document number
+    - Reset all onboarding completion flags
+    - User will need to complete KYC/onboarding again
+
+    Args:
+        user_id: User ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    users = get_collection(USERS_COLLECTION)
+
+    try:
+        # First get the user to check if document photo exists
+        user = users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        # Delete document photo from disk if it exists
+        onboarding = user.get("onboarding", {})
+        document_photo = onboarding.get("document_photo")
+        if document_photo:
+            try:
+                # Import required modules for file operations
+                from pathlib import Path
+                import os
+
+                # Build full path to document photo
+                # Assuming format: /uploads/kyc/filename.ext
+                if document_photo.startswith("/uploads/kyc/"):
+                    upload_dir = Path(__file__).resolve().parent.parent.parent / "public" / "copytradingbroker.io" / "uploads" / "kyc"
+                    filename = document_photo.replace("/uploads/kyc/", "")
+                    file_path = upload_dir / filename
+
+                    # Delete file if it exists
+                    if file_path.exists():
+                        os.remove(file_path)
+            except Exception as e:
+                # Log error but don't fail the request if file deletion fails
+                print(f"Error deleting document photo: {e}")
+
+        # Clear all onboarding data
+        result = users.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$unset": {
+                    "onboarding": ""
+                },
+                "$set": {
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error rejecting KYC: {str(e)}"
+        )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    return {"message": "KYC rejected successfully. User will need to complete onboarding again."}
+
+
 @router.delete("/users/{user_id}")
 async def delete_user(
     user_id: str,

@@ -1220,7 +1220,7 @@ function createPlanCard(plan) {
         ` : ''}
 
         <button
-            class="btn-primary-custom"
+            class="btn-success-custom"
             style="width: 100%; margin-top: 10px; ${buttonDisabled ? 'pointer-events: none;' : ''}"
             ${buttonDisabled ? 'disabled' : ''}
             ${!buttonDisabled ? `onclick="investInPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"` : ''}
