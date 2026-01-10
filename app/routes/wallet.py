@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.schemas import TransactionResponse
 from app.auth import get_current_user_token, verify_password
-from app.database import get_collection, USERS_COLLECTION, TRANSACTIONS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, WITHDRAWAL_REQUESTS_COLLECTION
+from app.database import get_collection, USERS_COLLECTION, TRANSACTIONS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, WITHDRAWAL_REQUESTS_COLLECTION, BANK_ACCOUNTS_COLLECTION
 
 router = APIRouter(prefix="/api/wallet", tags=["Wallet"])
 
@@ -298,6 +298,34 @@ async def get_balance(current_user: dict = Depends(get_current_user_token)):
     return {
         "balance": user.get("wallet_balance", 0.0)
     }
+
+
+@router.get("/deposit-bank-accounts")
+async def get_deposit_bank_accounts():
+    """
+    Get active bank accounts for deposits (public endpoint)
+
+    Returns:
+        list: Active bank accounts where users can deposit funds
+    """
+    bank_accounts = get_collection(BANK_ACCOUNTS_COLLECTION)
+
+    # Get all active bank accounts
+    active_accounts = list(bank_accounts.find({"is_active": True}))
+
+    # Return formatted account details (only one account if multiple exist, use the first one)
+    if active_accounts:
+        account = active_accounts[0]  # Get the first active account
+        return {
+            "bank_name": account.get("bank_name"),
+            "account_name": account.get("account_name"),
+            "account_number": account.get("account_number"),
+            "routing_number": account.get("routing_number"),
+            "swift_code": account.get("swift_code")
+        }
+
+    # Return None if no active accounts
+    return None
 
 
 @router.get("/pending-transactions")

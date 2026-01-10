@@ -3399,6 +3399,62 @@ function hideAllDepositPaymentFields() {
 }
 
 /**
+ * Load bank account details for deposits
+ */
+async function loadBankAccountDetails() {
+    try {
+        const response = await TED_AUTH.apiCall('/api/wallet/deposit-bank-accounts');
+
+        if (response.ok) {
+            const bankAccount = await response.json();
+
+            if (bankAccount) {
+                // Show bank details content
+                document.getElementById('loading-bank-details').style.display = 'none';
+                document.getElementById('bank-details-content').style.display = 'block';
+                document.getElementById('no-bank-details').style.display = 'none';
+
+                // Populate bank account details
+                document.getElementById('deposit-bank-name').textContent = bankAccount.bank_name || 'N/A';
+                document.getElementById('deposit-account-number').textContent = bankAccount.account_number || 'N/A';
+                document.getElementById('deposit-account-name').textContent = bankAccount.account_name || 'N/A';
+
+                // Show/hide optional fields
+                const swiftCodeRow = document.getElementById('swift-code-row');
+                const routingNumberRow = document.getElementById('routing-number-row');
+
+                if (bankAccount.swift_code) {
+                    document.getElementById('deposit-swift-code').textContent = bankAccount.swift_code;
+                    swiftCodeRow.style.display = 'flex';
+                } else {
+                    swiftCodeRow.style.display = 'none';
+                }
+
+                if (bankAccount.routing_number) {
+                    document.getElementById('deposit-routing-number').textContent = bankAccount.routing_number;
+                    routingNumberRow.style.display = 'flex';
+                } else {
+                    routingNumberRow.style.display = 'none';
+                }
+            } else {
+                // No bank account available
+                document.getElementById('loading-bank-details').style.display = 'none';
+                document.getElementById('bank-details-content').style.display = 'none';
+                document.getElementById('no-bank-details').style.display = 'block';
+            }
+        } else {
+            console.error('Failed to load bank account details');
+            document.getElementById('loading-bank-details').style.display = 'none';
+            document.getElementById('no-bank-details').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading bank account details:', error);
+        document.getElementById('loading-bank-details').style.display = 'none';
+        document.getElementById('no-bank-details').style.display = 'block';
+    }
+}
+
+/**
  * Toggle deposit payment method fields based on selection
  */
 function toggleDepositPaymentFields() {
@@ -3416,6 +3472,9 @@ function toggleDepositPaymentFields() {
                 if (bankFields) {
                     bankFields.style.display = 'block';
                     console.log('Showing bank transfer fields');
+
+                    // Load bank account details
+                    loadBankAccountDetails();
                 }
                 break;
             case 'Cryptocurrency':

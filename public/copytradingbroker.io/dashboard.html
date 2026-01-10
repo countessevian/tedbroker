@@ -2881,22 +2881,35 @@
                 <div id="bank-transfer-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
                     <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;">Bank Transfer Details</h4>
                     <p style="color: #8b93a7; font-size: 13px; margin-bottom: 15px;">Please transfer funds to the following bank account:</p>
-                    <div style="background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="color: #8b93a7; font-size: 13px;">Bank Name:</span>
-                            <span style="color: #000; font-weight: 600; font-size: 13px;">TED Brokers Bank</span>
+                    <div id="bank-account-details" style="background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+                        <div id="loading-bank-details" style="text-align: center; padding: 20px;">
+                            <i class="fa-solid fa-spinner fa-spin" style="color: #7bb6da; font-size: 24px;"></i>
+                            <p style="color: #8b93a7; margin-top: 10px; font-size: 13px;">Loading bank details...</p>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="color: #8b93a7; font-size: 13px;">Account Number:</span>
-                            <span style="color: #000; font-weight: 600; font-size: 13px;">1234567890</span>
+                        <div id="bank-details-content" style="display: none;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #8b93a7; font-size: 13px;">Bank Name:</span>
+                                <span id="deposit-bank-name" style="color: #000; font-weight: 600; font-size: 13px;"></span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #8b93a7; font-size: 13px;">Account Number:</span>
+                                <span id="deposit-account-number" style="color: #000; font-weight: 600; font-size: 13px;"></span>
+                            </div>
+                            <div id="swift-code-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #8b93a7; font-size: 13px;">SWIFT Code:</span>
+                                <span id="deposit-swift-code" style="color: #000; font-weight: 600; font-size: 13px;"></span>
+                            </div>
+                            <div id="routing-number-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #8b93a7; font-size: 13px;">Routing Number:</span>
+                                <span id="deposit-routing-number" style="color: #000; font-weight: 600; font-size: 13px;"></span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #8b93a7; font-size: 13px;">Account Holder:</span>
+                                <span id="deposit-account-name" style="color: #000; font-weight: 600; font-size: 13px;"></span>
+                            </div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="color: #8b93a7; font-size: 13px;">SWIFT Code:</span>
-                            <span style="color: #000; font-weight: 600; font-size: 13px;">TEDBROKUS33</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #8b93a7; font-size: 13px;">Account Holder:</span>
-                            <span style="color: #000; font-weight: 600; font-size: 13px;">TED Brokers LLC</span>
+                        <div id="no-bank-details" style="display: none; text-align: center; padding: 10px;">
+                            <p style="color: #D32F2F; font-size: 13px;">No bank account available. Please contact support.</p>
                         </div>
                     </div>
                     <div style="margin-bottom: 15px;">
