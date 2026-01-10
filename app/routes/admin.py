@@ -1304,7 +1304,7 @@ async def approve_deposit_request(
         {
             "$set": {
                 "status": "approved",
-                "description": f"Deposit approved by admin - {deposit_request['payment_method']}",
+                "description": f"Deposit confirmed - {deposit_request['payment_method']}",
                 "updated_at": datetime.utcnow()
             }
         }
@@ -1782,19 +1782,34 @@ async def approve_withdrawal_request(
         {"$inc": {"wallet_balance": -amount}}
     )
 
-    # Create transaction record
-    transaction = {
-        "user_id": user_id,
-        "transaction_type": "withdrawal",
-        "amount": amount,
-        "status": "completed",
-        "payment_method": withdrawal_request["withdrawal_method"],
-        "reference_number": secrets.token_hex(16),
-        "description": f"Withdrawal approved by admin - {withdrawal_request['withdrawal_method']}",
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
-    }
-    transactions.insert_one(transaction)
+    # Update or create transaction record
+    transaction_id = withdrawal_request.get("transaction_id")
+    if transaction_id:
+        # Update existing transaction (created via /api/wallet/withdraw)
+        transactions.update_one(
+            {"_id": ObjectId(transaction_id)},
+            {
+                "$set": {
+                    "status": "completed",
+                    "description": f"Withdrawal confirmed - {withdrawal_request['withdrawal_method']}",
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+    else:
+        # Create new transaction record (created via /api/withdrawals/request)
+        transaction = {
+            "user_id": user_id,
+            "transaction_type": "withdrawal",
+            "amount": amount,
+            "status": "completed",
+            "payment_method": withdrawal_request["withdrawal_method"],
+            "reference_number": secrets.token_hex(16),
+            "description": f"Withdrawal confirmed - {withdrawal_request['withdrawal_method']}",
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        transactions.insert_one(transaction)
 
     # Update withdrawal request status
     withdrawal_requests.update_one(
@@ -1847,6 +1862,7 @@ async def reject_withdrawal_request(
         dict: Success message
     """
     withdrawal_requests = get_collection(WITHDRAWAL_REQUESTS_COLLECTION)
+    transactions = get_collection(TRANSACTIONS_COLLECTION)
 
     # Get withdrawal request
     try:
@@ -1882,9 +1898,279 @@ async def reject_withdrawal_request(
         }
     )
 
+    # Also update corresponding transaction if it exists
+    transaction_id = withdrawal_request.get("transaction_id")
+    if transaction_id:
+        transactions.update_one(
+            {"_id": ObjectId(transaction_id)},
+            {
+                "$set": {
+                    "status": "rejected",
+                    "description": f"Withdrawal rejected - {withdrawal_request['withdrawal_method']}",
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+
     return {
         "message": "Withdrawal request rejected successfully",
         "request_id": request_id
+    }
+
+
+# ============================================================
+# WITHDRAWAL TRANSACTIONS (Simple Wallet Withdrawals)
+# ============================================================
+
+@router.put("/transactions/withdrawals/{transaction_id}/complete")
+async def complete_withdrawal_transaction(
+    transaction_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Complete a pending withdrawal transaction and deduct from user wallet
+    This handles withdrawals created via /api/wallet/withdraw endpoint
+
+    Args:
+        transaction_id: Transaction ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    transactions = get_collection(TRANSACTIONS_COLLECTION)
+    users = get_collection(USERS_COLLECTION)
+    withdrawal_requests = get_collection(WITHDRAWAL_REQUESTS_COLLECTION)
+
+    # Get transaction
+    try:
+        transaction = transactions.find_one({"_id": ObjectId(transaction_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid transaction ID"
+        )
+
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found"
+        )
+
+    if transaction["transaction_type"] != "withdrawal":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This is not a withdrawal transaction"
+        )
+
+    if transaction["status"] != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Transaction already {transaction['status']}"
+        )
+
+    # Get user and verify balance
+    user_id = transaction["user_id"]
+    amount = transaction["amount"]
+
+    try:
+        user = users.find_one({"_id": ObjectId(user_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID"
+        )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    current_balance = user.get("wallet_balance", 0.0)
+    if current_balance < amount:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Insufficient user balance. Current: ${current_balance:.2f}, Requested: ${amount:.2f}"
+        )
+
+    # Deduct from user wallet balance
+    users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$inc": {"wallet_balance": -amount}}
+    )
+
+    # Update transaction status
+    transactions.update_one(
+        {"_id": ObjectId(transaction_id)},
+        {
+            "$set": {
+                "status": "completed",
+                "description": f"Withdrawal completed - {transaction['payment_method']}",
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # Also update corresponding withdrawal request if it exists
+    withdrawal_requests.update_one(
+        {"transaction_id": transaction_id},
+        {
+            "$set": {
+                "status": "completed",
+                "reviewed_by": current_admin["user_id"],
+                "reviewed_at": datetime.utcnow(),
+                "completed_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "message": "Withdrawal completed successfully",
+        "amount": amount,
+        "user_id": user_id,
+        "transaction_id": transaction_id
+    }
+
+
+@router.put("/transactions/withdrawals/{transaction_id}/reject")
+async def reject_withdrawal_transaction(
+    transaction_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Reject a pending withdrawal transaction
+
+    Args:
+        transaction_id: Transaction ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message
+    """
+    transactions = get_collection(TRANSACTIONS_COLLECTION)
+    withdrawal_requests = get_collection(WITHDRAWAL_REQUESTS_COLLECTION)
+
+    # Get transaction
+    try:
+        transaction = transactions.find_one({"_id": ObjectId(transaction_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid transaction ID"
+        )
+
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found"
+        )
+
+    if transaction["transaction_type"] != "withdrawal":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This is not a withdrawal transaction"
+        )
+
+    if transaction["status"] != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Transaction already {transaction['status']}"
+        )
+
+    # Update transaction status
+    transactions.update_one(
+        {"_id": ObjectId(transaction_id)},
+        {
+            "$set": {
+                "status": "rejected",
+                "description": f"Withdrawal rejected - {transaction['payment_method']}",
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    # Also update corresponding withdrawal request if it exists
+    withdrawal_requests.update_one(
+        {"transaction_id": transaction_id},
+        {
+            "$set": {
+                "status": "rejected",
+                "reviewed_by": current_admin["user_id"],
+                "reviewed_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "message": "Withdrawal rejected successfully",
+        "transaction_id": transaction_id
+    }
+
+
+@router.get("/transactions/withdrawals")
+async def get_withdrawal_transactions(
+    current_admin: dict = Depends(get_current_admin),
+    status_filter: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0
+):
+    """
+    Get withdrawal transactions (all or filtered by status)
+
+    Args:
+        current_admin: Current authenticated admin
+        status_filter: Optional status filter (pending, completed, rejected)
+        limit: Maximum number of transactions to return
+        offset: Number of transactions to skip
+
+    Returns:
+        dict: Withdrawal transactions list and count
+    """
+    transactions = get_collection(TRANSACTIONS_COLLECTION)
+    users = get_collection(USERS_COLLECTION)
+
+    # Build query - always filter by withdrawal type
+    query = {"transaction_type": "withdrawal"}
+
+    # Add status filter if provided
+    if status_filter:
+        query["status"] = status_filter
+
+    withdrawals = list(
+        transactions.find(query)
+        .sort("created_at", -1)
+        .skip(offset)
+        .limit(limit)
+    )
+
+    total_count = transactions.count_documents(query)
+
+    # Enrich with user information
+    result = []
+    for txn in withdrawals:
+        user = users.find_one({"_id": ObjectId(txn["user_id"])})
+        result.append({
+            "id": str(txn["_id"]),
+            "user_id": txn["user_id"],
+            "username": user.get("username", "") if user else "",
+            "email": user.get("email", "") if user else "",
+            "amount": txn["amount"],
+            "payment_method": txn["payment_method"],
+            "payment_details": txn.get("payment_details", {}),
+            "reference_number": txn.get("reference_number", ""),
+            "description": txn.get("description", ""),
+            "created_at": txn["created_at"].isoformat(),
+            "status": txn["status"]
+        })
+
+    return {
+        "withdrawals": result,
+        "total": total_count,
+        "limit": limit,
+        "offset": offset
     }
 
 

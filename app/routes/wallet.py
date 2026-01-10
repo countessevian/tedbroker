@@ -6,8 +6,8 @@ import secrets
 from pydantic import BaseModel
 
 from app.schemas import TransactionResponse
-from app.auth import get_current_user_token
-from app.database import get_collection, USERS_COLLECTION, TRANSACTIONS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION
+from app.auth import get_current_user_token, verify_password
+from app.database import get_collection, USERS_COLLECTION, TRANSACTIONS_COLLECTION, DEPOSIT_REQUESTS_COLLECTION, WITHDRAWAL_REQUESTS_COLLECTION
 
 router = APIRouter(prefix="/api/wallet", tags=["Wallet"])
 
@@ -20,18 +20,15 @@ class DepositRequest(BaseModel):
     bank_name: Optional[str] = None
     reference_number: Optional[str] = None
     crypto_type: Optional[str] = None
-    transaction_hash: Optional[str] = None
-    card_number: Optional[str] = None
-    card_expiry: Optional[str] = None
-    card_cvv: Optional[str] = None
-    card_holder_name: Optional[str] = None
-    paypal_email: Optional[str] = None
+    wallet_address: Optional[str] = None  # Admin's wallet address shown to user
 
 
 class WithdrawalRequest(BaseModel):
     amount: float
-    payment_method: str
+    withdrawal_method: str
     password: str
+    crypto_type: Optional[str] = None
+    wallet_address: Optional[str] = None
 
 
 def get_user_by_id(user_id: str):
@@ -109,12 +106,11 @@ async def create_deposit(
         payment_details["reference_number"] = deposit_data.reference_number
     elif deposit_data.payment_method == "Cryptocurrency":
         payment_details["crypto_type"] = deposit_data.crypto_type
-        payment_details["transaction_hash"] = deposit_data.transaction_hash
-    elif deposit_data.payment_method == "Credit Card":
-        payment_details["card_number"] = deposit_data.card_number[-4:]  # Store only last 4 digits
-        payment_details["card_holder_name"] = deposit_data.card_holder_name
+        payment_details["wallet_address"] = deposit_data.wallet_address  # Admin's wallet address where user sent payment
     elif deposit_data.payment_method == "PayPal":
-        payment_details["paypal_email"] = deposit_data.paypal_email
+        # PayPal is not currently available, but we accept the selection
+        # No additional details needed for now
+        pass
 
     # Create transaction record with pending status
     transaction = {
@@ -141,7 +137,7 @@ async def create_deposit(
         "email": user.get("email", ""),
         "amount": deposit_data.amount,
         "payment_method": deposit_data.payment_method,
-        "payment_proof": payment_details.get("transaction_hash") or payment_details.get("reference_number"),
+        "payment_proof": payment_details.get("wallet_address") or payment_details.get("reference_number"),
         "notes": None,
         "status": "pending",
         "created_at": datetime.utcnow(),
@@ -155,7 +151,7 @@ async def create_deposit(
     current_balance = user.get("wallet_balance", 0.0)
 
     return {
-        "message": "Deposit request submitted successfully. Your funds will be available once approved by admin.",
+        "message": "Deposit request submitted successfully. Your funds will be available once confirmed on-chain.",
         "transaction": TransactionResponse(
             id=str(transaction["_id"]),
             transaction_type=transaction["transaction_type"],
@@ -184,8 +180,8 @@ async def create_withdrawal(
 
     users = get_collection(USERS_COLLECTION)
     transactions_col = get_collection(TRANSACTIONS_COLLECTION)
+    withdrawal_requests_col = get_collection(WITHDRAWAL_REQUESTS_COLLECTION)
 
-    # Get user
     user = get_user_by_id(current_user["user_id"])
     if not user:
         raise HTTPException(
@@ -193,7 +189,24 @@ async def create_withdrawal(
             detail="User not found"
         )
 
-    # Check if user has sufficient balance
+    # Verify password only for users who have passwords (non-OAuth users)
+    user_password = user.get("password")
+    if user_password and withdrawal_data.password:
+        # User has a password set, verify it
+        try:
+            if not verify_password(withdrawal_data.password, user_password):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid password"
+                )
+        except Exception:
+            # If password verification fails (e.g., invalid hash), reject
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid password"
+            )
+    # For OAuth users without passwords, they're already authenticated via JWT, so allow withdrawal
+
     current_balance = user.get("wallet_balance", 0.0)
     if current_balance < withdrawal_data.amount:
         raise HTTPException(
@@ -201,30 +214,62 @@ async def create_withdrawal(
             detail=f"Insufficient funds. Current balance: ${current_balance:.2f}"
         )
 
-    # Generate unique reference number
     reference_number = f"WTH-{secrets.token_hex(8).upper()}"
+    payment_details = {}
 
-    # Create transaction record with pending status
+    if withdrawal_data.withdrawal_method == "Cryptocurrency":
+        if not withdrawal_data.crypto_type or not withdrawal_data.wallet_address:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Crypto withdrawal requires crypto_type and wallet_address"
+            )
+        payment_details["crypto_type"] = withdrawal_data.crypto_type
+        payment_details["wallet_address"] = withdrawal_data.wallet_address
+
+    # Additional handling can be added here for other withdrawal methods
+
     transaction = {
         "user_id": current_user["user_id"],
         "transaction_type": "withdrawal",
         "amount": withdrawal_data.amount,
         "status": "pending",  # Requires admin approval
-        "payment_method": withdrawal_data.payment_method,
+        "payment_method": withdrawal_data.withdrawal_method,
         "reference_number": reference_number,
-        "description": f"Withdrawal to {withdrawal_data.payment_method}",
+        "payment_details": payment_details,
+        "description": f"Withdrawal to {withdrawal_data.withdrawal_method}",
         "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
+        "updated_at": datetime.utcnow(),
     }
 
-    # Insert transaction
     result = transactions_col.insert_one(transaction)
     transaction["_id"] = result.inserted_id
 
-    # Note: Wallet balance will be deducted only when admin approves the withdrawal
+    # Also create withdrawal request for admin dashboard
+    withdrawal_request = {
+        "user_id": current_user["user_id"],
+        "username": user.get("username", ""),
+        "email": user.get("email", ""),
+        "amount": withdrawal_data.amount,
+        "withdrawal_method": withdrawal_data.withdrawal_method,
+        "account_id": None,  # Simple withdrawal doesn't require account_id
+        "account_details": {
+            "type": "crypto" if withdrawal_data.withdrawal_method == "Cryptocurrency" else "other",
+            "crypto_type": payment_details.get("crypto_type"),
+            "wallet_address": payment_details.get("wallet_address")
+        },
+        "notes": None,
+        "status": "pending",
+        "transaction_id": str(transaction["_id"]),  # Link to transaction
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+        "reviewed_by": None,
+        "reviewed_at": None,
+        "completed_at": None
+    }
+    withdrawal_requests_col.insert_one(withdrawal_request)
 
     return {
-        "message": "Withdrawal request submitted successfully. Your request will be processed once approved by admin.",
+        "message": "Withdrawal request submitted successfully. Your request will be processed confirmed on-chain.",
         "transaction": TransactionResponse(
             id=str(transaction["_id"]),
             transaction_type=transaction["transaction_type"],

@@ -102,6 +102,31 @@ async def submit_referral_code(
         )
 
 
+@router.post("/skip")
+async def skip_referral(current_user: dict = Depends(get_current_user_token)):
+    """
+    Mark that user has skipped the referral code submission
+
+    Args:
+        current_user: Current authenticated user
+
+    Returns:
+        dict: Success message
+    """
+    try:
+        result = referrals_service.mark_referral_skipped(user_id=current_user["user_id"])
+
+        return {
+            "success": True,
+            "message": "Referral modal skipped successfully"
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to skip referral: {str(e)}"
+        )
+
+
 @router.get("/config")
 async def get_referral_config():
     """

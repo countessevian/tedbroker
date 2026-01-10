@@ -2871,10 +2871,9 @@
                     <select id="deposit-payment-method" required onchange="toggleDepositPaymentFields()"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
                         <option value="">Select payment method</option>
-                        <option value="Credit Card">Credit Card</option>
                         <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="PayPal">PayPal</option>
                         <option value="Cryptocurrency">Cryptocurrency</option>
+                        <option value="PayPal">PayPal</option>
                     </select>
                 </div>
 
@@ -2916,10 +2915,10 @@
 
                 <!-- Cryptocurrency Fields -->
                 <div id="crypto-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
-                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;">Cryptocurrency Details</h4>
+                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;">Cryptocurrency Deposit</h4>
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Select Cryptocurrency</label>
-                        <select id="crypto-type"
+                        <select id="crypto-type" onchange="handleCryptoTypeChange()"
                             style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
                             <option value="">Select cryptocurrency</option>
                             <option value="Bitcoin">Bitcoin (BTC)</option>
@@ -2928,68 +2927,48 @@
                             <option value="USD Coin">USD Coin (USDC)</option>
                         </select>
                     </div>
-                    <div id="crypto-wallet-info" style="display: none; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
-                        <p style="color: #8b93a7; font-size: 13px; margin-bottom: 8px;">Send payment to this wallet address:</p>
-                        <div style="background: rgba(123, 182, 218, 0.05); padding: 10px; border-radius: 6px; word-break: break-all; font-family: monospace; font-size: 12px; color: #000; margin-bottom: 8px;">
-                            <span id="crypto-wallet-address">-</span>
+                    <div id="crypto-wallet-info" style="display: none; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px;">
+                        <p style="color: #8b93a7; font-size: 13px; margin-bottom: 12px;">
+                            <i class="fa-solid fa-info-circle"></i> Send your payment to the wallet address below:
+                        </p>
+
+                        <!-- QR Code -->
+                        <div id="crypto-qr-container" style="text-align: center; margin-bottom: 15px;">
+                            <img id="crypto-qr-code" src="" alt="QR Code" style="max-width: 200px; height: auto; border: 2px solid rgba(123, 182, 218, 0.2); border-radius: 8px; display: none;">
                         </div>
-                        <button type="button" onclick="copyCryptoAddress()" style="background: #8b93a7; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer;">
-                            <i class="fa-solid fa-copy"></i> Copy Address
+
+                        <!-- Wallet Address -->
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 6px; font-weight: 600;">Wallet Address:</label>
+                            <div style="background: rgba(123, 182, 218, 0.05); padding: 12px; border-radius: 6px; word-break: break-all; font-family: monospace; font-size: 12px; color: #000; margin-bottom: 8px;">
+                                <span id="crypto-wallet-address">-</span>
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="copyCryptoAddress()" style="width: 100%; background: #5a9abf; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600;">
+                            <i class="fa-solid fa-copy"></i> Copy Wallet Address
                         </button>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Transaction Hash</label>
-                        <input type="text" id="crypto-tx-hash"
-                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                            placeholder="Enter transaction hash">
+
+                        <div style="background: rgba(255, 152, 0, 0.05); border: 1px solid rgba(255, 152, 0, 0.2); border-radius: 6px; padding: 10px; margin-top: 12px;">
+                            <p style="color: #8b93a7; margin: 0; font-size: 12px; line-height: 1.5;">
+                                <i class="fa-solid fa-exclamation-triangle"></i> <strong>Important:</strong> After sending your payment, click "Complete Deposit" below. Your deposit will be verified and credited to your account once confirmed.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Credit Card Fields -->
-                <div id="credit-card-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
-                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;">Credit Card Details</h4>
+                <!-- PayPal Message -->
+                <div id="paypal-fields" style="display: none; margin-bottom: 20px; padding: 20px; background: rgba(255, 152, 0, 0.08); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 8px; text-align: center;">
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Card Number</label>
-                        <input type="text" id="card-number" maxlength="19"
-                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                            placeholder="1234 5678 9012 3456">
+                        <i class="fa-brands fa-paypal" style="font-size: 48px; color: #0070ba;"></i>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                        <div>
-                            <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Expiry Date</label>
-                            <input type="text" id="card-expiry" maxlength="5" placeholder="MM/YY"
-                                style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
-                        </div>
-                        <div>
-                            <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">CVV</label>
-                            <input type="text" id="card-cvv" maxlength="4" placeholder="123"
-                                style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Cardholder Name</label>
-                        <input type="text" id="card-holder-name"
-                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                            placeholder="Name on card">
-                    </div>
-                </div>
-
-                <!-- PayPal Fields -->
-                <div id="paypal-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
-                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;">PayPal Details</h4>
-                    <p style="color: #8b93a7; font-size: 13px; margin-bottom: 15px;">You will be redirected to PayPal to complete the payment.</p>
-                    <div style="background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="color: #8b93a7; font-size: 13px;">PayPal Email:</span>
-                            <span style="color: #000; font-weight: 600; font-size: 13px;">payments@tedbroker.com</span>
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Your PayPal Email</label>
-                        <input type="email" id="paypal-email"
-                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                            placeholder="your-email@example.com">
-                    </div>
+                    <h4 style="color: #D32F2F; margin: 0 0 10px 0; font-size: 16px;">PayPal Temporarily Unavailable</h4>
+                    <p style="color: #8b93a7; margin: 0; font-size: 14px; line-height: 1.6;">
+                        We're sorry, but PayPal deposits are not available at the moment. Please use Bank Transfer or Cryptocurrency as alternative payment methods.
+                    </p>
+                    <p style="color: #8b93a7; margin: 15px 0 0 0; font-size: 13px;">
+                        <i class="fa-solid fa-info-circle"></i> PayPal will be available soon. Thank you for your patience!
+                    </p>
                 </div>
 
                 <!-- Password Confirmation (Required for all deposits) -->
@@ -3033,14 +3012,54 @@
                 </div>
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Withdrawal Method</label>
-                    <select id="withdraw-payment-method" required
+                    <select id="withdraw-payment-method" required onchange="toggleWithdrawalFields()"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
                         <option value="">Select withdrawal method</option>
                         <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="PayPal">PayPal</option>
                         <option value="Cryptocurrency">Cryptocurrency</option>
                     </select>
                 </div>
+
+                <!-- Cryptocurrency Withdrawal Fields -->
+                <div id="withdraw-crypto-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
+                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;">Cryptocurrency Withdrawal Details</h4>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Select Cryptocurrency</label>
+                        <select id="withdraw-crypto-type"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
+                            <option value="">Select cryptocurrency</option>
+                            <option value="Bitcoin">Bitcoin (BTC)</option>
+                            <option value="Ethereum">Ethereum (ETH)</option>
+                            <option value="Tether">Tether (USDT)</option>
+                            <option value="USD Coin">USD Coin (USDC)</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Your Wallet Address</label>
+                        <input type="text" id="withdraw-wallet-address"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px; font-family: monospace;"
+                            placeholder="Enter your cryptocurrency wallet address">
+                        <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
+                            <i class="fa-solid fa-info-circle"></i> Make sure this address is correct. Transactions cannot be reversed.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Password Confirmation (Required for all withdrawals) -->
+                <div style="margin-bottom: 20px; padding: 15px; background: rgba(255, 152, 0, 0.05); border: 1px solid rgba(255, 152, 0, 0.2); border-radius: 8px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">
+                        <i class="fa-solid fa-lock"></i> Confirm with Your Password
+                    </label>
+                    <input type="password" id="withdraw-password" required
+                        style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
+                        placeholder="Enter your account password">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
+                        <i class="fa-solid fa-info-circle"></i> For security, please confirm this transaction with your password
+                    </p>
+                </div>
+
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
                     <i class="fa-solid fa-circle-check"></i> Complete Withdrawal
                 </button>

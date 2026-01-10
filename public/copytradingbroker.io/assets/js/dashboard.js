@@ -2541,13 +2541,16 @@ async function handleDeposit(event) {
 
         case 'Cryptocurrency':
             const cryptoType = document.getElementById('crypto-type').value;
-            const cryptoTxHash = document.getElementById('crypto-tx-hash').value;
-            if (!cryptoType || !cryptoTxHash) {
-                Swal.fire({ title: 'Warning', text: 'Please select cryptocurrency and enter transaction hash', icon: 'warning' });
+            if (!cryptoType) {
+                Swal.fire({ title: 'Warning', text: 'Please select a cryptocurrency', icon: 'warning' });
                 return;
             }
             paymentDetails.crypto_type = cryptoType;
-            paymentDetails.transaction_hash = cryptoTxHash;
+            // Get the wallet address that was displayed to the user
+            const displayedWalletAddress = document.getElementById('crypto-wallet-address').textContent;
+            if (displayedWalletAddress && displayedWalletAddress !== '-') {
+                paymentDetails.wallet_address = displayedWalletAddress;
+            }
             break;
 
         case 'Credit Card':
@@ -2563,15 +2566,6 @@ async function handleDeposit(event) {
             paymentDetails.card_expiry = cardExpiry;
             paymentDetails.card_cvv = cardCvv;
             paymentDetails.card_holder_name = cardHolderName;
-            break;
-
-        case 'PayPal':
-            const paypalEmail = document.getElementById('paypal-email').value;
-            if (!paypalEmail) {
-                Swal.fire({ title: 'Warning', text: 'Please enter your PayPal email', icon: 'warning' });
-                return;
-            }
-            paymentDetails.paypal_email = paypalEmail;
             break;
     }
 
@@ -2634,15 +2628,37 @@ async function handleWithdraw(event) {
 
     const amount = parseFloat(document.getElementById('withdraw-amount').value);
     const paymentMethod = document.getElementById('withdraw-payment-method').value;
+    const password = document.getElementById('withdraw-password').value;
 
-    if (!amount || !paymentMethod) {
-        Swal.fire({ title: 'Warning', text: 'Please fill in all fields', icon: 'warning' });
+    if (!amount || !paymentMethod || !password) {
+        Swal.fire({ title: 'Warning', text: 'Please fill in all required fields', icon: 'warning' });
         return;
     }
 
     if (amount < 10) {
         Swal.fire({ title: 'Warning', text: 'Minimum withdrawal amount is $10', icon: 'warning' });
         return;
+    }
+
+    // Build withdrawal data
+    const withdrawalData = {
+        amount: amount,
+        withdrawal_method: paymentMethod,
+        password: password
+    };
+
+    // Handle cryptocurrency-specific fields
+    if (paymentMethod === 'Cryptocurrency') {
+        const cryptoType = document.getElementById('withdraw-crypto-type').value;
+        const walletAddress = document.getElementById('withdraw-wallet-address').value;
+
+        if (!cryptoType || !walletAddress) {
+            Swal.fire({ title: 'Warning', text: 'Please select cryptocurrency type and enter your wallet address', icon: 'warning' });
+            return;
+        }
+
+        withdrawalData.crypto_type = cryptoType;
+        withdrawalData.wallet_address = walletAddress;
     }
 
     try {
@@ -2653,10 +2669,7 @@ async function handleWithdraw(event) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                amount: amount,
-                payment_method: paymentMethod
-            })
+            body: JSON.stringify(withdrawalData)
         });
 
         TED_AUTH.closeLoading();
@@ -2687,7 +2700,7 @@ async function handleWithdraw(event) {
                 <p><strong>Payment Method:</strong> ${paymentMethod}</p>
                 <p><strong>Reference:</strong> ${result.transaction.reference_number}</p>
                 <p style="color: #ff9800; margin-top: 15px;">
-                    <i class="fa fa-info-circle"></i> Your withdrawal will be processed once approved by admin.
+                    <i class="fa fa-info-circle"></i> Your withdrawal will be processed once confirmed on-chain.
                 </p>
             `,
             confirmButtonColor: '#D32F2F'
@@ -2703,11 +2716,28 @@ async function handleWithdraw(event) {
  * Check if user should see referral modal (new users)
  */
 async function checkAndShowReferralModal(userData) {
-    // Check if the user has already been referred or seen the modal
+    // Check if the user has already submitted a referral, skipped, or seen the modal
+    const hasSubmittedReferral = localStorage.getItem('referralSubmitted');
+    const hasSkippedReferral = localStorage.getItem('referralModalSkipped');
     const hasSeenReferralModal = localStorage.getItem('hasSeenReferralModal');
 
-    // Only show if user hasn't seen the modal before
-    if (!hasSeenReferralModal) {
+    // Only show if user hasn't submitted, skipped, or seen the modal before
+    if (!hasSubmittedReferral && !hasSkippedReferral && !hasSeenReferralModal) {
+        // Check backend to see if user has already been referred
+        try {
+            const response = await TED_AUTH.apiCall('/api/referrals/my-statistics');
+            if (response.ok) {
+                const stats = await response.json();
+                // If user was referred by someone, don't show the modal
+                if (stats.was_referred) {
+                    localStorage.setItem('referralSubmitted', 'true');
+                    return;
+                }
+            }
+        } catch (error) {
+            console.log('Could not check referral status:', error);
+        }
+
         // Mark as seen immediately to prevent showing again
         localStorage.setItem('hasSeenReferralModal', 'true');
 
@@ -2773,6 +2803,9 @@ async function handleReferralSubmission(event) {
 
         const result = await response.json();
 
+        // Mark that referral has been submitted
+        localStorage.setItem('referralSubmitted', 'true');
+
         // Close modal
         closeReferralModal();
 
@@ -2790,15 +2823,49 @@ async function handleReferralSubmission(event) {
  * Skip referral (user doesn't have a code)
  */
 async function skipReferral() {
-    if ((await Swal.fire({
-                title: 'Confirm Action',
-                text: 'Are you sure you want to skip? You won\'t be able to submit a referral code later.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'No'
-            })).isConfirmed) {
-        closeReferralModal();
+    const result = await Swal.fire({
+        title: 'Skip Referral Code?',
+        text: 'Are you sure you want to skip? You won\'t be able to submit a referral code later.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Skip',
+        cancelButtonText: 'No, Go Back'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            // Mark that user has skipped referral in the backend
+            const response = await TED_AUTH.apiCall('/api/referrals/skip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                // Also save in localStorage as a backup
+                localStorage.setItem('referralModalSkipped', 'true');
+
+                // Close modal
+                closeReferralModal();
+
+                // Show confirmation
+                Swal.fire({
+                    title: 'Skipped',
+                    text: 'You can always refer others using your own referral code!',
+                    icon: 'info',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            } else {
+                throw new Error('Failed to skip referral');
+            }
+        } catch (error) {
+            console.error('Error skipping referral:', error);
+            // Even if API fails, close the modal and save in localStorage
+            localStorage.setItem('referralModalSkipped', 'true');
+            closeReferralModal();
+        }
     }
 }
 
@@ -3302,35 +3369,96 @@ async function handleChangePassword(event) {
  * Hide all deposit payment method fields
  */
 function hideAllDepositPaymentFields() {
-    document.getElementById('bank-transfer-fields').style.display = 'none';
-    document.getElementById('crypto-fields').style.display = 'none';
-    document.getElementById('credit-card-fields').style.display = 'none';
-    document.getElementById('paypal-fields').style.display = 'none';
+    try {
+        // Hide bank transfer fields and disable validation
+        const bankFields = document.getElementById('bank-transfer-fields');
+        if (bankFields) {
+            bankFields.style.display = 'none';
+            bankFields.querySelectorAll('input, select').forEach(input => {
+                input.removeAttribute('required');
+            });
+        }
+
+        // Hide crypto fields and disable validation
+        const cryptoFields = document.getElementById('crypto-fields');
+        if (cryptoFields) {
+            cryptoFields.style.display = 'none';
+            cryptoFields.querySelectorAll('input, select').forEach(input => {
+                input.removeAttribute('required');
+            });
+        }
+
+        // Hide PayPal message
+        const paypalFields = document.getElementById('paypal-fields');
+        if (paypalFields) {
+            paypalFields.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error hiding deposit payment fields:', error);
+    }
 }
 
 /**
  * Toggle deposit payment method fields based on selection
  */
 function toggleDepositPaymentFields() {
-    const paymentMethod = document.getElementById('deposit-payment-method').value;
+    try {
+        const paymentMethod = document.getElementById('deposit-payment-method').value;
+        console.log('Payment method selected:', paymentMethod);
 
-    // Hide all fields first
-    hideAllDepositPaymentFields();
+        // Hide all fields first
+        hideAllDepositPaymentFields();
 
-    // Show relevant fields based on selected payment method
-    switch(paymentMethod) {
-        case 'Bank Transfer':
-            document.getElementById('bank-transfer-fields').style.display = 'block';
-            break;
-        case 'Cryptocurrency':
-            document.getElementById('crypto-fields').style.display = 'block';
-            break;
-        case 'Credit Card':
-            document.getElementById('credit-card-fields').style.display = 'block';
-            break;
-        case 'PayPal':
-            document.getElementById('paypal-fields').style.display = 'block';
-            break;
+        // Show relevant fields based on selected payment method
+        switch(paymentMethod) {
+            case 'Bank Transfer':
+                const bankFields = document.getElementById('bank-transfer-fields');
+                if (bankFields) {
+                    bankFields.style.display = 'block';
+                    console.log('Showing bank transfer fields');
+                }
+                break;
+            case 'Cryptocurrency':
+                const cryptoFields = document.getElementById('crypto-fields');
+                if (cryptoFields) {
+                    cryptoFields.style.display = 'block';
+                    console.log('Showing crypto fields');
+                } else {
+                    console.error('crypto-fields element not found');
+                }
+                break;
+            case 'PayPal':
+                const paypalFields = document.getElementById('paypal-fields');
+                if (paypalFields) {
+                    paypalFields.style.display = 'block';
+                    console.log('Showing PayPal unavailability message');
+                }
+                break;
+        }
+    } catch (error) {
+        console.error('Error toggling deposit payment fields:', error);
+    }
+}
+
+/**
+ * Toggle withdrawal fields based on selection
+ */
+function toggleWithdrawalFields() {
+    try {
+        const withdrawalMethod = document.getElementById('withdraw-payment-method').value;
+        const cryptoFields = document.getElementById('withdraw-crypto-fields');
+
+        if (cryptoFields) {
+            if (withdrawalMethod === 'Cryptocurrency') {
+                cryptoFields.style.display = 'block';
+                console.log('Showing cryptocurrency withdrawal fields');
+            } else {
+                cryptoFields.style.display = 'none';
+                console.log('Hiding cryptocurrency withdrawal fields');
+            }
+        }
+    } catch (error) {
+        console.error('Error toggling withdrawal fields:', error);
     }
 }
 
@@ -3380,32 +3508,55 @@ async function loadCryptoWallets() {
 }
 
 /**
+ * Handle crypto type change to display wallet info and QR code
+ */
+async function handleCryptoTypeChange() {
+    const selectedCrypto = document.getElementById('crypto-type').value;
+    const walletInfo = document.getElementById('crypto-wallet-info');
+    const walletAddress = document.getElementById('crypto-wallet-address');
+    const qrCodeImg = document.getElementById('crypto-qr-code');
+
+    if (selectedCrypto && cryptoWallets[selectedCrypto]) {
+        const wallet = cryptoWallets[selectedCrypto];
+
+        // Display wallet address
+        walletAddress.textContent = wallet.address;
+
+        // Display QR code
+        try {
+            const response = await TED_AUTH.apiCall(`/api/crypto-wallets/${wallet.id}/qr/base64`, {
+                method: 'GET'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.qr_code) {
+                    qrCodeImg.src = data.qr_code;
+                    qrCodeImg.style.display = 'block';
+                } else {
+                    qrCodeImg.style.display = 'none';
+                }
+            } else {
+                qrCodeImg.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error loading QR code:', error);
+            qrCodeImg.style.display = 'none';
+        }
+
+        walletInfo.style.display = 'block';
+    } else {
+        walletInfo.style.display = 'none';
+        qrCodeImg.style.display = 'none';
+    }
+}
+
+/**
  * Handle crypto type selection to show wallet address with QR code
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Load crypto wallets on page load
     loadCryptoWallets();
-
-    const cryptoTypeSelect = document.getElementById('crypto-type');
-    if (cryptoTypeSelect) {
-        cryptoTypeSelect.addEventListener('change', async function() {
-            const selectedCrypto = this.value;
-            const walletInfo = document.getElementById('crypto-wallet-info');
-            const walletAddress = document.getElementById('crypto-wallet-address');
-
-            if (selectedCrypto && cryptoWallets[selectedCrypto]) {
-                const wallet = cryptoWallets[selectedCrypto];
-                walletAddress.textContent = wallet.address;
-
-                // Display QR code
-                await displayWalletQRCode(wallet.id);
-
-                walletInfo.style.display = 'block';
-            } else {
-                walletInfo.style.display = 'none';
-            }
-        });
-    }
 });
 
 /**
@@ -3901,7 +4052,9 @@ window.quickActionStartRoboAdvisor = quickActionStartRoboAdvisor;
 window.quickActionDepositFunds = quickActionDepositFunds;
 window.quickActionBrowseTraders = quickActionBrowseTraders;
 window.toggleDepositPaymentFields = toggleDepositPaymentFields;
+window.toggleWithdrawalFields = toggleWithdrawalFields;
 window.copyCryptoAddress = copyCryptoAddress;
+window.handleCryptoTypeChange = handleCryptoTypeChange;
 
 /**
  * Show update email modal

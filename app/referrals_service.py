@@ -44,7 +44,7 @@ class ReferralsService:
             user_id: User ID
 
         Returns:
-            str: Referral code
+            str: Referral code (username)
         """
         users = get_collection(USERS_COLLECTION)
         user = users.find_one({"_id": ObjectId(user_id)})
@@ -52,29 +52,38 @@ class ReferralsService:
         if not user:
             raise ValueError("User not found")
 
-        # Check if user already has a referral code
+        # Use username as referral code
+        username = user.get("username")
+        if not username:
+            raise ValueError("User does not have a username")
+
+        # Check if user already has a referral code set
         if user.get("referral_code"):
-            return user["referral_code"]
+            # If it's different from username, update it
+            if user.get("referral_code") != username:
+                users.update_one(
+                    {"_id": ObjectId(user_id)},
+                    {
+                        "$set": {
+                            "referral_code": username,
+                            "updated_at": datetime.utcnow()
+                        }
+                    }
+                )
+            return username
 
-        # Generate unique referral code
-        referral_code = ReferralsService.generate_referral_code()
-
-        # Ensure uniqueness
-        while users.find_one({"referral_code": referral_code}):
-            referral_code = ReferralsService.generate_referral_code()
-
-        # Update user with referral code
+        # Set username as referral code
         users.update_one(
             {"_id": ObjectId(user_id)},
             {
                 "$set": {
-                    "referral_code": referral_code,
+                    "referral_code": username,
                     "updated_at": datetime.utcnow()
                 }
             }
         )
 
-        return referral_code
+        return username
 
     @staticmethod
     def get_referral_link(user_id: str, base_url: str = "https://tedbrokers.com") -> str:
@@ -192,6 +201,9 @@ class ReferralsService:
         total_referrals = len(user_referrals)
         total_earnings = sum(ref.get("bonus_amount", 0) for ref in user_referrals)
 
+        # Check if this user was referred by someone
+        was_referred = referrals.find_one({"referred_user_id": user_id}) is not None
+
         # Get details of referred users
         referred_users_list = []
         for referral in user_referrals:
@@ -218,6 +230,7 @@ class ReferralsService:
             "total_earnings": total_earnings,
             "active_referrals": active_referrals,
             "base_bonus_amount": BASE_REFERRAL_BONUS,
+            "was_referred": was_referred,
             "referred_users": referred_users_list
         }
 
@@ -239,6 +252,35 @@ class ReferralsService:
             return user["referral_code"]
 
         return None
+
+    @staticmethod
+    def mark_referral_skipped(user_id: str) -> Dict:
+        """
+        Mark that a user has skipped the referral code submission
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            dict: Result with success status
+        """
+        users = get_collection(USERS_COLLECTION)
+
+        # Update user to mark referral as skipped
+        users.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "referral_modal_skipped": True,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+
+        return {
+            "success": True,
+            "message": "Referral modal marked as skipped"
+        }
 
 
 # Create singleton instance
