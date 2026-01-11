@@ -1239,7 +1239,7 @@ async function investInPlan(planId, planName, minimumInvestment) {
     // Confirm investment
     if (!(await Swal.fire({
                 title: 'Confirm Action',
-                text: 'Invest in ${planName}?\n\nMinimum Investment: $${minimumInvestment.toLocaleString()}\n\nThis amount will be deducted from your wallet.',
+                text: `Invest in ${planName}?\n\nMinimum Investment: $${minimumInvestment.toLocaleString()}\n\nThis amount will be deducted from your wallet.`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
@@ -1547,18 +1547,41 @@ async function activateETFPlan(planId, planName, minInvestment) {
     if (!amount) return;
 
     try {
-        const response = await fetch(`/api/etf-plans/activate/${planId}`, {
+        TED_AUTH.showLoading('Activating your ETF plan...');
+
+        const response = await TED_AUTH.apiCall(`/api/etf-plans/activate/${planId}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ amount: parseFloat(amount) })
         });
 
+        TED_AUTH.closeLoading();
+
         const data = await response.json();
 
         if (!response.ok) {
+            TED_AUTH.closeLoading();
+
+            // Check if error is about trader selection
+            if (data.detail && data.detail.includes('select at least 1 trader')) {
+                Swal.fire({
+                    title: 'Error!',
+                    html: `Unable to activate plan: ${data.detail}<br><br>Please go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`,
+                    icon: 'error'
+                });
+
+                // Navigate to traders tab
+                document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+                const tradersTab = document.querySelector('.menu-item[data-tab="traders"]');
+                if (tradersTab) {
+                    tradersTab.classList.add('active');
+                    tradersTab.click();
+                }
+                return;
+            }
+
             throw new Error(data.detail || 'Failed to activate plan');
         }
 
@@ -1850,18 +1873,41 @@ async function activateDeFiPlan(planId, planName, minInvestment) {
     if (!amount) return;
 
     try {
-        const response = await fetch(`/api/defi-plans/activate/${planId}`, {
+        TED_AUTH.showLoading('Activating your DeFi plan...');
+
+        const response = await TED_AUTH.apiCall(`/api/defi-plans/activate/${planId}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ amount: parseFloat(amount) })
         });
 
+        TED_AUTH.closeLoading();
+
         const data = await response.json();
 
         if (!response.ok) {
+            TED_AUTH.closeLoading();
+
+            // Check if error is about trader selection
+            if (data.detail && data.detail.includes('select at least 1 trader')) {
+                Swal.fire({
+                    title: 'Error!',
+                    html: `Unable to activate plan: ${data.detail}<br><br>Please go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`,
+                    icon: 'error'
+                });
+
+                // Navigate to traders tab
+                document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+                const tradersTab = document.querySelector('.menu-item[data-tab="traders"]');
+                if (tradersTab) {
+                    tradersTab.classList.add('active');
+                    tradersTab.click();
+                }
+                return;
+            }
+
             throw new Error(data.detail || 'Failed to activate plan');
         }
 
@@ -2153,18 +2199,41 @@ async function activateOptionsPlan(planId, planName, minInvestment) {
     if (!amount) return;
 
     try {
-        const response = await fetch(`/api/options-plans/activate/${planId}`, {
+        TED_AUTH.showLoading('Activating your Options plan...');
+
+        const response = await TED_AUTH.apiCall(`/api/options-plans/activate/${planId}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({ amount: parseFloat(amount) })
         });
 
+        TED_AUTH.closeLoading();
+
         const data = await response.json();
 
         if (!response.ok) {
+            TED_AUTH.closeLoading();
+
+            // Check if error is about trader selection
+            if (data.detail && data.detail.includes('select at least 1 trader')) {
+                Swal.fire({
+                    title: 'Error!',
+                    html: `Unable to activate plan: ${data.detail}<br><br>Please go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`,
+                    icon: 'error'
+                });
+
+                // Navigate to traders tab
+                document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+                const tradersTab = document.querySelector('.menu-item[data-tab="traders"]');
+                if (tradersTab) {
+                    tradersTab.classList.add('active');
+                    tradersTab.click();
+                }
+                return;
+            }
+
             throw new Error(data.detail || 'Failed to activate plan');
         }
 
@@ -3541,17 +3610,36 @@ async function loadCryptoWallets() {
             if (data.success && data.wallets) {
                 cryptoWalletsData = data.wallets;
 
-                // Create a map for easy lookup
+                // Get the crypto-type select element
+                const cryptoSelect = document.getElementById('crypto-type');
+
+                // Create a map for easy lookup and populate select dropdown
                 cryptoWallets = {};
+
+                // Clear existing options except the first placeholder
+                if (cryptoSelect) {
+                    cryptoSelect.innerHTML = '<option value="">Select cryptocurrency</option>';
+                }
+
                 data.wallets.forEach(wallet => {
-                    // Map currency names to match the select options
-                    const currencyMap = {
-                        'BTC': 'Bitcoin',
-                        'ETH': 'Ethereum',
-                        'USDT': 'Tether',
-                        'USDC': 'USD Coin'
-                    };
-                    const displayName = currencyMap[wallet.currency] || wallet.currency;
+                    // Use the cryptocurrency name from the wallet
+                    const displayName = wallet.currency;
+                    const network = wallet.network || '';
+
+                    // Create display text with network if available
+                    const optionText = network
+                        ? `${displayName} (${network})`
+                        : displayName;
+
+                    // Add option to select dropdown
+                    if (cryptoSelect) {
+                        const option = document.createElement('option');
+                        option.value = displayName;
+                        option.textContent = optionText;
+                        cryptoSelect.appendChild(option);
+                    }
+
+                    // Store wallet data for lookup
                     cryptoWallets[displayName] = {
                         address: wallet.wallet_address,
                         network: wallet.network,
@@ -4039,6 +4127,16 @@ function viewFullPortfolio() {
  */
 async function loadDashboardStats() {
     try {
+        // Fetch user data to get wallet balance
+        const userResponse = await TED_AUTH.apiCall('/api/auth/me', {
+            method: 'GET'
+        });
+
+        if (userResponse.ok) {
+            const userData = await userResponse.json();
+            userWalletBalance = userData.wallet_balance !== undefined ? userData.wallet_balance : 0;
+        }
+
         // Fetch portfolio data from API (same data as portfolio tab)
         const response = await TED_AUTH.apiCall('/api/investments/portfolio', {
             method: 'GET'
@@ -4074,14 +4172,70 @@ async function loadDashboardStats() {
             totalReturnElement.style.color = profitLossColor;
         }
 
+        // Update Wallet Balance on home dashboard
+        const dashboardWalletElement = document.getElementById('dashboard-wallet-balance');
+        if (dashboardWalletElement) {
+            dashboardWalletElement.textContent = `$${userWalletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
         console.log('Dashboard stats updated:', {
             portfolio_value: portfolio.current_value,
             active_investments: portfolio.active_investments,
-            total_return: portfolio.total_profit_loss_percent
+            total_return: portfolio.total_profit_loss_percent,
+            wallet_balance: userWalletBalance
         });
 
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
+    }
+}
+
+/**
+ * Update wallet balance display across all locations
+ */
+function updateWalletDisplay() {
+    // Update wallet balance in header
+    const walletBalanceDisplayElement = document.getElementById('wallet-balance-display');
+    if (walletBalanceDisplayElement) {
+        walletBalanceDisplayElement.textContent = `$${userWalletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+
+    const walletBalanceElement = document.getElementById('wallet-balance');
+    if (walletBalanceElement) {
+        walletBalanceElement.textContent = `$${userWalletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+
+    // Update wallet balance on home dashboard
+    const dashboardWalletElement = document.getElementById('dashboard-wallet-balance');
+    if (dashboardWalletElement) {
+        dashboardWalletElement.textContent = `$${userWalletBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+}
+
+/**
+ * Navigate to the wallet tab
+ */
+function navigateToWalletTab() {
+    // Remove active class from all menu items
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // Hide all content sections
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    // Activate wallet menu item
+    const walletMenuItem = document.querySelector('.menu-item[data-tab="wallet"]');
+    if (walletMenuItem) {
+        walletMenuItem.classList.add('active');
+    }
+
+    // Show wallet content
+    const walletContent = document.getElementById('wallet-content');
+    if (walletContent) {
+        walletContent.classList.add('active');
     }
 }
 
@@ -4114,6 +4268,8 @@ window.toggleDepositPaymentFields = toggleDepositPaymentFields;
 window.toggleWithdrawalFields = toggleWithdrawalFields;
 window.copyCryptoAddress = copyCryptoAddress;
 window.handleCryptoTypeChange = handleCryptoTypeChange;
+window.updateWalletDisplay = updateWalletDisplay;
+window.navigateToWalletTab = navigateToWalletTab;
 
 /**
  * Show update email modal
