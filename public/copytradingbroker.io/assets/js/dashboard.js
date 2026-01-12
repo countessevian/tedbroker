@@ -1554,7 +1554,10 @@ async function activateETFPlan(planId, planName, minInvestment) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ amount: parseFloat(amount) })
+            body: JSON.stringify({
+                plan_id: planId,
+                amount: parseFloat(amount)
+            })
         });
 
         TED_AUTH.closeLoading();
@@ -1880,7 +1883,10 @@ async function activateDeFiPlan(planId, planName, minInvestment) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ amount: parseFloat(amount) })
+            body: JSON.stringify({
+                plan_id: planId,
+                amount: parseFloat(amount)
+            })
         });
 
         TED_AUTH.closeLoading();
@@ -2206,7 +2212,10 @@ async function activateOptionsPlan(planId, planName, minInvestment) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ amount: parseFloat(amount) })
+            body: JSON.stringify({
+                plan_id: planId,
+                amount: parseFloat(amount)
+            })
         });
 
         TED_AUTH.closeLoading();
