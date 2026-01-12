@@ -4221,8 +4221,8 @@ function navigateToWalletTab() {
         item.classList.remove('active');
     });
 
-    // Hide all content sections
-    document.querySelectorAll('.content-section').forEach(section => {
+    // Hide all tab content wrappers
+    document.querySelectorAll('.tab-content-wrapper').forEach(section => {
         section.classList.remove('active');
     });
 
@@ -4232,8 +4232,8 @@ function navigateToWalletTab() {
         walletMenuItem.classList.add('active');
     }
 
-    // Show wallet content
-    const walletContent = document.getElementById('wallet-content');
+    // Show wallet tab content
+    const walletContent = document.getElementById('tab-wallet');
     if (walletContent) {
         walletContent.classList.add('active');
     }
