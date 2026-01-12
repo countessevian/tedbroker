@@ -48,10 +48,35 @@ class LoginHistoryService:
     @staticmethod
     def get_location_from_ip(ip_address: str) -> Dict:
         """
-        Get approximate location from IP address
-        Note: This is a placeholder. In production, use a service like ipapi.co or ipstack.com
+        Get approximate location from IP address using ipapi.co
+        Free tier: 1000 requests/day
         """
-        # TODO: Implement IP geolocation service
+        # Skip local/private IPs
+        if ip_address in ["Unknown", "127.0.0.1", "localhost"] or ip_address.startswith("192.168.") or ip_address.startswith("10."):
+            return {
+                "country": "Local",
+                "city": "Local Network",
+                "region": "N/A"
+            }
+
+        try:
+            import requests
+            # Using ipapi.co free API (no key required, 1000 requests/day)
+            response = requests.get(f"https://ipapi.co/{ip_address}/json/", timeout=3)
+
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    "country": data.get("country_name", "Unknown"),
+                    "city": data.get("city", "Unknown"),
+                    "region": data.get("region", "Unknown"),
+                    "country_code": data.get("country_code", ""),
+                    "timezone": data.get("timezone", "")
+                }
+        except Exception as e:
+            print(f"Error fetching location for IP {ip_address}: {e}")
+
+        # Fallback if API fails
         return {
             "country": "Unknown",
             "city": "Unknown",

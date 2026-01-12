@@ -443,8 +443,8 @@ class EmailService:
             to_email: Recipient email address
             username: User's name or username
             ip_address: IP address of the login
-            device_info: Device information
-            location: Geographic location
+            device_info: Device information (can be string or dict)
+            location: Geographic location (can be string or dict)
 
         Returns:
             bool: True if email sent successfully, False otherwise
@@ -453,6 +453,24 @@ class EmailService:
 
         login_time = datetime.utcnow().strftime("%B %d, %Y at %H:%M UTC")
         subject = "New Login to Your TED Brokers Account"
+
+        # Handle device_info if it's a dict
+        if isinstance(device_info, dict):
+            device_display = f"{device_info.get('browser', 'Unknown Browser')} on {device_info.get('os', 'Unknown OS')}"
+            device_type = device_info.get('device', 'Unknown Device')
+        else:
+            device_display = device_info
+            device_type = "Unknown Device"
+
+        # Handle location if it's a dict
+        if isinstance(location, dict):
+            city = location.get('city', 'Unknown')
+            country = location.get('country', 'Unknown')
+            location_display = f"{city}, {country}"
+            country_code = location.get('country_code', '').upper()
+        else:
+            location_display = location
+            country_code = ""
 
         html_content = f"""
         <!DOCTYPE html>
@@ -473,131 +491,270 @@ class EmailService:
                     max-width: 600px;
                     margin: 40px auto;
                     background: white;
-                    border-radius: 8px;
+                    border-radius: 12px;
                     overflow: hidden;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
                 }}
                 .header {{
                     background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
-                    padding: 30px;
+                    padding: 40px 30px;
                     text-align: center;
+                    position: relative;
+                }}
+                .header-icon {{
+                    font-size: 60px;
+                    margin-bottom: 15px;
                 }}
                 .logo {{
                     color: white;
-                    font-size: 28px;
-                    font-weight: bold;
+                    font-size: 32px;
+                    font-weight: 700;
                     margin: 0;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                }}
+                .subtitle {{
+                    color: rgba(255,255,255,0.95);
+                    font-size: 16px;
+                    margin-top: 8px;
+                    font-weight: 400;
                 }}
                 .content {{
-                    padding: 40px 30px;
+                    padding: 40px 35px;
                 }}
                 .greeting {{
-                    font-size: 18px;
-                    color: #2D3748;
+                    font-size: 20px;
+                    color: #1a202c;
                     margin-bottom: 20px;
+                    font-weight: 600;
                 }}
                 .message {{
                     color: #4A5568;
-                    margin-bottom: 20px;
+                    margin-bottom: 25px;
                     font-size: 15px;
+                    line-height: 1.7;
+                }}
+                .success-badge {{
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 50px;
+                    display: inline-block;
+                    font-weight: 600;
+                    font-size: 14px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
                 }}
                 .details-box {{
-                    background: #f7fafc;
-                    border: 1px solid #e2e8f0;
-                    border-radius: 8px;
-                    padding: 20px;
-                    margin: 20px 0;
+                    background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+                    border: 2px solid #e2e8f0;
+                    border-radius: 12px;
+                    padding: 25px;
+                    margin: 30px 0;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
                 }}
                 .detail-row {{
                     display: flex;
                     justify-content: space-between;
-                    padding: 8px 0;
+                    padding: 14px 0;
                     border-bottom: 1px solid #e2e8f0;
+                    align-items: center;
                 }}
                 .detail-row:last-child {{
                     border-bottom: none;
                 }}
                 .detail-label {{
                     font-weight: 600;
-                    color: #718096;
+                    color: #64748b;
+                    font-size: 14px;
+                    display: flex;
+                    align-items: center;
+                }}
+                .detail-label::before {{
+                    content: "●";
+                    color: #D32F2F;
+                    margin-right: 10px;
+                    font-size: 12px;
                 }}
                 .detail-value {{
-                    color: #2D3748;
-                }}
-                .warning {{
-                    background: #fff3cd;
-                    border-left: 4px solid #ffc107;
-                    padding: 15px;
-                    margin: 25px 0;
-                    border-radius: 4px;
-                }}
-                .warning-text {{
-                    color: #856404;
+                    color: #1e293b;
+                    font-weight: 500;
+                    text-align: right;
                     font-size: 14px;
+                }}
+                .location-flag {{
+                    font-size: 18px;
+                    margin-left: 8px;
+                }}
+                .security-section {{
+                    background: #fff7ed;
+                    border: 2px solid #fb923c;
+                    border-radius: 12px;
+                    padding: 20px 25px;
+                    margin: 30px 0;
+                }}
+                .security-title {{
+                    color: #c2410c;
+                    font-size: 16px;
+                    font-weight: 700;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                }}
+                .security-title::before {{
+                    content: "🔒";
+                    margin-right: 10px;
+                    font-size: 20px;
+                }}
+                .security-text {{
+                    color: #9a3412;
+                    font-size: 14px;
+                    line-height: 1.6;
                     margin: 0;
                 }}
+                .action-button {{
+                    display: inline-block;
+                    background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+                    color: white;
+                    padding: 14px 32px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    font-size: 15px;
+                    margin-top: 20px;
+                    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+                    transition: transform 0.2s;
+                }}
+                .tips-section {{
+                    background: #f0f9ff;
+                    border-left: 4px solid #0284c7;
+                    padding: 20px;
+                    margin: 25px 0;
+                    border-radius: 6px;
+                }}
+                .tips-title {{
+                    color: #075985;
+                    font-weight: 600;
+                    margin-bottom: 10px;
+                    font-size: 15px;
+                }}
+                .tips-list {{
+                    color: #0c4a6e;
+                    font-size: 14px;
+                    margin: 0;
+                    padding-left: 20px;
+                }}
+                .tips-list li {{
+                    margin: 6px 0;
+                }}
                 .footer {{
-                    background: #2D3748;
-                    padding: 25px;
+                    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                    padding: 30px;
                     text-align: center;
-                    color: #A0AEC0;
+                    color: #cbd5e1;
                     font-size: 13px;
                 }}
+                .footer-logo {{
+                    color: white;
+                    font-size: 20px;
+                    font-weight: 700;
+                    margin-bottom: 15px;
+                }}
                 .footer-link {{
-                    color: #D32F2F;
+                    color: #ef4444;
                     text-decoration: none;
+                    font-weight: 600;
+                }}
+                .footer-link:hover {{
+                    color: #dc2626;
+                }}
+                .divider {{
+                    height: 1px;
+                    background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+                    margin: 15px 0;
                 }}
             </style>
         </head>
         <body>
             <div class="container">
                 <div class="header">
+                    <div class="header-icon">✓</div>
                     <h1 class="logo">TED Brokers</h1>
+                    <p class="subtitle">Account Security Notification</p>
                 </div>
 
                 <div class="content">
                     <p class="greeting">Hello {username},</p>
 
+                    <div class="success-badge">
+                        ✓ Successful Login Detected
+                    </div>
+
                     <p class="message">
-                        We detected a new login to your TED Brokers account. Here are the details:
+                        We detected a new login to your TED Brokers account. This notification is sent
+                        to help you monitor your account security and ensure all access is authorized.
                     </p>
 
                     <div class="details-box">
                         <div class="detail-row">
-                            <span class="detail-label">Time:</span>
+                            <span class="detail-label">Login Time</span>
                             <span class="detail-value">{login_time}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">IP Address:</span>
+                            <span class="detail-label">IP Address</span>
                             <span class="detail-value">{ip_address}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Device:</span>
-                            <span class="detail-value">{device_info}</span>
+                            <span class="detail-label">Location</span>
+                            <span class="detail-value">{location_display} {country_code}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Location:</span>
-                            <span class="detail-value">{location}</span>
+                            <span class="detail-label">Device Type</span>
+                            <span class="detail-value">{device_type}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Browser & OS</span>
+                            <span class="detail-value">{device_display}</span>
                         </div>
                     </div>
 
-                    <div class="warning">
-                        <p class="warning-text">
-                            <strong>Security Notice:</strong> If you did not perform this login, please secure
-                            your account immediately by changing your password and enabling two-factor authentication.
+                    <div class="security-section">
+                        <div class="security-title">Was this you?</div>
+                        <p class="security-text">
+                            <strong>If you recognize this activity:</strong> No action is needed. Your account is secure.<br><br>
+                            <strong>If you don't recognize this login:</strong> Your account may be compromised.
+                            Please change your password immediately and review your recent account activity.
                         </p>
+                        <center>
+                            <a href="https://copytradingbroker.io/change-password" class="action-button">
+                                Secure My Account
+                            </a>
+                        </center>
                     </div>
 
-                    <p class="message">
-                        For your security, we recommend enabling two-factor authentication if you haven't already.
-                    </p>
+                    <div class="tips-section">
+                        <div class="tips-title">🛡️ Security Best Practices</div>
+                        <ul class="tips-list">
+                            <li>Use a strong, unique password for your TED Brokers account</li>
+                            <li>Enable two-factor authentication for enhanced security</li>
+                            <li>Never share your login credentials with anyone</li>
+                            <li>Be cautious of phishing emails asking for your account details</li>
+                            <li>Regularly monitor your account activity and login history</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="footer">
-                    <p>&copy; 2025 TED Brokers. All rights reserved.</p>
+                    <div class="footer-logo">TED Brokers</div>
+                    <div class="divider"></div>
+                    <p style="margin: 15px 0;">
+                        © 2025 TED Brokers. All rights reserved.
+                    </p>
                     <p>
-                        Need help? Contact us at
+                        Questions? Contact us at
                         <a href="mailto:support@tedbrokers.com" class="footer-link">support@tedbrokers.com</a>
+                    </p>
+                    <p style="margin-top: 20px; font-size: 12px; color: #94a3b8;">
+                        This is an automated security notification. For your protection, please do not reply to this email.
                     </p>
                 </div>
             </div>
@@ -606,20 +763,45 @@ class EmailService:
         """
 
         plain_content = f"""
+        TED Brokers - New Login Notification
+
         Hello {username},
 
         We detected a new login to your TED Brokers account.
 
+        ✓ Successful Login Detected
+
         Login Details:
-        - Time: {login_time}
-        - IP Address: {ip_address}
-        - Device: {device_info}
-        - Location: {location}
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        Time:        {login_time}
+        IP Address:  {ip_address}
+        Location:    {location_display}
+        Device:      {device_type}
+        Browser/OS:  {device_display}
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        If you did not perform this login, please secure your account immediately by changing your password.
+        WAS THIS YOU?
 
-        Best regards,
-        TED Brokers Team
+        If you recognize this activity:
+        ✓ No action needed. Your account is secure.
+
+        If you don't recognize this login:
+        ⚠ Your account may be compromised.
+        → Change your password immediately
+        → Review your recent account activity
+        → Contact support if you need assistance
+
+        SECURITY BEST PRACTICES:
+        • Use a strong, unique password
+        • Enable two-factor authentication
+        • Never share your login credentials
+        • Be cautious of phishing emails
+        • Monitor your account regularly
+
+        Need help? Contact us at support@tedbrokers.com
+
+        © 2025 TED Brokers. All rights reserved.
+        This is an automated security notification.
         """
 
         return self.send_email(to_email, subject, html_content, plain_content)
