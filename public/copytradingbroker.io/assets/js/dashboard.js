@@ -4216,26 +4216,10 @@ function updateWalletDisplay() {
  * Navigate to the wallet tab
  */
 function navigateToWalletTab() {
-    // Remove active class from all menu items
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.classList.remove('active');
-    });
-
-    // Hide all tab content wrappers
-    document.querySelectorAll('.tab-content-wrapper').forEach(section => {
-        section.classList.remove('active');
-    });
-
-    // Activate wallet menu item
+    // Find the wallet menu item and simulate a click
     const walletMenuItem = document.querySelector('.menu-item[data-tab="wallet"]');
     if (walletMenuItem) {
-        walletMenuItem.classList.add('active');
-    }
-
-    // Show wallet tab content
-    const walletContent = document.getElementById('tab-wallet');
-    if (walletContent) {
-        walletContent.classList.add('active');
+        walletMenuItem.click();
     }
 }
 
