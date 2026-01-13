@@ -786,7 +786,8 @@ async function handleAddTraderSubmit(e) {
         specialization: document.getElementById('trader-specialization').value,
         ytd_return: parseFloat(document.getElementById('trader-ytd-return').value),
         win_rate: parseFloat(document.getElementById('trader-win-rate').value),
-        copiers: parseInt(document.getElementById('trader-copiers').value) || 0
+        copiers: parseInt(document.getElementById('trader-copiers').value) || 0,
+        minimum_copy_amount: parseFloat(document.getElementById('trader-minimum-amount').value) || 100
     };
 
     try {
@@ -825,6 +826,7 @@ async function showEditTraderModal(traderId) {
         document.getElementById('edit-trader-ytd-return').value = trader.ytd_return;
         document.getElementById('edit-trader-win-rate').value = trader.win_rate;
         document.getElementById('edit-trader-copiers').value = trader.copiers || 0;
+        document.getElementById('edit-trader-minimum-amount').value = trader.minimum_copy_amount || 100;
 
         // Show modal
         const modal = document.getElementById('edit-trader-modal');
@@ -858,7 +860,8 @@ async function submitEditedTrader(event) {
         specialization: document.getElementById('edit-trader-specialization').value,
         ytd_return: parseFloat(document.getElementById('edit-trader-ytd-return').value),
         win_rate: parseFloat(document.getElementById('edit-trader-win-rate').value),
-        copiers: parseInt(document.getElementById('edit-trader-copiers').value) || 0
+        copiers: parseInt(document.getElementById('edit-trader-copiers').value) || 0,
+        minimum_copy_amount: parseFloat(document.getElementById('edit-trader-minimum-amount').value) || 100
     };
 
     try {
@@ -2293,11 +2296,60 @@ async function loadWithdrawalRequests(statusFilter = '') {
     container.innerHTML = 'Loading...';
 
     try {
-        const url = statusFilter ? `/api/admin/withdrawal-requests?status_filter=${statusFilter}` : '/api/admin/withdrawal-requests';
-        const response = await adminFetch(url);
-        const data = await response.json();
+        // Fetch both old-style withdrawal requests and new transaction-based withdrawals
+        const transactionsUrl = statusFilter
+            ? `/api/admin/transactions/withdrawals?status_filter=${statusFilter}`
+            : '/api/admin/transactions/withdrawals';
 
-        if (data.requests.length === 0) {
+        const [requestsResponse, transactionsResponse] = await Promise.all([
+            adminFetch(statusFilter ? `/api/admin/withdrawal-requests?status_filter=${statusFilter}` : '/api/admin/withdrawal-requests'),
+            adminFetch(transactionsUrl)
+        ]);
+
+        const requestsData = await requestsResponse.json();
+        const transactionsData = await transactionsResponse.json();
+
+        // Combine both types of withdrawals
+        let allWithdrawals = [];
+
+        // Add old-style withdrawal requests (with type marker)
+        if (requestsData.requests && requestsData.requests.length > 0) {
+            allWithdrawals = allWithdrawals.concat(
+                requestsData.requests.map(req => ({
+                    ...req,
+                    type: 'request', // Mark as old-style request
+                    created_at: req.created_at
+                }))
+            );
+        }
+
+        // Add transaction-based withdrawals (with type marker)
+        if (transactionsData.withdrawals && transactionsData.withdrawals.length > 0) {
+            allWithdrawals = allWithdrawals.concat(
+                transactionsData.withdrawals.map(txn => ({
+                    id: txn.id,
+                    username: txn.username,
+                    email: txn.email,
+                    amount: txn.amount,
+                    withdrawal_method: txn.payment_method,
+                    status: txn.status,
+                    created_at: txn.created_at,
+                    payment_details: txn.payment_details,
+                    reference_number: txn.reference_number,
+                    type: 'transaction' // Mark as transaction-based
+                }))
+            );
+        }
+
+        // Filter by status if needed
+        if (statusFilter) {
+            allWithdrawals = allWithdrawals.filter(w => w.status === statusFilter);
+        }
+
+        // Sort by date (newest first)
+        allWithdrawals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        if (allWithdrawals.length === 0) {
             container.innerHTML = '<p>No withdrawal requests found</p>';
             return;
         }
@@ -2317,10 +2369,31 @@ async function loadWithdrawalRequests(statusFilter = '') {
                 <tbody>
         `;
 
-        data.requests.forEach(req => {
+        allWithdrawals.forEach(req => {
             const date = new Date(req.created_at).toLocaleDateString();
             const statusBadge = req.status === 'completed' ? 'badge-approved' :
                               req.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+
+            // Different action buttons for transaction-based vs request-based withdrawals
+            let actionButtons = '';
+            if (req.type === 'transaction') {
+                actionButtons = `
+                    <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="viewTransactionWithdrawalDetails('${req.id}')">View</button>
+                    ${req.status === 'pending' ? `
+                        <button class="btn btn-success" style="padding: 5px 10px;" onclick="completeTransactionWithdrawal('${req.id}')">Complete</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="rejectTransactionWithdrawal('${req.id}')">Reject</button>
+                    ` : ''}
+                `;
+            } else {
+                actionButtons = `
+                    <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="viewWithdrawalDetails('${req.id}')">View</button>
+                    ${req.status === 'pending' ? `
+                        <button class="btn btn-success" style="padding: 5px 10px;" onclick="approveWithdrawal('${req.id}')">Approve</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="rejectWithdrawal('${req.id}')">Reject</button>
+                    ` : ''}
+                `;
+            }
+
             html += `
                 <tr>
                     <td>${req.username}<br><small style="color: #8b93a7;">${req.email}</small></td>
@@ -2330,11 +2403,7 @@ async function loadWithdrawalRequests(statusFilter = '') {
                     <td>${date}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn btn-secondary" style="padding: 5px 10px;" onclick="viewWithdrawalDetails('${req.id}')">View</button>
-                            ${req.status === 'pending' ? `
-                                <button class="btn btn-success" style="padding: 5px 10px;" onclick="approveWithdrawal('${req.id}')">Approve</button>
-                                <button class="btn btn-danger" style="padding: 5px 10px;" onclick="rejectWithdrawal('${req.id}')">Reject</button>
-                            ` : ''}
+                            ${actionButtons}
                         </div>
                     </td>
                 </tr>
@@ -2449,6 +2518,174 @@ async function rejectWithdrawal(requestId) {
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to reject withdrawal'));
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// ============================================================
+// TRANSACTION-BASED WITHDRAWAL FUNCTIONS
+// ============================================================
+
+// View transaction withdrawal details
+async function viewTransactionWithdrawalDetails(transactionId) {
+    try {
+        const response = await adminFetch('/api/admin/transactions/withdrawals');
+        const data = await response.json();
+
+        const withdrawal = data.withdrawals.find(w => w.id === transactionId);
+        if (!withdrawal) {
+            Swal.fire({ title: 'Notice', text: 'Withdrawal transaction not found', icon: 'info' });
+            return;
+        }
+
+        // Build details HTML
+        let detailsHtml = `
+            <div style="text-align: left; padding: 20px;">
+                <div style="margin-bottom: 15px;">
+                    <strong>Status:</strong> <span class="badge ${withdrawal.status === 'pending' ? 'badge-pending' : 'badge-approved'}">${withdrawal.status.toUpperCase()}</span>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>Amount:</strong> $${withdrawal.amount.toLocaleString()}
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>User:</strong> ${withdrawal.username} (${withdrawal.email})
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>Payment Method:</strong> ${withdrawal.payment_method}
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>Reference Number:</strong> ${withdrawal.reference_number}
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>Created:</strong> ${new Date(withdrawal.created_at).toLocaleString()}
+                </div>
+        `;
+
+        // Add payment details if available
+        if (withdrawal.payment_details) {
+            detailsHtml += `
+                <div style="margin-bottom: 15px;">
+                    <strong>Payment Details:</strong>
+                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(withdrawal.payment_details, null, 2)}</pre>
+                </div>
+            `;
+
+            // Highlight crypto details
+            if (withdrawal.payment_details.crypto_type) {
+                detailsHtml += `
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(123, 182, 218, 0.1); border-left: 3px solid #7BB6DA; border-radius: 5px;">
+                        <h4 style="color: #D32F2F; margin-top: 0;">Cryptocurrency Withdrawal</h4>
+                        <div style="margin-bottom: 10px;">
+                            <strong>Crypto Type:</strong> ${withdrawal.payment_details.crypto_type}
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <strong>User's Wallet Address:</strong><br>
+                            <code style="background: #fff; padding: 5px; border-radius: 3px; word-break: break-all;">${withdrawal.payment_details.wallet_address}</code>
+                        </div>
+                        <div style="margin-top: 15px; padding: 10px; background: rgba(255, 152, 0, 0.1); border-radius: 5px;">
+                            <i class="fas fa-info-circle"></i> <strong>Instructions:</strong>
+                            <ol style="margin: 10px 0 0 0;">
+                                <li>Send <strong>$${withdrawal.amount.toLocaleString()}</strong> worth of ${withdrawal.payment_details.crypto_type} to the user's wallet address above</li>
+                                <li>Verify the transaction is confirmed on the blockchain</li>
+                                <li>Click "Complete" to debit the amount from user's in-app wallet</li>
+                            </ol>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        detailsHtml += '</div>';
+
+        Swal.fire({
+            title: 'Withdrawal Transaction Details',
+            html: detailsHtml,
+            width: '700px',
+            confirmButtonText: 'Close'
+        });
+    } catch (error) {
+        console.error('Error loading withdrawal details:', error);
+        Swal.fire({ title: 'Error!', text: 'Error loading withdrawal details', icon: 'error' });
+    }
+}
+
+// Complete transaction withdrawal
+async function completeTransactionWithdrawal(transactionId) {
+    const result = await Swal.fire({
+        title: 'Confirm Withdrawal Completion',
+        html: `
+            <div style="text-align: left;">
+                <p style="margin-bottom: 15px;">Have you confirmed that the cryptocurrency has been sent to the user's wallet address?</p>
+                <div style="background: rgba(255, 152, 0, 0.1); padding: 15px; border-radius: 5px; border-left: 3px solid #ff9800;">
+                    <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong>
+                    <ul style="margin: 10px 0 0 0;">
+                        <li>This action will debit the amount from the user's in-app wallet</li>
+                        <li>Make sure you have sent the cryptocurrency before completing</li>
+                        <li>This action cannot be undone</li>
+                    </ul>
+                </div>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Complete Withdrawal',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#4caf50',
+        width: '600px'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/transactions/withdrawals/${transactionId}/complete`, { method: 'PUT' });
+        if (response.ok) {
+            const data = await response.json();
+            Swal.fire({
+                title: 'Success!',
+                text: `Withdrawal completed! $${data.amount} deducted from user wallet.`,
+                icon: 'success'
+            });
+            loadWithdrawalRequests();
+        } else {
+            const error = await response.json();
+            Swal.fire({
+                title: 'Error!',
+                text: error.detail || 'Failed to complete withdrawal',
+                icon: 'error'
+            });
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Reject transaction withdrawal
+async function rejectTransactionWithdrawal(transactionId) {
+    if (!(await Swal.fire({
+                title: 'Confirm Action',
+                text: 'Reject this withdrawal request? The user will be notified.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Reject',
+                cancelButtonText: 'Cancel'
+            })).isConfirmed) return;
+
+    try {
+        const response = await adminFetch(`/api/admin/transactions/withdrawals/${transactionId}/reject`, { method: 'PUT' });
+        if (response.ok) {
+            Swal.fire({ title: 'Notice', text: 'Withdrawal request rejected', icon: 'info' });
+            loadWithdrawalRequests();
+        } else {
+            const error = await response.json();
+            Swal.fire({
+                title: 'Error!',
+                text: error.detail || 'Failed to reject withdrawal',
+                icon: 'error'
+            });
         }
     } catch (error) {
         Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
