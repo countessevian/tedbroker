@@ -1137,7 +1137,7 @@ async function handleDeposit(event) {
                 <p><strong>Payment Method:</strong> ${paymentMethod}</p>
                 <p><strong>Reference:</strong> ${result.transaction.reference_number}</p>
                 <p style="color: #ff9800; margin-top: 15px;">
-                    <i class="fa fa-info-circle"></i> Your funds will be available once approved by admin.
+                    <i class="fa fa-info-circle"></i> Your funds will be available once confirmed on-chain.
                 </p>
             `,
             confirmButtonColor: '#D32F2F'
@@ -1210,7 +1210,7 @@ async function handleWithdraw(event) {
                 <p><strong>Payment Method:</strong> ${paymentMethod}</p>
                 <p><strong>Reference:</strong> ${result.transaction.reference_number}</p>
                 <p style="color: #ff9800; margin-top: 15px;">
-                    <i class="fa fa-info-circle"></i> Your withdrawal will be processed once approved by admin.
+                    <i class="fa fa-info-circle"></i> Your withdrawal will be processed once confirmed on-chain.
                 </p>
             `,
             confirmButtonColor: '#D32F2F'
