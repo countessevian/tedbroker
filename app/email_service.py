@@ -564,7 +564,7 @@ class EmailService:
                 }}
                 .detail-label {{
                     font-weight: 600;
-                    color: #64748b;
+                    color: #475569 !important;
                     font-size: 14px;
                     display: flex;
                     align-items: center;
@@ -576,8 +576,8 @@ class EmailService:
                     font-size: 12px;
                 }}
                 .detail-value {{
-                    color: #1e293b;
-                    font-weight: 500;
+                    color: #0f172a !important;
+                    font-weight: 600;
                     text-align: right;
                     font-size: 14px;
                 }}
