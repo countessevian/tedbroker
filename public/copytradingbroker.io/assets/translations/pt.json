@@ -1,0 +1,27 @@
+{
+  "nav.home": "Home",
+  "nav.about": "About Us",
+  "nav.contact": "Contact Us",
+  "nav.faq": "FAQs",
+  "nav.login": "Login",
+  "nav.register": "Register",
+  "nav.dashboard": "Dashboard",
+
+  "dashboard.welcome": "Welcome Back",
+  "dashboard.portfolio": "Portfolio Value",
+  "dashboard.activeCopies": "Active Copies",
+  "dashboard.totalReturn": "Total Return",
+  "dashboard.wallet": "Wallet Balance",
+
+  "dashboard.tab.home": "Home",
+  "dashboard.tab.portfolio": "Portfolio",
+  "dashboard.tab.traders": "Traders",
+  "dashboard.tab.wallet": "Wallet",
+  "dashboard.tab.settings": "Settings",
+
+  "theme.light": "Light Mode",
+  "theme.dark": "Dark Mode",
+
+  "language.select": "Select Language",
+  "language.current": "Current Language"
+}
