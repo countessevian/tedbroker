@@ -363,8 +363,47 @@
 			</li>
 
 		</ul>
-		<div class="">
+		<div class="d-flex align-items-center gap-3">
 			<a href="register" class="btn btn-outline-primary-dark">Get started</a>
+			<!-- Language Selector -->
+			<div class="dropdown">
+				<button class="btn btn-outline-primary-dark dropdown-toggle d-flex align-items-center gap-2" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 120px;">
+					<span id="current-lang-flag">🇺🇸</span>
+					<span id="current-lang-code">EN</span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('en'); return false;">
+						<span>🇺🇸</span> <span>English</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('zh'); return false;">
+						<span>🇨🇳</span> <span>中文 (Chinese)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('hi'); return false;">
+						<span>🇮🇳</span> <span>हिन्दी (Hindi)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('es'); return false;">
+						<span>🇪🇸</span> <span>Español (Spanish)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('fr'); return false;">
+						<span>🇫🇷</span> <span>Français (French)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('ar'); return false;">
+						<span>🇸🇦</span> <span>العربية (Arabic)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('bn'); return false;">
+						<span>🇧🇩</span> <span>বাংলা (Bengali)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('ru'); return false;">
+						<span>🇷🇺</span> <span>Русский (Russian)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('pt'); return false;">
+						<span>🇵🇹</span> <span>Português (Portuguese)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('de'); return false;">
+						<span>🇩🇪</span> <span>Deutsch (German)</span>
+					</a></li>
+				</ul>
+			</div>
 		</div>
 	</div>
 </div>
@@ -954,6 +993,8 @@
 		<!-- Scripts -->
 		<script src="assets/templates/copytradingbroker/frontend/js/plugins.js"></script>
 		<script src="assets/templates/copytradingbroker/frontend/js/main.js"></script>
+		<!-- Language System -->
+		<script src="/assets/js/language.js"></script>
 	    <!-- Chat Support Widget -->
     <script src="/assets/js/chat-events.js"></script>
     <script src="/assets/js/chat-widget.js"></script>
