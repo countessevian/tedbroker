@@ -253,10 +253,15 @@ async function loadUsers(search = '') {
                             </div>
                             <div>
                                 <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Wallet Balance</label>
-                                <p style="margin: 0; color: #D32F2F; font-size: 20px; font-weight: 700;">
-                                    <i class="fas fa-wallet" style="margin-right: 6px; font-size: 16px;"></i>
-                                    $${user.wallet_balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                </p>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <p style="margin: 0; color: #D32F2F; font-size: 20px; font-weight: 700;">
+                                        <i class="fas fa-wallet" style="margin-right: 6px; font-size: 16px;"></i>
+                                        $${user.wallet_balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                    </p>
+                                    <button class="btn btn-sm btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="showUpdateBalanceModal('${user.id}', ${user.wallet_balance})">
+                                        <i class="fas fa-edit"></i> Update
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Auth Provider</label>
@@ -561,6 +566,61 @@ function closeUserDetailsModal() {
     modal.classList.remove('show');
 }
 
+// Show update balance modal
+function showUpdateBalanceModal(userId, currentBalance) {
+    document.getElementById('update-balance-user-id').value = userId;
+    document.getElementById('current-balance-display').textContent =
+        `$${currentBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    document.getElementById('new-balance-input').value = currentBalance.toFixed(2);
+    document.getElementById('update-balance-modal').classList.add('show');
+}
+
+// Close update balance modal
+function closeUpdateBalanceModal() {
+    document.getElementById('update-balance-modal').classList.remove('show');
+    document.getElementById('update-balance-form').reset();
+}
+
+// Submit balance update
+async function submitBalanceUpdate(event) {
+    event.preventDefault();
+
+    const userId = document.getElementById('update-balance-user-id').value;
+    const newBalance = parseFloat(document.getElementById('new-balance-input').value);
+
+    try {
+        const response = await adminFetch(`/api/admin/users/${userId}/update-balance`, {
+            method: 'PUT',
+            body: JSON.stringify({ new_balance: newBalance })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            Swal.fire({
+                title: 'Success!',
+                text: `Balance updated from $${result.old_balance.toFixed(2)} to $${result.new_balance.toFixed(2)}`,
+                icon: 'success'
+            });
+            closeUpdateBalanceModal();
+            loadUsers(); // Reload user list to show updated balance
+        } else {
+            const error = await response.json();
+            Swal.fire({
+                title: 'Error!',
+                text: error.detail || 'Failed to update balance',
+                icon: 'error'
+            });
+        }
+    } catch (error) {
+        console.error('Error updating balance:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'Network error. Please try again.',
+            icon: 'error'
+        });
+    }
+}
+
 // Switch user detail tabs
 function switchUserTab(tabName) {
     // Remove active class from all buttons
@@ -741,6 +801,7 @@ async function loadTraders() {
                     <p><strong>Specialization:</strong> ${trader.specialization}</p>
                     <p><strong>YTD Return:</strong> ${trader.ytd_return}% | <strong>Win Rate:</strong> ${trader.win_rate}%</p>
                     <p><strong>Copiers:</strong> ${trader.copiers || 0}</p>
+                    <p><strong>Minimum Copy Amount:</strong> $${(trader.minimum_copy_amount || 100).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
                         <button class="btn btn-primary" style="padding: 8px 16px;" onclick="showEditTraderModal('${trader.id}')">Edit</button>
                         <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deleteTrader('${trader.id}')">Delete</button>

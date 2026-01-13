@@ -615,6 +615,92 @@ async def reject_user_kyc(
     return {"message": "KYC rejected successfully. User will need to complete onboarding again."}
 
 
+@router.put("/users/{user_id}/update-balance")
+async def update_user_balance(
+    user_id: str,
+    balance_data: dict,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Update user's wallet balance
+
+    Args:
+        user_id: User ID
+        balance_data: Dict containing 'new_balance' (float)
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Success message with updated balance
+    """
+    users = get_collection(USERS_COLLECTION)
+
+    try:
+        # Validate new balance
+        new_balance = balance_data.get("new_balance")
+        if new_balance is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="new_balance field is required"
+            )
+
+        # Convert to float and validate
+        try:
+            new_balance = float(new_balance)
+        except (TypeError, ValueError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="new_balance must be a valid number"
+            )
+
+        if new_balance < 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Balance cannot be negative"
+            )
+
+        # Check if user exists
+        user = users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        old_balance = user.get("wallet_balance", 0.0)
+
+        # Update user balance
+        result = users.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "wallet_balance": new_balance,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        return {
+            "message": "Balance updated successfully",
+            "old_balance": old_balance,
+            "new_balance": new_balance,
+            "user_id": user_id
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating balance: {str(e)}"
+        )
+
+
 @router.delete("/users/{user_id}")
 async def delete_user(
     user_id: str,
@@ -732,6 +818,7 @@ async def get_all_traders(
             "ytd_return": trader["ytd_return"],
             "win_rate": trader["win_rate"],
             "copiers": trader.get("copiers", 0),
+            "minimum_copy_amount": trader.get("minimum_copy_amount", 100.0),
             "trades": trader.get("trades", []),
             "created_at": trader["created_at"].isoformat() if trader.get("created_at") else None,
             "updated_at": trader["updated_at"].isoformat() if trader.get("updated_at") else None
@@ -780,6 +867,7 @@ async def get_trader_details(
         "ytd_return": trader["ytd_return"],
         "win_rate": trader["win_rate"],
         "copiers": trader.get("copiers", 0),
+        "minimum_copy_amount": trader.get("minimum_copy_amount", 100.0),
         "trades": trader.get("trades", []),
         "created_at": trader["created_at"].isoformat() if trader.get("created_at") else None,
         "updated_at": trader["updated_at"].isoformat() if trader.get("updated_at") else None
@@ -812,6 +900,7 @@ async def create_trader(
         "ytd_return": trader_data.ytd_return,
         "win_rate": trader_data.win_rate,
         "copiers": trader_data.copiers,
+        "minimum_copy_amount": trader_data.minimum_copy_amount,
         "trades": [],
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
@@ -830,6 +919,7 @@ async def create_trader(
         "ytd_return": trader_dict["ytd_return"],
         "win_rate": trader_dict["win_rate"],
         "copiers": trader_dict["copiers"],
+        "minimum_copy_amount": trader_dict["minimum_copy_amount"],
         "trades": trader_dict["trades"],
         "created_at": trader_dict["created_at"].isoformat()
     }
@@ -877,6 +967,7 @@ async def update_trader(
         "ytd_return": trader_data.ytd_return,
         "win_rate": trader_data.win_rate,
         "copiers": trader_data.copiers,
+        "minimum_copy_amount": trader_data.minimum_copy_amount,
         "updated_at": datetime.utcnow()
     }
 
@@ -898,6 +989,7 @@ async def update_trader(
         "ytd_return": updated_trader["ytd_return"],
         "win_rate": updated_trader["win_rate"],
         "copiers": updated_trader.get("copiers", 0),
+        "minimum_copy_amount": updated_trader.get("minimum_copy_amount", 100.0),
         "trades": updated_trader.get("trades", []),
         "created_at": updated_trader["created_at"].isoformat() if updated_trader.get("created_at") else None,
         "updated_at": updated_trader["updated_at"].isoformat()

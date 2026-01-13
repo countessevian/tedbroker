@@ -994,7 +994,7 @@ async function copyTrader(traderId, traderName) {
             // Select trader
             if (!(await Swal.fire({
                 title: 'Confirm Action',
-                text: 'Start copying ${traderName}?',
+                text: `Start copying ${traderName}?`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
@@ -1270,7 +1270,7 @@ async function investInPlan(planId, planName, minimumInvestment) {
 
             // Check if error is about trader selection
             if (error.detail && error.detail.includes('select at least 1 trader')) {
-                Swal.fire({ title: 'Error!', html: `Unable to invest: ${error.detail}<br><br>Please go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`, icon: 'error' });
+                Swal.fire({ title: 'Error!', html: `Unable to invest: ${error.detail}`, icon: 'error' });
 
                 // Navigate to traders tab
                 document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
@@ -1571,7 +1571,7 @@ async function activateETFPlan(planId, planName, minInvestment) {
             if (data.detail && data.detail.includes('select at least 1 trader')) {
                 Swal.fire({
                     title: 'Error!',
-                    html: `Unable to activate plan: ${data.detail}<br><br>Please go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`,
+                    html: `Unable to activate plan: ${data.detail}`,
                     icon: 'error'
                 });
 
@@ -1900,7 +1900,7 @@ async function activateDeFiPlan(planId, planName, minInvestment) {
             if (data.detail && data.detail.includes('select at least 1 trader')) {
                 Swal.fire({
                     title: 'Error!',
-                    html: `Unable to activate plan: ${data.detail}<br><br>Please go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`,
+                    html: `Unable to activate plan: ${data.detail}`,
                     icon: 'error'
                 });
 
@@ -2229,7 +2229,7 @@ async function activateOptionsPlan(planId, planName, minInvestment) {
             if (data.detail && data.detail.includes('select at least 1 trader')) {
                 Swal.fire({
                     title: 'Error!',
-                    html: `Unable to activate plan: ${data.detail}<br><br>Please go to the Traders tab and select at least one trader to copy before activating a copy trading plan.`,
+                    html: `Unable to activate plan: ${data.detail}`,
                     icon: 'error'
                 });
 
@@ -3878,26 +3878,8 @@ function createInvestmentCard(investment) {
     const totalDays = investment.days_elapsed + investment.days_remaining;
     const progressPercent = totalDays > 0 ? (investment.days_elapsed / totalDays * 100) : 0;
 
-    // Build trader avatars HTML
+    // Traders are now separate from investment plans
     let tradersHTML = '';
-    if (investment.selected_traders && investment.selected_traders.length > 0) {
-        const traderAvatarsHTML = investment.selected_traders.map(trader => {
-            return trader.profile_photo
-                ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-avatar" title="${trader.full_name}">`
-                : `<div class="trader-avatar-placeholder" title="${trader.full_name}"><i class="fa fa-user" style="font-size: 16px; color: #8b93a7;"></i></div>`;
-        }).join('');
-
-        tradersHTML = `
-            <div style="background: rgba(123, 182, 218, 0.05); border-radius: 8px; padding: 12px; margin-top: 15px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="color: #8b93a7; font-size: 13px;">Copying Traders:</span>
-                    <div class="trader-avatars" style="display: flex; gap: 6px;">
-                        ${traderAvatarsHTML}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
 
     card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -4041,26 +4023,8 @@ function createDashboardInvestmentCard(investment) {
     const totalDays = investment.days_elapsed + investment.days_remaining;
     const progressPercent = totalDays > 0 ? (investment.days_elapsed / totalDays * 100) : 0;
 
-    // Build trader avatars HTML
+    // Traders are now separate from investment plans
     let tradersHTML = '';
-    if (investment.selected_traders && investment.selected_traders.length > 0) {
-        const traderAvatarsHTML = investment.selected_traders.map(trader => {
-            return trader.profile_photo
-                ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-avatar" title="${trader.full_name}">`
-                : `<div class="trader-avatar-placeholder" title="${trader.full_name}"><i class="fa fa-user" style="font-size: 16px; color: #8b93a7;"></i></div>`;
-        }).join('');
-
-        tradersHTML = `
-            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(123, 182, 218, 0.2);">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="color: #8b93a7; font-size: 11px;">Copying:</span>
-                    <div class="trader-avatars" style="display: flex; gap: 6px;">
-                        ${traderAvatarsHTML}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
 
     card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
@@ -4164,10 +4128,25 @@ async function loadDashboardStats() {
             portfolioValueElement.textContent = `$${portfolio.current_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
-        // Update Active Copies stat box - use active_investments count
+        // Update Active Copies stat box - fetch selected traders count
         const activeCopiesElement = document.getElementById('dashboard-active-copies');
         if (activeCopiesElement) {
-            activeCopiesElement.textContent = portfolio.active_investments;
+            // Fetch the count of traders being copied
+            try {
+                const tradersResponse = await TED_AUTH.apiCall('/api/traders/selected/list', {
+                    method: 'GET'
+                });
+
+                if (tradersResponse.ok) {
+                    const tradersData = await tradersResponse.json();
+                    activeCopiesElement.textContent = tradersData.count || 0;
+                } else {
+                    activeCopiesElement.textContent = 0;
+                }
+            } catch (error) {
+                console.error('Error fetching selected traders count:', error);
+                activeCopiesElement.textContent = 0;
+            }
         }
 
         // Update Total Return stat box - use total_profit_loss_percent with color
@@ -5382,15 +5361,6 @@ function renderActivePlans(plans, containerId, planType) {
         const performanceClass = plan.profit_loss_percent >= 0 ? 'positive' : 'negative';
         const performanceSign = plan.profit_loss_percent >= 0 ? '+' : '';
 
-        // Render trader avatars
-        const tradersHTML = plan.selected_traders && plan.selected_traders.length > 0
-            ? plan.selected_traders.map(trader => {
-                return trader.profile_photo
-                    ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-avatar" title="${trader.full_name}">`
-                    : `<div class="trader-avatar-placeholder" title="${trader.full_name}"><i class="fa fa-user" style="font-size: 16px; color: #8b93a7;"></i></div>`;
-            }).join('')
-            : '<span style="font-size: 12px; color: #8b93a7;">No traders selected</span>';
-
         return `
             <div class="active-plan-card">
                 <div class="active-plan-header">
@@ -5410,12 +5380,6 @@ function renderActivePlans(plans, containerId, planType) {
                     <div class="progress-info">
                         <span>${Math.round(plan.progress_percent)}% Complete</span>
                         <span>${plan.time_remaining} remaining</span>
-                    </div>
-                </div>
-                <div class="traders-section">
-                    <span class="traders-label">Copying:</span>
-                    <div class="trader-avatars">
-                        ${tradersHTML}
                     </div>
                 </div>
             </div>

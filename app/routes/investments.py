@@ -4,8 +4,8 @@ from bson import ObjectId
 from datetime import datetime, timedelta
 import secrets
 
-from app.database import get_collection, INVESTMENT_PLANS_COLLECTION, USER_INVESTMENTS_COLLECTION, USERS_COLLECTION, TRANSACTIONS_COLLECTION, TRADERS_COLLECTION
-from app.schemas import InvestInPlanRequest, UserInvestmentResponse, PortfolioSummary, TraderInfo
+from app.database import get_collection, INVESTMENT_PLANS_COLLECTION, USER_INVESTMENTS_COLLECTION, USERS_COLLECTION, TRANSACTIONS_COLLECTION
+from app.schemas import InvestInPlanRequest, UserInvestmentResponse, PortfolioSummary
 from app.auth import get_current_user_token
 
 router = APIRouter(prefix="/api/investments", tags=["investments"])
@@ -91,14 +91,6 @@ async def invest_in_plan(
                 detail=f"Investment amount must be at least ${plan['minimum_investment']}"
             )
 
-        # Check if user has selected at least 1 trader for copy trading
-        selected_traders = user.get("selected_traders", [])
-        if not selected_traders or len(selected_traders) < 1:
-            raise HTTPException(
-                status_code=400,
-                detail="You must select at least 1 trader before activating a copy trading plan"
-            )
-
         # Check wallet balance
         wallet_balance = user.get("wallet_balance", 0.0)
         if wallet_balance < request.amount:
@@ -178,27 +170,7 @@ async def get_user_portfolio(current_user: dict = Depends(get_current_user_token
     """
     try:
         investments_collection = get_collection(USER_INVESTMENTS_COLLECTION)
-        users_collection = get_collection(USERS_COLLECTION)
-        traders_collection = get_collection(TRADERS_COLLECTION)
         user_id = current_user["user_id"]
-
-        # Get user to access selected traders
-        user = users_collection.find_one({"_id": ObjectId(user_id)})
-        selected_trader_ids = user.get("selected_traders", []) if user else []
-
-        # Get trader details for selected traders
-        traders_info = []
-        for trader_id in selected_trader_ids:
-            try:
-                trader = traders_collection.find_one({"_id": ObjectId(trader_id)})
-                if trader:
-                    traders_info.append({
-                        "id": str(trader["_id"]),
-                        "full_name": trader["full_name"],
-                        "profile_photo": trader.get("profile_photo", "")
-                    })
-            except:
-                continue
 
         # Get all user investments
         investments = list(investments_collection.find({"user_id": user_id}))
@@ -230,15 +202,6 @@ async def get_user_portfolio(current_user: dict = Depends(get_current_user_token
                 )
                 inv["status"] = "matured"
 
-            # Convert trader info to TraderInfo objects
-            trader_info_list = []
-            for trader_dict in traders_info:
-                trader_info_list.append(TraderInfo(
-                    id=trader_dict["id"],
-                    full_name=trader_dict["full_name"],
-                    profile_photo=trader_dict["profile_photo"]
-                ))
-
             investment_response = UserInvestmentResponse(
                 id=str(inv["_id"]),
                 plan_id=inv["plan_id"],
@@ -254,7 +217,7 @@ async def get_user_portfolio(current_user: dict = Depends(get_current_user_token
                 days_elapsed=days_elapsed,
                 days_remaining=days_remaining,
                 status=inv["status"],
-                selected_traders=trader_info_list
+                selected_traders=[]
             )
 
             investment_responses.append(investment_response)
@@ -335,35 +298,12 @@ async def get_investment_details(
 @router.get("/active-plans")
 async def get_active_plans_with_progress(current_user: dict = Depends(get_current_user_token)):
     """
-    Get active investment plans with progress, selected traders, and performance metrics
+    Get active investment plans with progress and performance metrics
     Organized by plan type (ETF, DeFi, Options)
     """
     try:
         investments_collection = get_collection(USER_INVESTMENTS_COLLECTION)
-        users_collection = get_collection(USERS_COLLECTION)
-        traders_collection = get_collection(TRADERS_COLLECTION)
         user_id = current_user["user_id"]
-
-        # Get user to access selected traders
-        user = users_collection.find_one({"_id": ObjectId(user_id)})
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        selected_trader_ids = user.get("selected_traders", [])
-
-        # Get trader details for selected traders
-        traders_info = []
-        for trader_id in selected_trader_ids:
-            try:
-                trader = traders_collection.find_one({"_id": ObjectId(trader_id)})
-                if trader:
-                    traders_info.append({
-                        "id": str(trader["_id"]),
-                        "full_name": trader["full_name"],
-                        "profile_photo": trader.get("profile_photo", "")
-                    })
-            except:
-                continue
 
         # Get all active investments for this user
         active_investments = list(investments_collection.find({
@@ -404,8 +344,7 @@ async def get_active_plans_with_progress(current_user: dict = Depends(get_curren
                 "time_remaining": time_remaining,
                 "days_remaining": days_remaining,
                 "start_date": inv["start_date"].isoformat(),
-                "maturity_date": inv["maturity_date"].isoformat(),
-                "selected_traders": traders_info
+                "maturity_date": inv["maturity_date"].isoformat()
             }
 
             # Categorize by plan type based on plan name

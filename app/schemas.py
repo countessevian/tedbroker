@@ -349,7 +349,6 @@ class UserInvestmentResponse(BaseModel):
     days_elapsed: int
     days_remaining: int
     status: str
-    selected_traders: List[TraderInfo] = Field(default=[], description="Selected traders for this investment")
 
     class Config:
         from_attributes = True
