@@ -75,23 +75,14 @@ const TED_LANG = {
             return;
         }
 
+        // Check if this is a user-initiated language change (not initial load)
+        const isUserInitiated = savePreference && this.currentLanguage && this.currentLanguage !== langCode;
+
         try {
             console.log(`Changing language to: ${langCode}`);
 
-            // Load translation file
-            const response = await fetch(`/assets/translations/${langCode}.json`);
-            if (!response.ok) {
-                throw new Error(`Failed to load translation file for ${langCode}`);
-            }
-
-            this.translations = await response.json();
-            this.currentLanguage = langCode;
-
-            // Apply translations to page
-            this.applyTranslations();
-
-            // Update UI
-            this.updateLanguageUI();
+            // Save to localStorage first
+            localStorage.setItem('ted_language', langCode);
 
             // Handle RTL for Arabic
             if (langCode === 'ar') {
@@ -100,17 +91,42 @@ const TED_LANG = {
                 document.documentElement.setAttribute('dir', 'ltr');
             }
 
-            // Save to localStorage
-            localStorage.setItem('ted_language', langCode);
-
             // If authenticated, save to database
             if (savePreference && typeof TED_AUTH !== 'undefined' && TED_AUTH.isAuthenticated()) {
                 await this.saveLanguagePreference(langCode);
             }
 
-            console.log(`Language changed to ${langCode} successfully`);
+            // If user initiated the change, refresh the page
+            if (isUserInitiated) {
+                console.log(`✓ Language preference saved. Refreshing page to apply ${langCode} translations...`);
+                window.location.reload();
+                return;
+            }
+
+            // Otherwise, load and apply translations (initial page load)
+            const translationUrl = `/assets/translations/${langCode}.json`;
+            console.log(`Loading translations from: ${translationUrl}`);
+            const response = await fetch(translationUrl);
+
+            if (!response.ok) {
+                console.error(`HTTP ${response.status}: Failed to load translation file`);
+                throw new Error(`Failed to load translation file for ${langCode} (HTTP ${response.status})`);
+            }
+
+            this.translations = await response.json();
+            this.currentLanguage = langCode;
+            console.log(`Loaded ${Object.keys(this.translations).length} translation keys for ${langCode}`);
+
+            // Apply translations to page
+            this.applyTranslations();
+
+            // Update UI
+            this.updateLanguageUI();
+
+            console.log(`✓ Language changed to ${langCode} successfully`);
         } catch (error) {
-            console.error('Error changing language:', error);
+            console.error('✗ Error changing language:', error);
+            alert(`Failed to change language to ${langCode}. Please try again.`);
         }
     },
 
@@ -144,14 +160,19 @@ const TED_LANG = {
      * Apply translations to all elements with data-i18n attribute
      */
     applyTranslations() {
+        console.log('Applying translations...', Object.keys(this.translations).length, 'keys loaded');
+
         // Translate text content
+        let translatedCount = 0;
         document.querySelectorAll('[data-i18n]').forEach(element => {
             const key = element.getAttribute('data-i18n');
             const translation = this.t(key);
             if (translation !== key) {
                 element.textContent = translation;
+                translatedCount++;
             }
         });
+        console.log(`Translated ${translatedCount} text elements`);
 
         // Translate placeholders
         document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
@@ -220,8 +241,12 @@ const TED_LANG = {
 
 // Initialize language system when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => TED_LANG.init());
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing language system...');
+        TED_LANG.init();
+    });
 } else {
+    console.log('DOM already loaded, initializing language system immediately...');
     TED_LANG.init();
 }
 
@@ -230,6 +255,7 @@ TED_LANG.setupDropdownClose();
 
 // Helper function for easy access
 function changeLanguage(langCode) {
+    console.log(`[Global] changeLanguage called with: ${langCode}`);
     TED_LANG.changeLanguage(langCode);
 
     // Close dropdown after selection

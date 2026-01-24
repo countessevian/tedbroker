@@ -2234,7 +2234,7 @@
     <div class="dark-mode-toggle" id="dark-mode-toggle" onclick="toggleDarkMode()">
         <i class="fas fa-sun sun-icon"></i>
         <i class="fas fa-moon moon-icon"></i>
-        <span class="dark-mode-toggle-text">Dark Mode</span>
+        <span class="dark-mode-toggle-text" data-i18n="settings.dark">Dark Mode</span>
     </div>
 
     <!-- Language Selector -->
@@ -2339,29 +2339,29 @@
                 <div class="menu-item-parent">
                     <a class="menu-item" id="explore-menu">
                         <i class="fa-solid fa-compass"></i>
-                        <span>Explore</span>
+                        <span data-i18n="dashboard.nav.explore">Explore</span>
                         <i class="fa-solid fa-chevron-right submenu-arrow"></i>
                     </a>
                     <div class="submenu" id="explore-submenu">
                         <a class="submenu-item" data-tab="subscription">
                             <i class="fa-solid fa-robot"></i>
-                            <span>Robo Advisor</span>
+                            <span data-i18n="nav.plans">Robo Advisor</span>
                         </a>
                         <a class="submenu-item" data-tab="etf-plans">
                             <i class="fa-solid fa-chart-pie"></i>
-                            <span>ETF Plans</span>
+                            <span data-i18n="nav.etf">ETF Plans</span>
                         </a>
                         <a class="submenu-item" data-tab="defi-earnings">
                             <i class="fa-solid fa-coins"></i>
-                            <span>DeFi Earnings</span>
+                            <span data-i18n="nav.defi">DeFi Earnings</span>
                         </a>
                         <a class="submenu-item" data-tab="options">
                             <i class="fa-solid fa-file-alt"></i>
-                            <span>Options Trading</span>
+                            <span data-i18n="nav.options">Options Trading</span>
                         </a>
                         <a class="submenu-item" data-tab="staking">
                             <i class="fa-solid fa-layer-group"></i>
-                            <span>Staking</span>
+                            <span data-i18n="dashboard.nav.staking">Staking</span>
                         </a>
                     </div>
                 </div>
@@ -2376,30 +2376,30 @@
                 </a>
                 <a class="menu-item" data-tab="news">
                     <i class="fa-solid fa-newspaper"></i>
-                    <span>News</span>
+                    <span data-i18n="dashboard.nav.news">News</span>
                 </a>
 
                 <!-- Account Parent with Submenu -->
                 <div class="menu-item-parent">
                     <a class="menu-item" id="account-menu">
                         <i class="fa-solid fa-user-circle"></i>
-                        <span>Account</span>
+                        <span data-i18n="nav.account">Account</span>
                         <i class="fa-solid fa-chevron-right submenu-arrow"></i>
                     </a>
                     <div class="submenu" id="account-submenu">
                         <a class="submenu-item" data-tab="account-personal">
                             <i class="fa-solid fa-user"></i>
-                            <span>Personal Details</span>
+                            <span data-i18n="profile.personalInfo">Personal Details</span>
                         </a>
                         <a class="submenu-item" data-tab="account-security">
                             <i class="fa-solid fa-shield-halved"></i>
-                            <span>Security</span>
+                            <span data-i18n="help.security">Security</span>
                         </a>
                     </div>
                 </div>
                 <a class="menu-item logout-btn" onclick="handleLogout()">
                     <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Log Out</span>
+                    <span data-i18n="nav.logout">Log Out</span>
                 </a>
             </nav>
 
@@ -2421,8 +2421,8 @@
                 <div id="notifications-area" style="margin-bottom: 24px;"></div>
 
                 <div class="content-header">
-                    <h1>Welcome Back, <span id="user-display-name">User</span>!</h1>
-                    <p>Here's an overview of your TED Brokers account</p>
+                    <h1><span data-i18n="dashboard.header.welcome">Welcome Back</span>, <span id="user-display-name">User</span>!</h1>
+                    <p data-i18n="dashboard.overview">Here's an overview of your TED Brokers account</p>
                 </div>
 
                 <div class="stat-grid">
@@ -2442,29 +2442,29 @@
                         <div class="stat-value" id="dashboard-wallet-balance">$0.00</div>
                         <div class="stat-label" data-i18n="dashboard.wallet">Wallet Balance</div>
                         <button onclick="navigateToWalletTab()" style="margin-top: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                            <i class="fa fa-wallet"></i> Manage Wallet
+                            <i class="fa fa-wallet"></i> <span data-i18n="wallet.manage">Manage Wallet</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="dashboard-card" id="quick-actions-card">
-                    <h3 style="margin-bottom: 20px;" data-i18n="dashboard.quickActions">Quick Actions</h3>
+                    <h3 style="margin-bottom: 20px;" data-i18n="dashboard.quickActions.title">Quick Actions</h3>
                     <div class="quick-actions-grid">
                         <button class="btn-primary-custom" onclick="quickActionStartRoboAdvisor()">
-                            <i class="fa-solid fa-robot"></i> Start Robo Advisor
+                            <i class="fa-solid fa-robot"></i> <span data-i18n="nav.plans">Start Robo Advisor</span>
                         </button>
                         <button class="btn-primary-custom" onclick="quickActionDepositFunds()">
-                            <i class="fa-solid fa-circle-plus"></i> <span data-i18n="dashboard.depositFunds">Deposit Funds</span>
+                            <i class="fa-solid fa-circle-plus"></i> <span data-i18n="dashboard.quickActions.deposit">Deposit Funds</span>
                         </button>
                         <button class="btn-primary-custom" onclick="quickActionBrowseTraders()">
-                            <i class="fa-solid fa-users-line"></i> Browse Traders
+                            <i class="fa-solid fa-users-line"></i> <span data-i18n="explore.subtitle">Browse Traders</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Market Overview Chart -->
                 <div class="dashboard-card">
-                    <h3 style="margin-bottom: 20px;">Market Overview</h3>
+                    <h3 style="margin-bottom: 20px;" data-i18n="marketOverview.title">Market Overview</h3>
                     <div class="tradingview-chart-wrapper">
                         <div id="tradingview_chart" style="height: 100%; width: 100%;"></div>
                     </div>
@@ -2473,32 +2473,32 @@
                 <!-- Active Investments Section -->
                 <div class="dashboard-card" id="active-investments-card" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="margin: 0;">Active Investments</h3>
+                        <h3 style="margin: 0;" data-i18n="dashboard.investments.title">Active Investments</h3>
                         <button class="btn-primary-custom" onclick="viewFullPortfolio()" style="padding: 8px 16px; font-size: 14px;">
-                            <i class="fa fa-chart-line"></i> View Portfolio
+                            <i class="fa fa-chart-line"></i> <span data-i18n="portfolio.title">View Portfolio</span>
                         </button>
                     </div>
                     <div id="dashboard-active-investments-container"></div>
                 </div>
 
                 <div class="dashboard-card">
-                    <h3 style="margin-bottom: 20px;">Recent Activity</h3>
-                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">No recent activity to display. Start copy trading to see your activity here.</p>
+                    <h3 style="margin-bottom: 20px;" data-i18n="dashboard.recentActivity.title">Recent Activity</h3>
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="dashboard.recentActivity.noActivity">No recent activity to display. Start copy trading to see your activity here.</p>
                 </div>
             </div>
 
             <!-- Wallet Tab -->
             <div class="tab-content-wrapper" id="tab-wallet">
                 <div class="content-header">
-                    <h1>Wallet</h1>
-                    <p>Manage your funds and view transaction history</p>
+                    <h1 data-i18n="wallet.title">Wallet</h1>
+                    <p data-i18n="wallet.subtitle">Manage your funds and view transaction history</p>
                 </div>
 
                 <!-- Wallet Balance Card -->
                 <div class="dashboard-card" style="margin-bottom: 30px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
                         <div style="flex: 1; min-width: 250px;">
-                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Current Balance</p>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;" data-i18n="wallet.balance.totalBalance">Current Balance</p>
                             <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 24px; font-weight: bold;" id="wallet-balance-display">$0.00</h2>
 
                             <!-- Pending Transactions Indicator -->
@@ -2508,8 +2508,8 @@
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <i class="fa fa-spinner fa-spin" style="color: #4caf50; font-size: 16px;"></i>
                                         <div style="flex: 1;">
-                                            <p style="margin: 0; color: #4caf50; font-weight: 600; font-size: 13px;">Pending Deposit</p>
-                                            <p style="margin: 2px 0 0 0; color: #8b93a7; font-size: 12px;" id="pending-deposits-text">Processing...</p>
+                                            <p style="margin: 0; color: #4caf50; font-weight: 600; font-size: 13px;" data-i18n="wallet.pendingDeposit">Pending Deposit</p>
+                                            <p style="margin: 2px 0 0 0; color: #8b93a7; font-size: 12px;" id="pending-deposits-text" data-i18n="status.processing">Processing...</p>
                                         </div>
                                         <span style="color: #4caf50; font-weight: bold; font-size: 14px;" id="pending-deposits-amount">$0.00</span>
                                     </div>
@@ -2520,8 +2520,8 @@
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <i class="fa fa-spinner fa-spin" style="color: #ff9800; font-size: 16px;"></i>
                                         <div style="flex: 1;">
-                                            <p style="margin: 0; color: #ff9800; font-weight: 600; font-size: 13px;">Pending Withdrawal</p>
-                                            <p style="margin: 2px 0 0 0; color: #8b93a7; font-size: 12px;" id="pending-withdrawals-text">Processing...</p>
+                                            <p style="margin: 0; color: #ff9800; font-weight: 600; font-size: 13px;" data-i18n="wallet.pendingWithdrawal">Pending Withdrawal</p>
+                                            <p style="margin: 2px 0 0 0; color: #8b93a7; font-size: 12px;" id="pending-withdrawals-text" data-i18n="status.processing">Processing...</p>
                                         </div>
                                         <span style="color: #ff9800; font-weight: bold; font-size: 14px;" id="pending-withdrawals-amount">$0.00</span>
                                     </div>
@@ -2530,10 +2530,10 @@
                         </div>
                         <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                             <button class="btn-primary-custom" onclick="showDepositModal()">
-                                <i class="fa-solid fa-circle-plus"></i> Deposit Funds
+                                <i class="fa-solid fa-circle-plus"></i> <span data-i18n="dashboard.balance.deposit">Deposit Funds</span>
                             </button>
                             <button class="btn-primary-custom" onclick="showWithdrawModal()">
-                                <i class="fa-solid fa-circle-minus"></i> Withdraw Funds
+                                <i class="fa-solid fa-circle-minus"></i> <span data-i18n="dashboard.balance.withdraw">Withdraw Funds</span>
                             </button>
                         </div>
                     </div>
@@ -2541,9 +2541,9 @@
 
                 <!-- Transaction History -->
                 <div class="dashboard-card">
-                    <h3 style="margin-bottom: 20px;">Transaction History</h3>
+                    <h3 style="margin-bottom: 20px;" data-i18n="wallet.transactions.title">Transaction History</h3>
                     <div id="transactions-container">
-                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading transactions...</p>
+                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="status.loading">Loading transactions...</p>
                     </div>
                 </div>
             </div>
@@ -2551,18 +2551,18 @@
             <!-- Subscription Tab -->
             <div class="tab-content-wrapper" id="tab-subscription">
                 <div class="content-header">
-                    <h1>Investment Plans</h1>
-                    <p>Choose a plan that fits your investment goals</p>
+                    <h1 data-i18n="nav.plans">Investment Plans</h1>
+                    <p data-i18n="modal.invest.selectPlan">Choose a plan that fits your investment goals</p>
                 </div>
 
                 <!-- Wallet Balance Display -->
                 <div class="dashboard-card" style="margin-bottom: 30px; padding: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
                         <div>
-                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Available Balance</p>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;" data-i18n="wallet.withdraw.availableBalance">Available Balance</p>
                             <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 20px;" id="wallet-balance">$0.00</h2>
                         </div>
-                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;">Add Funds</button>
+                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;" data-i18n="wallet.deposit.title">Add Funds</button>
                     </div>
                 </div>
 
@@ -2570,25 +2570,25 @@
                 <div id="general-active-plans-container" style="margin-bottom: 30px;"></div>
 
                 <div class="subscription-grid" id="plans-container">
-                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading investment plans...</p>
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="status.loading">Loading investment plans...</p>
                 </div>
             </div>
 
             <!-- ETF Plans Tab -->
             <div class="tab-content-wrapper" id="tab-etf-plans">
                 <div class="content-header">
-                    <h1>ETF Plans</h1>
-                    <p>Diversified ETF portfolios for long-term growth</p>
+                    <h1 data-i18n="etf.title">ETF Plans</h1>
+                    <p data-i18n="etf.subtitle">Diversified ETF portfolios for long-term growth</p>
                 </div>
 
                 <!-- Wallet Balance Display -->
                 <div class="dashboard-card" style="margin-bottom: 30px; padding: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
                         <div>
-                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Available Balance</p>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;" data-i18n="wallet.withdraw.availableBalance">Available Balance</p>
                             <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 20px;" id="etf-wallet-balance">$0.00</h2>
                         </div>
-                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;">Add Funds</button>
+                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;" data-i18n="wallet.deposit.title">Add Funds</button>
                     </div>
                 </div>
 
@@ -2602,8 +2602,8 @@
                             <i class="fa-solid fa-chart-pie"></i>
                         </div>
                         <div>
-                            <h3 style="margin: 0 0 8px 0; font-size: 20px;">Exchange Traded Funds (ETFs)</h3>
-                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;">
+                            <h3 style="margin: 0 0 8px 0; font-size: 20px;" data-i18n="etf.title">Exchange Traded Funds (ETFs)</h3>
+                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;" data-i18n="etf.subtitle">
                                 Invest in professionally managed ETF portfolios. Choose from Conservative, Moderate, or Aggressive strategies based on your risk tolerance and investment horizon.
                             </p>
                         </div>
@@ -2614,7 +2614,7 @@
                 <div class="dashboard-card" style="margin-bottom: 30px;">
                     <h3 style="margin: 0 0 20px 0; font-size: 18px; color: var(--text-primary);">
                         <i class="fa-solid fa-chart-line" style="margin-right: 8px; color: #667eea;"></i>
-                        ETF Market Overview
+                        <span data-i18n="etf.marketOverview">ETF Market Overview</span>
                     </h3>
                     <div class="tradingview-widget-container" id="etf-market-overview">
                         <div class="tradingview-widget-container__widget"></div>
@@ -2622,25 +2622,25 @@
                 </div>
 
                 <div class="subscription-grid" id="etf-plans-container">
-                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading ETF plans...</p>
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="status.loading">Loading ETF plans...</p>
                 </div>
             </div>
 
             <!-- DeFi Earnings Tab -->
             <div class="tab-content-wrapper" id="tab-defi-earnings">
                 <div class="content-header">
-                    <h1>DeFi Earnings</h1>
-                    <p>Copy trades from professional DeFi traders</p>
+                    <h1 data-i18n="defi.title">DeFi Earnings</h1>
+                    <p data-i18n="defi.subtitle">Copy trades from professional DeFi traders</p>
                 </div>
 
                 <!-- Wallet Balance Display -->
                 <div class="dashboard-card" style="margin-bottom: 30px; padding: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
                         <div>
-                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Available Balance</p>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;" data-i18n="wallet.withdraw.availableBalance">Available Balance</p>
                             <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 20px;" id="defi-wallet-balance">$0.00</h2>
                         </div>
-                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;">Add Funds</button>
+                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;" data-i18n="wallet.deposit.title">Add Funds</button>
                     </div>
                 </div>
 
@@ -2654,8 +2654,8 @@
                             <i class="fa-solid fa-coins"></i>
                         </div>
                         <div>
-                            <h3 style="margin: 0 0 8px 0; font-size: 20px;">Decentralized Finance (DeFi)</h3>
-                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;">
+                            <h3 style="margin: 0 0 8px 0; font-size: 20px;" data-i18n="defi.title">Decentralized Finance (DeFi)</h3>
+                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;" data-i18n="defi.subtitle">
                                 Copy trading strategies from professional DeFi traders. Choose from Conservative, Moderate, Aggressive, or Balanced portfolios based on your investment goals and risk appetite.
                             </p>
                         </div>
@@ -2666,7 +2666,7 @@
                 <div class="dashboard-card" style="margin-bottom: 30px;">
                     <h3 style="margin: 0 0 20px 0; font-size: 18px; color: var(--text-primary);">
                         <i class="fa-solid fa-chart-line" style="margin-right: 8px; color: #11998e;"></i>
-                        Cryptocurrency Market Overview
+                        <span data-i18n="defi.marketOverview">Cryptocurrency Market Overview</span>
                     </h3>
                     <div class="tradingview-widget-container" id="defi-market-overview">
                         <div class="tradingview-widget-container__widget"></div>
@@ -2674,25 +2674,25 @@
                 </div>
 
                 <div class="subscription-grid" id="defi-plans-container">
-                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading DeFi plans...</p>
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="status.loading">Loading DeFi plans...</p>
                 </div>
             </div>
 
             <!-- Options Trading Tab -->
             <div class="tab-content-wrapper" id="tab-options">
                 <div class="content-header">
-                    <h1>Options Trading</h1>
-                    <p>Copy trades from professional options traders</p>
+                    <h1 data-i18n="options.title">Options Trading</h1>
+                    <p data-i18n="options.subtitle">Copy trades from professional options traders</p>
                 </div>
 
                 <!-- Wallet Balance Display -->
                 <div class="dashboard-card" style="margin-bottom: 30px; padding: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
                         <div>
-                            <p style="color: #8b93a7; margin: 0; font-size: 13px;">Available Balance</p>
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px;" data-i18n="wallet.withdraw.availableBalance">Available Balance</p>
                             <h2 style="color: #D32F2F; margin: 8px 0 0 0; font-size: 20px;" id="options-wallet-balance">$0.00</h2>
                         </div>
-                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;">Add Funds</button>
+                        <button class="btn-primary-custom" style="padding: 12px 24px; margin-left: 20px;" data-i18n="wallet.deposit.title">Add Funds</button>
                     </div>
                 </div>
 
@@ -2706,8 +2706,8 @@
                             <i class="fa-solid fa-file-alt"></i>
                         </div>
                         <div>
-                            <h3 style="margin: 0 0 8px 0; font-size: 20px;">Options Trading Strategies</h3>
-                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;">
+                            <h3 style="margin: 0 0 8px 0; font-size: 20px;" data-i18n="options.title">Options Trading Strategies</h3>
+                            <p style="margin: 0; opacity: 0.95; line-height: 1.6;" data-i18n="options.subtitle">
                                 Copy trading strategies from professional options traders. Choose from Beginner, Intermediate, Advanced, or Expert plans based on your experience level and risk tolerance.
                             </p>
                         </div>
@@ -2718,7 +2718,7 @@
                 <div class="dashboard-card" style="margin-bottom: 30px;">
                     <h3 style="margin: 0 0 20px 0; font-size: 18px; color: var(--text-primary);">
                         <i class="fa-solid fa-chart-line" style="margin-right: 8px; color: #764ba2;"></i>
-                        Options Market Overview
+                        <span data-i18n="options.marketOverview">Options Market Overview</span>
                     </h3>
                     <div class="tradingview-widget-container" id="options-market-overview">
                         <div class="tradingview-widget-container__widget"></div>
@@ -2726,42 +2726,42 @@
                 </div>
 
                 <div class="subscription-grid" id="options-plans-container">
-                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading Options plans...</p>
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="status.loading">Loading Options plans...</p>
                 </div>
             </div>
 
             <!-- Portfolio Performance Tab -->
             <div class="tab-content-wrapper" id="tab-portfolio">
                 <div class="content-header">
-                    <h1>Portfolio Performance</h1>
-                    <p>Track your investment performance and returns</p>
+                    <h1 data-i18n="portfolio.title">Portfolio Performance</h1>
+                    <p data-i18n="portfolio.performance">Track your investment performance and returns</p>
                 </div>
 
                 <!-- Portfolio Summary -->
                 <div class="stat-grid" id="portfolio-summary">
                     <div class="stat-box">
                         <div class="stat-value" id="portfolio-total-invested">$0.00</div>
-                        <div class="stat-label">Total Invested</div>
+                        <div class="stat-label" data-i18n="portfolio.totalInvested">Total Invested</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-value" id="portfolio-current-value">$0.00</div>
-                        <div class="stat-label">Current Value</div>
+                        <div class="stat-label" data-i18n="portfolio.totalValue">Current Value</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-value" id="portfolio-profit-loss">$0.00</div>
-                        <div class="stat-label">Total Profit/Loss</div>
+                        <div class="stat-label" data-i18n="portfolio.totalProfit">Total Profit/Loss</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-value" id="portfolio-active-investments">0</div>
-                        <div class="stat-label">Active Investments</div>
+                        <div class="stat-label" data-i18n="dashboard.stats.activeInvestments">Active Investments</div>
                     </div>
                 </div>
 
                 <!-- Investments List -->
                 <div class="dashboard-card">
-                    <h3 style="margin-bottom: 20px;">Your Investments</h3>
+                    <h3 style="margin-bottom: 20px;" data-i18n="portfolio.yourInvestments">Your Investments</h3>
                     <div id="investments-container">
-                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading your investments...</p>
+                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="status.loading">Loading your investments...</p>
                     </div>
                 </div>
             </div>
@@ -2769,8 +2769,8 @@
             <!-- Personal Details Tab -->
             <div class="tab-content-wrapper" id="tab-account-personal">
                 <div class="content-header">
-                    <h1>Personal Details</h1>
-                    <p>View and manage your personal information</p>
+                    <h1 data-i18n="settings.profile.title">Personal Details</h1>
+                    <p data-i18n="settings.profile.subtitle">View and manage your personal information</p>
                 </div>
 
                 <!-- Personal Details Section -->
@@ -2778,47 +2778,47 @@
                     <div class="account-info-grid">
                         <div class="dashboard-card" style="text-align: center;">
                             <div class="user-avatar" id="user-avatar">U</div>
-                            <h3 id="user-fullname">Loading...</h3>
+                            <h3 id="user-fullname" data-i18n="status.loading">Loading...</h3>
                             <p style="color: #8b93a7;" id="user-username">@username</p>
-                            <span class="badge-status badge-active" id="user-status">Active</span>
+                            <span class="badge-status badge-active" id="user-status" data-i18n="status.active">Active</span>
                         </div>
 
                         <div class="dashboard-card">
-                            <h3 style="margin-bottom: 20px;">Personal Information</h3>
+                            <h3 style="margin-bottom: 20px;" data-i18n="settings.profile.title">Personal Information</h3>
                             <div class="info-row">
-                                <span class="info-label">Email:</span>
+                                <span class="info-label" data-i18n="settings.profile.email">Email:</span>
                                 <span class="info-value" id="user-email">loading@example.com</span>
                             </div>
                             <div class="info-row" id="user-phone-row" style="display: none;">
-                                <span class="info-label">Phone:</span>
+                                <span class="info-label" data-i18n="settings.profile.phone">Phone:</span>
                                 <span class="info-value" id="user-phone">-</span>
                             </div>
                             <div class="info-row" id="user-gender-row" style="display: none;">
-                                <span class="info-label">Gender:</span>
+                                <span class="info-label" data-i18n="modal.updateProfile.gender">Gender:</span>
                                 <span class="info-value" id="user-gender">-</span>
                             </div>
                             <div class="info-row" id="user-country-row" style="display: none;">
-                                <span class="info-label">Country:</span>
+                                <span class="info-label" data-i18n="settings.profile.country">Country:</span>
                                 <span class="info-value" id="user-country">-</span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Member Since:</span>
-                                <span class="info-value" id="user-created">Loading...</span>
+                                <span class="info-label" data-i18n="settings.profile.memberSince">Member Since:</span>
+                                <span class="info-value" id="user-created" data-i18n="status.loading">Loading...</span>
                             </div>
                             <div class="info-row" id="user-account-types-row" style="display: none;">
-                                <span class="info-label">Trading Interests:</span>
+                                <span class="info-label" data-i18n="settings.profile.tradingInterests">Trading Interests:</span>
                                 <span class="info-value" id="user-account-types">-</span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Verification:</span>
-                                <span class="badge-status badge-pending" id="user-verification">Pending</span>
+                                <span class="info-label" data-i18n="settings.profile.verificationStatus">Verification:</span>
+                                <span class="badge-status badge-pending" id="user-verification" data-i18n="wallet.status.pending">Pending</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="dashboard-card" style="margin-top: 20px;">
-                        <h3 style="margin-bottom: 20px;">Profile Actions</h3>
-                        <button class="btn-primary-custom" onclick="showUpdateProfileModal()">Update Profile</button>
+                        <h3 style="margin-bottom: 20px;" data-i18n="settings.profileActions">Profile Actions</h3>
+                        <button class="btn-primary-custom" onclick="showUpdateProfileModal()" data-i18n="settings.updateProfile">Update Profile</button>
                     </div>
                 </div>
 
@@ -2827,60 +2827,60 @@
             <!-- Security Tab -->
             <div class="tab-content-wrapper" id="tab-account-security">
                 <div class="content-header">
-                    <h1>Security Settings</h1>
-                    <p>Manage your account security and authentication</p>
+                    <h1 data-i18n="settings.security.title">Security Settings</h1>
+                    <p data-i18n="settings.security.subtitle">Manage your account security and authentication</p>
                 </div>
 
                 <!-- Security Section -->
                 <div id="account-security-section" class="account-section">
                     <div class="dashboard-card">
-                        <h3 style="margin-bottom: 20px;">Two-Factor Authentication (2FA)</h3>
+                        <h3 style="margin-bottom: 20px;" data-i18n="settings.security.2FATitle">Two-Factor Authentication (2FA)</h3>
                         <div style="background: rgba(123, 182, 218, 0.05); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                 <div>
-                                    <p style="margin: 0; color: #000; font-weight: 600; font-size: 14px;">Status</p>
-                                    <p style="margin: 5px 0 0 0; color: #8b93a7; font-size: 14px;" id="twofa-status-text">2FA is currently disabled</p>
+                                    <p style="margin: 0; color: #000; font-weight: 600; font-size: 14px;" data-i18n="common.status">Status</p>
+                                    <p style="margin: 5px 0 0 0; color: #8b93a7; font-size: 14px;" id="twofa-status-text" data-i18n="security.2faDisabled">2FA is currently disabled</p>
                                 </div>
-                                <span class="badge-status badge-pending" id="twofa-status-badge">Disabled</span>
+                                <span class="badge-status badge-pending" id="twofa-status-badge" data-i18n="settings.security.2FADisabled">Disabled</span>
                             </div>
-                            <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
-                                <i class="fa-solid fa-shield-halved"></i> Two-factor authentication adds an extra layer of security by requiring a verification code sent to your email when you log in.
+                            <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;"><span data-i18n="security.2faDescription">
+                                <i class="fa-solid fa-shield-halved"></i> Two-factor authentication adds an extra layer of security by requiring a verification code sent to your email when you log in.</span>
                             </p>
                         </div>
                         <div id="twofa-disabled-actions">
                             <button class="btn-primary-custom" id="enable-2fa-btn" onclick="show2FAEnableModal()">
-                                <i class="fa-solid fa-shield-halved"></i> Enable 2FA
+                                <i class="fa-solid fa-shield-halved"></i> <span data-i18n="settings.security.enable2FA">Enable 2FA</span>
                             </button>
                         </div>
                         <div id="twofa-enabled-actions" style="display: none;">
                             <button class="btn-primary-custom" id="disable-2fa-btn" style="background: #ff6b6b; display: none;" onclick="show2FADisableModal()">
-                                <i class="fa-solid fa-shield-slash"></i> Disable 2FA
+                                <i class="fa-solid fa-shield-slash"></i> <span data-i18n="settings.security.disable2FA">Disable 2FA</span>
                             </button>
                         </div>
                     </div>
 
                     <div class="dashboard-card" style="margin-top: 20px;">
-                        <h3 style="margin-bottom: 20px;">Password Management</h3>
-                        <p style="color: #8b93a7; margin-bottom: 15px; font-size: 14px;">Change your password to keep your account secure.</p>
+                        <h3 style="margin-bottom: 20px;" data-i18n="settings.security.passwordManagement">Password Management</h3>
+                        <p style="color: #8b93a7; margin-bottom: 15px; font-size: 14px;" data-i18n="security.changePasswordDesc">Change your password to keep your account secure.</p>
                         <button class="btn-primary-custom" onclick="showChangePasswordModal()">
-                            <i class="fa-solid fa-key"></i> Change Password
+                            <i class="fa-solid fa-key"></i> <span data-i18n="settings.security.changePassword">Change Password</span>
                         </button>
                     </div>
 
                     <div class="dashboard-card" style="margin-top: 20px;">
-                        <h3 style="margin-bottom: 20px;">Email Management</h3>
+                        <h3 style="margin-bottom: 20px;" data-i18n="settings.security.emailManagement">Email Management</h3>
                         <div class="info-row">
-                            <span class="info-label">Current Email:</span>
+                            <span class="info-label" data-i18n="settings.security.currentEmail">Current Email:</span>
                             <span class="info-value" id="security-user-email">loading@example.com</span>
                         </div>
-                        <p style="color: #8b93a7; margin: 15px 0; font-size: 13px;">
-                            <i class="fa-solid fa-info-circle"></i> Update your email address with 2FA verification.
+                        <p style="color: #8b93a7; margin: 15px 0; font-size: 13px;"><span data-i18n="security.updateEmailDesc">
+                            <i class="fa-solid fa-info-circle"></i> Update your email address with 2FA verification.</span>
                         </p>
                         <button class="btn-primary-custom" onclick="showUpdateEmailModal()" id="update-email-btn">
-                            <i class="fa-solid fa-envelope"></i> Change Email
+                            <i class="fa-solid fa-envelope"></i> <span data-i18n="settings.security.changeEmail">Change Email</span>
                         </button>
-                        <p style="color: #8b93a7; margin: 15px 0 0 0; font-size: 12px; display: none;" id="google-oauth-email-notice">
-                            <i class="fa-solid fa-lock"></i> Email cannot be changed for Google sign-in accounts.
+                        <p style="color: #8b93a7; margin: 15px 0 0 0; font-size: 12px; display: none;" id="google-oauth-email-notice"><span data-i18n="security.googleEmailNotice">
+                            <i class="fa-solid fa-lock"></i> Email cannot be changed for Google sign-in accounts.</span>
                         </p>
                     </div>
                 </div>
@@ -2889,20 +2889,20 @@
             <!-- Traders Tab -->
             <div class="tab-content-wrapper" id="tab-traders">
                 <div class="content-header">
-                    <h1>Available Traders</h1>
-                    <p>Browse and copy successful traders</p>
+                    <h1 data-i18n="explore.title">Available Traders</h1>
+                    <p data-i18n="explore.subtitle">Browse and copy successful traders</p>
                 </div>
 
                 <div id="traders-container">
-                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading traders...</p>
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="status.loading">Loading traders...</p>
                 </div>
             </div>
 
             <!-- Staking Tab -->
             <div class="tab-content-wrapper" id="tab-staking">
                 <div class="content-header">
-                    <h1>Staking</h1>
-                    <p>Stake your crypto assets and earn rewards</p>
+                    <h1 data-i18n="staking.title">Staking</h1>
+                    <p data-i18n="staking.subtitle">Stake your crypto assets and earn rewards</p>
                 </div>
 
                 <div class="dashboard-card">
@@ -2910,21 +2910,21 @@
                         <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #D32F2F, #5a9abf); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
                             <i class="fa-solid fa-coins" style="font-size: 32px; color: white;"></i>
                         </div>
-                        <h2 style="color: #D32F2F; margin-bottom: 15px; font-size: 19px;">Staking Coming Soon</h2>
-                        <p style="color: #8b93a7; font-size: 14px; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #D32F2F; margin-bottom: 15px; font-size: 19px;" data-i18n="status.comingSoon">Staking Coming Soon</h2>
+                        <p style="color: #8b93a7; font-size: 14px; line-height: 1.6; max-width: 600px; margin: 0 auto;" data-i18n="staking.comingSoon">
                             We're working on bringing you an amazing staking experience. Soon you'll be able to stake your cryptocurrency assets and earn passive rewards.
                         </p>
                         <div style="margin-top: 40px; padding: 20px; background: rgba(123, 182, 218, 0.05); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 12px; max-width: 500px; margin: 40px auto 0;">
-                            <h3 style="color: #000; margin-bottom: 15px; font-size: 16px;">What to Expect:</h3>
+                            <h3 style="color: #000; margin-bottom: 15px; font-size: 16px;" data-i18n="staking.whatToExpect">What to Expect:</h3>
                             <ul style="text-align: left; color: #8b93a7; line-height: 2; list-style: none; padding: 0;">
-                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Competitive staking rewards</li>
-                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Multiple cryptocurrency options</li>
-                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Flexible staking periods</li>
-                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Real-time rewards tracking</li>
-                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Secure staking infrastructure</li>
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> <span data-i18n="staking.feature1">Competitive staking rewards</span></li>
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> <span data-i18n="staking.feature2">Multiple cryptocurrency options</span></li>
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> <span data-i18n="staking.feature3">Flexible staking periods</span></li>
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> <span data-i18n="staking.feature4">Real-time rewards tracking</span></li>
+                                <li><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> <span data-i18n="staking.feature5">Secure staking infrastructure</span></li>
                             </ul>
                         </div>
-                        <p style="color: #8b93a7; font-size: 14px; margin-top: 30px;">
+                        <p style="color: #8b93a7; font-size: 14px; margin-top: 30px;" data-i18n="staking.stayTuned">
                             <i class="fa-solid fa-info-circle"></i> Stay tuned for updates!
                         </p>
                     </div>
@@ -2934,86 +2934,86 @@
             <!-- Referrals Tab -->
             <div class="tab-content-wrapper" id="tab-referrals">
                 <div class="content-header">
-                    <h1>Referral Program</h1>
-                    <p>Invite friends and earn rewards</p>
+                    <h1 data-i18n="nav.referrals">Referral Program</h1>
+                    <p data-i18n="referrals.subtitle">Invite friends and earn rewards</p>
                 </div>
 
                 <div class="dashboard-card">
-                    <h3 style="margin-bottom: 10px;">Your Referral Link</h3>
-                    <p style="color: #8b93a7; margin-bottom: 20px;">Share this link with friends to earn commission</p>
+                    <h3 style="margin-bottom: 10px;" data-i18n="referrals.yourLink">Your Referral Link</h3>
+                    <p style="color: #8b93a7; margin-bottom: 20px;" data-i18n="referrals.shareLink">Share this link with friends to earn commission</p>
                     <div class="referral-link-box">
                         <span class="referral-link" id="referral-link">https://tedbroker.com/ref/USER123</span>
-                        <button class="btn-primary-custom" onclick="copyReferralLink()">Copy Link</button>
+                        <button class="btn-primary-custom" onclick="copyReferralLink()" data-i18n="action.copy">Copy Link</button>
                     </div>
                 </div>
 
                 <div class="stat-grid">
                     <div class="stat-box">
                         <div class="stat-value">0</div>
-                        <div class="stat-label">Total Referrals</div>
+                        <div class="stat-label" data-i18n="referrals.totalReferrals">Total Referrals</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-value">$0.00</div>
-                        <div class="stat-label">Earnings</div>
+                        <div class="stat-label" data-i18n="dashboard.stats.referralEarnings">Earnings</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-value">0</div>
-                        <div class="stat-label">Active Referrals</div>
+                        <div class="stat-label" data-i18n="referrals.activeReferrals">Active Referrals</div>
                     </div>
                 </div>
 
                 <div class="dashboard-card">
-                    <h3 style="margin-bottom: 20px;">Your Referrals</h3>
-                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">You haven't referred anyone yet. Start sharing your referral link to earn rewards!</p>
+                    <h3 style="margin-bottom: 20px;" data-i18n="referrals.yourReferrals">Your Referrals</h3>
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="referrals.noReferrals">You haven't referred anyone yet. Start sharing your referral link to earn rewards!</p>
                 </div>
             </div>
 
             <!-- News Tab -->
             <div class="tab-content-wrapper" id="tab-news">
                 <div class="content-header">
-                    <h1>Market News & Updates</h1>
-                    <p>Stay informed with the latest trading news and market insights</p>
+                    <h1 data-i18n="news.title">Market News & Updates</h1>
+                    <p data-i18n="news.subtitle">Stay informed with the latest trading news and market insights</p>
                 </div>
 
                 <!-- Featured News -->
                 <div class="dashboard-card" style="margin-bottom: 30px;">
                     <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                         <i class="fa-solid fa-star" style="color: #D32F2F;"></i>
-                        Featured Stories
+                        <span data-i18n="news.featured">Featured Stories</span>
                     </h3>
                     <div id="featured-news-container">
-                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading featured news...</p>
+                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="news.loading">Loading featured news...</p>
                     </div>
                 </div>
 
                 <!-- News Categories Filter -->
                 <div class="dashboard-card" style="margin-bottom: 30px;">
-                    <h3 style="margin-bottom: 15px;">Categories</h3>
+                    <h3 style="margin-bottom: 15px;" data-i18n="help.categories">Categories</h3>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button class="news-category-btn active" data-category="all" onclick="filterNewsByCategory('all')">
-                            <i class="fa-solid fa-globe"></i> All News
+                            <i class="fa-solid fa-globe"></i> <span data-i18n="news.categoryAll">All News</span>
                         </button>
                         <button class="news-category-btn" data-category="markets" onclick="filterNewsByCategory('markets')">
-                            <i class="fa-solid fa-chart-line"></i> Markets
+                            <i class="fa-solid fa-chart-line"></i> <span data-i18n="news.categoryMarkets">Markets</span>
                         </button>
                         <button class="news-category-btn" data-category="crypto" onclick="filterNewsByCategory('crypto')">
-                            <i class="fa-brands fa-bitcoin"></i> Crypto
+                            <i class="fa-brands fa-bitcoin"></i> <span data-i18n="news.categoryCrypto">Crypto</span>
                         </button>
                         <button class="news-category-btn" data-category="stocks" onclick="filterNewsByCategory('stocks')">
-                            <i class="fa-solid fa-building-columns"></i> Stocks
+                            <i class="fa-solid fa-building-columns"></i> <span data-i18n="news.categoryStocks">Stocks</span>
                         </button>
                         <button class="news-category-btn" data-category="forex" onclick="filterNewsByCategory('forex')">
-                            <i class="fa-solid fa-dollar-sign"></i> Forex
+                            <i class="fa-solid fa-dollar-sign"></i> <span data-i18n="news.categoryForex">Forex</span>
                         </button>
                         <button class="news-category-btn" data-category="commodities" onclick="filterNewsByCategory('commodities')">
-                            <i class="fa-solid fa-oil-can"></i> Commodities
+                            <i class="fa-solid fa-oil-can"></i> <span data-i18n="news.commodities">Commodities</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- News Articles Grid -->
                 <div id="news-articles-container">
-                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading news articles...</p>
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="news.loading">Loading news articles...</p>
                 </div>
             </div>
         </main>
@@ -3031,77 +3031,77 @@
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.deposit.amount">Amount (USD)</label>
                     <input type="number" id="deposit-amount" step="0.01" min="10" max="1000000" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter amount">
-                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">Minimum: $10 | Maximum: $1,000,000</p>
+                        data-i18n-placeholder="form.placeholder.amount">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;" data-i18n="modal.deposit.minMaxInfo">Minimum: $10 | Maximum: $1,000,000</p>
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Payment Method</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.deposit.selectMethod">Payment Method</label>
                     <select id="deposit-payment-method" required onchange="toggleDepositPaymentFields()"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
-                        <option value="">Select payment method</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Cryptocurrency">Cryptocurrency</option>
+                        <option value="" data-i18n="modal.deposit.selectPaymentMethod">Select payment method</option>
+                        <option value="Bank Transfer" data-i18n="modal.deposit.bankTransfer">Bank Transfer</option>
+                        <option value="Cryptocurrency" data-i18n="modal.deposit.crypto">Cryptocurrency</option>
                         <option value="PayPal">PayPal</option>
                     </select>
                 </div>
 
                 <!-- Bank Transfer Fields -->
                 <div id="bank-transfer-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
-                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;">Bank Transfer Details</h4>
-                    <p style="color: #8b93a7; font-size: 13px; margin-bottom: 15px;">Please transfer funds to the following bank account:</p>
+                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;" data-i18n="modal.deposit.bankTransferDetails">Bank Transfer Details</h4>
+                    <p style="color: #8b93a7; font-size: 13px; margin-bottom: 15px;" data-i18n="modal.deposit.bankTransferInstructions">Please transfer funds to the following bank account:</p>
                     <div id="bank-account-details" style="background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
                         <div id="loading-bank-details" style="text-align: center; padding: 20px;">
                             <i class="fa-solid fa-spinner fa-spin" style="color: #7bb6da; font-size: 24px;"></i>
-                            <p style="color: #8b93a7; margin-top: 10px; font-size: 13px;">Loading bank details...</p>
+                            <p style="color: #8b93a7; margin-top: 10px; font-size: 13px;" data-i18n="modal.deposit.loadingBankDetails">Loading bank details...</p>
                         </div>
                         <div id="bank-details-content" style="display: none;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="color: #8b93a7; font-size: 13px;">Bank Name:</span>
+                                <span style="color: #8b93a7; font-size: 13px;" data-i18n="modal.withdraw.bankName">Bank Name:</span>
                                 <span id="deposit-bank-name" style="color: #000; font-weight: 600; font-size: 13px;"></span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="color: #8b93a7; font-size: 13px;">Account Number:</span>
+                                <span style="color: #8b93a7; font-size: 13px;" data-i18n="modal.withdraw.accountNumber">Account Number:</span>
                                 <span id="deposit-account-number" style="color: #000; font-weight: 600; font-size: 13px;"></span>
                             </div>
                             <div id="swift-code-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="color: #8b93a7; font-size: 13px;">SWIFT Code:</span>
+                                <span style="color: #8b93a7; font-size: 13px;" data-i18n="modal.withdraw.swiftCode">SWIFT Code:</span>
                                 <span id="deposit-swift-code" style="color: #000; font-weight: 600; font-size: 13px;"></span>
                             </div>
                             <div id="routing-number-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="color: #8b93a7; font-size: 13px;">Routing Number:</span>
+                                <span style="color: #8b93a7; font-size: 13px;" data-i18n="modal.withdraw.routingNumber">Routing Number:</span>
                                 <span id="deposit-routing-number" style="color: #000; font-weight: 600; font-size: 13px;"></span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span style="color: #8b93a7; font-size: 13px;">Account Holder:</span>
+                                <span style="color: #8b93a7; font-size: 13px;" data-i18n="modal.withdraw.accountName">Account Holder:</span>
                                 <span id="deposit-account-name" style="color: #000; font-weight: 600; font-size: 13px;"></span>
                             </div>
                         </div>
                         <div id="no-bank-details" style="display: none; text-align: center; padding: 10px;">
-                            <p style="color: #D32F2F; font-size: 13px;">No bank account available. Please contact support.</p>
+                            <p style="color: #D32F2F; font-size: 13px;" data-i18n="modal.deposit.noBankDetails">No bank account available. Please contact support.</p>
                         </div>
                     </div>
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Your Bank Name</label>
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.deposit.yourBankName">Your Bank Name</label>
                         <input type="text" id="bank-name"
                             style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                            placeholder="Enter your bank name">
+                            data-i18n-placeholder="modal.deposit.enterBankName">
                     </div>
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Transaction Reference Number</label>
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.deposit.transactionReference">Transaction Reference Number</label>
                         <input type="text" id="bank-reference"
                             style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                            placeholder="Enter transaction reference">
+                            data-i18n-placeholder="modal.deposit.enterReference">
                     </div>
                 </div>
 
                 <!-- Cryptocurrency Fields -->
                 <div id="crypto-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
-                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;">Cryptocurrency Deposit</h4>
+                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;" data-i18n="modal.deposit.cryptoDeposit">Cryptocurrency Deposit</h4>
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Select Cryptocurrency</label>
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.deposit.selectCrypto">Select Cryptocurrency</label>
                         <select id="crypto-type" onchange="handleCryptoTypeChange()"
                             style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
-                            <option value="">Select cryptocurrency</option>
+                            <option value="" data-i18n="modal.deposit.selectCryptocurrency">Select cryptocurrency</option>
                             <option value="Bitcoin">Bitcoin (BTC)</option>
                             <option value="Ethereum">Ethereum (ETH)</option>
                             <option value="Tether">Tether (USDT)</option>
@@ -3109,7 +3109,7 @@
                         </select>
                     </div>
                     <div id="crypto-wallet-info" style="display: none; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px;">
-                        <p style="color: #8b93a7; font-size: 13px; margin-bottom: 12px;">
+                        <p style="color: #8b93a7; font-size: 13px; margin-bottom: 12px;" data-i18n="modal.deposit.sendToWallet">
                             <i class="fa-solid fa-info-circle"></i> Send your payment to the wallet address below:
                         </p>
 
@@ -3120,18 +3120,18 @@
 
                         <!-- Wallet Address -->
                         <div style="margin-bottom: 12px;">
-                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 6px; font-weight: 600;">Wallet Address:</label>
+                            <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 6px; font-weight: 600;" data-i18n="modal.deposit.address">Wallet Address:</label>
                             <div style="background: rgba(123, 182, 218, 0.05); padding: 12px; border-radius: 6px; word-break: break-all; font-family: monospace; font-size: 12px; color: #000; margin-bottom: 8px;">
                                 <span id="crypto-wallet-address">-</span>
                             </div>
                         </div>
 
                         <button type="button" onclick="copyCryptoAddress()" style="width: 100%; background: #5a9abf; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600;">
-                            <i class="fa-solid fa-copy"></i> Copy Wallet Address
+                            <i class="fa-solid fa-copy"></i> <span data-i18n="modal.deposit.copy">Copy Wallet Address</span>
                         </button>
 
                         <div style="background: rgba(255, 152, 0, 0.05); border: 1px solid rgba(255, 152, 0, 0.2); border-radius: 6px; padding: 10px; margin-top: 12px;">
-                            <p style="color: #8b93a7; margin: 0; font-size: 12px; line-height: 1.5;">
+                            <p style="color: #8b93a7; margin: 0; font-size: 12px; line-height: 1.5;" data-i18n="modal.deposit.warningEnd">
                                 <i class="fa-solid fa-exclamation-triangle"></i> <strong>Important:</strong> After sending your payment, click "Complete Deposit" below. Your deposit will be verified and credited to your account once confirmed.
                             </p>
                         </div>
@@ -3143,30 +3143,30 @@
                     <div style="margin-bottom: 15px;">
                         <i class="fa-brands fa-paypal" style="font-size: 48px; color: #0070ba;"></i>
                     </div>
-                    <h4 style="color: #D32F2F; margin: 0 0 10px 0; font-size: 16px;">PayPal Temporarily Unavailable</h4>
-                    <p style="color: #8b93a7; margin: 0; font-size: 14px; line-height: 1.6;">
+                    <h4 style="color: #D32F2F; margin: 0 0 10px 0; font-size: 16px;" data-i18n="modal.deposit.paypalUnavailable">PayPal Temporarily Unavailable</h4>
+                    <p style="color: #8b93a7; margin: 0; font-size: 14px; line-height: 1.6;" data-i18n="modal.deposit.paypalMessage">
                         We're sorry, but PayPal deposits are not available at the moment. Please use Bank Transfer or Cryptocurrency as alternative payment methods.
                     </p>
-                    <p style="color: #8b93a7; margin: 15px 0 0 0; font-size: 13px;">
+                    <p style="color: #8b93a7; margin: 15px 0 0 0; font-size: 13px;" data-i18n="modal.deposit.paypalSoon">
                         <i class="fa-solid fa-info-circle"></i> PayPal will be available soon. Thank you for your patience!
                     </p>
                 </div>
 
                 <!-- Password Confirmation (Required for all deposits) -->
                 <div style="margin-bottom: 20px; padding: 15px; background: rgba(255, 152, 0, 0.05); border: 1px solid rgba(255, 152, 0, 0.2); border-radius: 8px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.deposit.confirmPassword">
                         <i class="fa-solid fa-lock"></i> Confirm with Your Password
                     </label>
                     <input type="password" id="deposit-password" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter your account password">
-                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
+                        data-i18n-placeholder="form.placeholder.password">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;" data-i18n="modal.deposit.securityConfirm">
                         <i class="fa-solid fa-info-circle"></i> For security, please confirm this transaction with your password
                     </p>
                 </div>
 
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
-                    <i class="fa-solid fa-circle-check"></i> Complete Deposit
+                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="modal.deposit.completeDeposit">Complete Deposit</span>
                 </button>
             </form>
         </div>
@@ -3185,31 +3185,31 @@
             </div>
             <form id="withdraw-form" onsubmit="handleWithdraw(event)">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Amount (USD)</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.withdraw.amount">Amount (USD)</label>
                     <input type="number" id="withdraw-amount" step="0.01" min="10" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter amount">
-                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">Minimum withdrawal: $10</p>
+                        data-i18n-placeholder="form.placeholder.amount">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;" data-i18n="modal.withdraw.minimumAmount">Minimum withdrawal: $10</p>
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Withdrawal Method</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.withdraw.method">Withdrawal Method</label>
                     <select id="withdraw-payment-method" required onchange="toggleWithdrawalFields()"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
-                        <option value="">Select withdrawal method</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Cryptocurrency">Cryptocurrency</option>
+                        <option value="" data-i18n="modal.withdraw.selectMethod">Select withdrawal method</option>
+                        <option value="Bank Transfer" data-i18n="modal.deposit.bankTransfer">Bank Transfer</option>
+                        <option value="Cryptocurrency" data-i18n="modal.deposit.crypto">Cryptocurrency</option>
                     </select>
                 </div>
 
                 <!-- Cryptocurrency Withdrawal Fields -->
                 <div id="withdraw-crypto-fields" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
-                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;">Cryptocurrency Withdrawal Details</h4>
+                    <h4 style="color: #D32F2F; margin: 0 0 15px 0; font-size: 14px;" data-i18n="modal.withdraw.cryptoDetails">Cryptocurrency Withdrawal Details</h4>
 
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Select Cryptocurrency</label>
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.deposit.selectCrypto">Select Cryptocurrency</label>
                         <select id="withdraw-crypto-type"
                             style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
-                            <option value="">Select cryptocurrency</option>
+                            <option value="" data-i18n="modal.deposit.selectCryptocurrency">Select cryptocurrency</option>
                             <option value="Bitcoin">Bitcoin (BTC)</option>
                             <option value="Ethereum">Ethereum (ETH)</option>
                             <option value="Tether">Tether (USDT)</option>
@@ -3218,11 +3218,11 @@
                     </div>
 
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Your Wallet Address</label>
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.withdraw.yourWalletAddress">Your Wallet Address</label>
                         <input type="text" id="withdraw-wallet-address"
                             style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px; font-family: monospace;"
-                            placeholder="Enter your cryptocurrency wallet address">
-                        <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
+                            data-i18n-placeholder="modal.withdraw.enterWalletAddress">
+                        <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;" data-i18n="modal.withdraw.verifyAddress">
                             <i class="fa-solid fa-info-circle"></i> Make sure this address is correct. Transactions cannot be reversed.
                         </p>
                     </div>
@@ -3230,19 +3230,19 @@
 
                 <!-- Password Confirmation (Required for all withdrawals) -->
                 <div style="margin-bottom: 20px; padding: 15px; background: rgba(255, 152, 0, 0.05); border: 1px solid rgba(255, 152, 0, 0.2); border-radius: 8px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.deposit.confirmPassword">
                         <i class="fa-solid fa-lock"></i> Confirm with Your Password
                     </label>
                     <input type="password" id="withdraw-password" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter your account password">
-                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
+                        data-i18n-placeholder="form.placeholder.password">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;" data-i18n="modal.deposit.securityConfirm">
                         <i class="fa-solid fa-info-circle"></i> For security, please confirm this transaction with your password
                     </p>
                 </div>
 
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
-                    <i class="fa-solid fa-circle-check"></i> Complete Withdrawal
+                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="modal.withdraw.completeWithdrawal">Complete Withdrawal</span>
                 </button>
             </form>
         </div>
@@ -3255,49 +3255,50 @@
                 <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #D32F2F, #5a9abf); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                     <i class="fa-solid fa-gift" style="font-size: 26px; color: white;"></i>
                 </div>
-                <h2 style="margin: 0 0 10px 0; color: #D32F2F;">Welcome to TED Brokers!</h2>
-                <p style="color: #8b93a7; margin: 0; font-size: 14px;">Were you referred by someone? Enter their code below!</p>
+                <h2 style="margin: 0 0 10px 0; color: #D32F2F;" data-i18n="modal.referral.welcome">Welcome to TED Brokers!</h2>
+                <p style="color: #8b93a7; margin: 0; font-size: 14px;" data-i18n="modal.referral.subtitle">Were you referred by someone? Enter their code below!</p>
             </div>
 
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 25px;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <i class="fa-solid fa-star" style="color: #ffc107; font-size: 18px;"></i>
-                    <p style="margin: 0; color: #000; font-weight: 600;">Referral Bonus</p>
+                    <p style="margin: 0; color: #000; font-weight: 600;" data-i18n="referral.bonusTitle">Referral Bonus</p>
                 </div>
-                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
-                    When you submit a valid referral code, your referrer will receive a <strong style="color: #4caf50;">$50 bonus</strong> as a thank you!
-                </p>
+                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;"><span data-i18n="referral.bonusDescription">
+                    When you submit a valid referral code, your referrer will receive a $50 bonus as a thank you!</span></p>
             </div>
 
             <form id="referral-form" onsubmit="handleReferralSubmission(event)">
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px; font-weight: 600;">
-                        <i class="fa-solid fa-ticket"></i> Referral Code (Optional)
+                        <i class="fa-solid fa-ticket"></i> <span data-i18n="modal.referral.codeLabel">Referral Code (Optional)</span>
                     </label>
                     <input type="text" id="referral-code-input"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px; text-transform: uppercase;"
-                        placeholder="Enter referral code (e.g., ABC12345)"
+                        data-i18n-placeholder="modal.referral.codePlaceholder"
+                        data-i18n-title="modal.referral.codeTitle"
+                        data-i18n-placeholder="modal.referral.codePlaceholder"
                         pattern="[A-Za-z0-9]{8}"
                         title="Referral code should be 8 characters"
                         maxlength="8">
                     <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
-                        <i class="fa-solid fa-info-circle"></i> Leave blank if you don't have a referral code
+                        <i class="fa-solid fa-info-circle"></i> <span data-i18n="modal.referral.helpText">Leave blank if you don't have a referral code</span>
                     </p>
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 25px;">
                     <button type="button" onclick="skipReferral()" class="btn-primary-custom"
                         style="flex: 1; background: #8b93a7; padding: 12px;">
-                        <i class="fa-solid fa-forward"></i> Skip
+                        <i class="fa-solid fa-forward"></i> <span data-i18n="modal.referral.skip">Skip</span>
                     </button>
                     <button type="submit" class="btn-primary-custom" style="flex: 2; padding: 12px;">
-                        <i class="fa-solid fa-check-circle"></i> Submit Code
+                        <i class="fa-solid fa-check-circle"></i> <span data-i18n="modal.referral.submit">Submit Code</span>
                     </button>
                 </div>
             </form>
 
             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(123, 182, 218, 0.2);">
-                <p style="color: #8b93a7; font-size: 12px; text-align: center; margin: 0;">
+                <p style="color: #8b93a7; font-size: 12px; text-align: center; margin: 0;" data-i18n="modal.referral.notice">
                     💡 You can only submit a referral code once. If you don't have one, you can skip this step.
                 </p>
             </div>
@@ -3308,40 +3309,40 @@
     <div id="update-profile-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; align-items: center; justify-content: center;">
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: #D32F2F;">Update Profile</h2>
+                <h2 style="margin: 0; color: #D32F2F;" data-i18n="modal.updateProfile.title">Update Profile</h2>
                 <button onclick="closeUpdateProfileModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <form id="update-profile-form" onsubmit="handleUpdateProfile(event)">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Full Name</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.updateProfile.fullName">Full Name</label>
                     <input type="text" id="update-full-name"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter your full name">
+                        data-i18n-placeholder="modal.updateProfile.fullNamePlaceholder">
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Phone Number</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.updateProfile.phone">Phone Number</label>
                     <input type="tel" id="update-phone"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter your phone number">
+                        data-i18n-placeholder="modal.updateProfile.phoneNumberPlaceholder">
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Gender</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.updateProfile.gender">Gender</label>
                     <select id="update-gender"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;">
-                        <option value="">Select gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Others">Others</option>
+                        <option value="" data-i18n="modal.updateProfile.genderPlaceholder">Select gender</option>
+                        <option value="Male" data-i18n="modal.updateProfile.genderMale">Male</option>
+                        <option value="Female" data-i18n="modal.updateProfile.genderFemale">Female</option>
+                        <option value="Others" data-i18n="modal.updateProfile.genderOther">Others</option>
                     </select>
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Country</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.updateProfile.country">Country</label>
                     <input type="text" id="update-country"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter your country">
+                        data-i18n-placeholder="modal.updateProfile.countryPlaceholder">
                 </div>
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
-                    <i class="fa-solid fa-circle-check"></i> Save Changes
+                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="modal.updateProfile.submit">Save Changes</span>
                 </button>
             </form>
         </div>
@@ -3351,35 +3352,35 @@
     <div id="change-password-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; align-items: center; justify-content: center;">
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: #D32F2F;">Change Password</h2>
+                <h2 style="margin: 0; color: #D32F2F;" data-i18n="modal.changePassword.title">Change Password</h2>
                 <button onclick="closeChangePasswordModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
+                <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;" data-i18n="settings.security.passwordRequirements">
                     <i class="fa-solid fa-info-circle"></i> Password must be at least 8 characters long and contain uppercase, lowercase, and numbers.
                 </p>
             </div>
             <form id="change-password-form" onsubmit="handleChangePassword(event)">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Current Password</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="settings.security.currentPassword">Current Password</label>
                     <input type="password" id="current-password" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter your current password">
+                        data-i18n-placeholder="modal.changePassword.currentPasswordPlaceholder">
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">New Password</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="settings.security.newPassword">New Password</label>
                     <input type="password" id="new-password" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter your new password">
+                        data-i18n-placeholder="modal.changePassword.newPasswordPlaceholder">
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Confirm New Password</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="settings.security.confirmPassword">Confirm New Password</label>
                     <input type="password" id="confirm-new-password" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Confirm your new password">
+                        data-i18n-placeholder="modal.changePassword.confirmNewPasswordPlaceholder">
                 </div>
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
-                    <i class="fa-solid fa-circle-check"></i> Change Password
+                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="modal.changePassword.submit">Change Password</span>
                 </button>
             </form>
         </div>
@@ -3389,37 +3390,37 @@
     <div id="update-email-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; align-items: center; justify-content: center;">
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: #D32F2F;">Change Email Address</h2>
+                <h2 style="margin: 0; color: #D32F2F;" data-i18n="modal.updateEmail.title">Change Email Address</h2>
                 <button onclick="closeUpdateEmailModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
-                    <i class="fa-solid fa-info-circle"></i> You'll receive a verification code at your new email address to confirm the change.
+                    <i class="fa-solid fa-info-circle"></i> <span data-i18n="modal.updateEmail.verificationInfo">You\'ll receive a verification code at your new email address to confirm the change.
                 </p>
             </div>
             <form id="update-email-form" onsubmit="handleUpdateEmail(event)">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Current Email</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.updateEmail.currentEmail">Current Email</label>
                     <input type="email" id="current-email-display" disabled
                         style="width: 100%; padding: 12px; background: rgba(123, 182, 218, 0.05); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #8b93a7; font-size: 16px;">
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">New Email Address</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.updateEmail.newEmail">New Email Address</label>
                     <input type="email" id="new-email" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter your new email address">
+                        data-i18n-placeholder="modal.updateEmail.newEmailPlaceholder" data-i18n-placeholder="modal.updateEmail.newEmailPlaceholder">
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Confirm Password</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.updateEmail.confirmPassword">Confirm Password</label>
                     <input type="password" id="email-update-password" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        placeholder="Enter your password to confirm">
+                        placeholder="Enter your password to confirm" data-i18n-placeholder="modal.updateEmail.confirmPasswordPlaceholder">
                     <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;">
-                        <i class="fa-solid fa-lock"></i> For security, please confirm with your password
+                        <i class="fa-solid fa-lock"></i> <span data-i18n="modal.updateEmail.securityNotice">For security, please confirm with your password</span>
                     </p>
                 </div>
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
-                    <i class="fa-solid fa-paper-plane"></i> Send Verification Code
+                    <i class="fa-solid fa-paper-plane"></i> <span data-i18n="modal.updateEmail.sendVerificationCode">Send Verification Code</span>
                 </button>
             </form>
         </div>
@@ -3429,26 +3430,26 @@
     <div id="verify-email-update-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; align-items: center; justify-content: center;">
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: #D32F2F;">Verify New Email</h2>
+                <h2 style="margin: 0; color: #D32F2F;" data-i18n="modal.verifyEmail.title">Verify New Email</h2>
                 <button onclick="closeVerifyEmailUpdateModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
-                    <i class="fa-solid fa-envelope"></i> We've sent a 6-digit verification code to <strong id="verification-email-display" style="color: #D32F2F;"></strong>
+                    <i class="fa-solid fa-envelope"></i> <span data-i18n="modal.verifyEmail.subtitle">We\'ve sent a 6-digit verification code to</span> <strong id="verification-email-display" style="color: #D32F2F;"></strong>
                 </p>
             </div>
             <form id="verify-email-update-form" onsubmit="handleVerifyEmailUpdate(event)">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Verification Code</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.verifyEmail.verificationCode">Verification Code</label>
                     <input type="text" id="email-verification-code" required maxlength="6" pattern="[0-9]{6}"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 18px; text-align: center; letter-spacing: 6px;"
                         placeholder="000000">
-                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px; text-align: center;">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px; text-align: center;" data-i18n="modal.verifyEmail.codeHelp">
                         Enter the 6-digit code sent to your new email
                     </p>
                 </div>
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
-                    <i class="fa-solid fa-check-circle"></i> Verify and Update Email
+                    <i class="fa-solid fa-check-circle"></i> <span data-i18n="modal.verifyEmail.verify">Verify and Update Email</span>
                 </button>
             </form>
         </div>
@@ -3458,23 +3459,23 @@
     <div id="enable-2fa-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; align-items: center; justify-content: center;">
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: #D32F2F;">Enable Two-Factor Authentication</h2>
+                <h2 style="margin: 0; color: #D32F2F;" data-i18n="modal.enable2FA.title">Enable Two-Factor Authentication</h2>
                 <button onclick="close2FAEnableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
-                    <i class="fa-solid fa-shield-halved"></i> Enable 2FA to add an extra layer of security. You'll receive a verification code via email each time you log in.
+                    <i class="fa-solid fa-shield-halved"></i> <span data-i18n="modal.enable2FA.description">Enable 2FA to add an extra layer of security. You\'ll receive a verification code via email each time you log in.</span>
                 </p>
             </div>
             <form id="enable-2fa-form" onsubmit="handleEnable2FA(event)">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px;">Password</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="settings.security.password">Password</label>
                     <input type="password" id="enable-2fa-password" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000;"
-                        placeholder="Enter your password to confirm">
+                        placeholder="Enter your password to confirm" data-i18n-placeholder="modal.enable2FA.passwordPlaceholder">
                 </div>
                 <button type="submit" class="btn-primary-custom" style="width: 100%;">
-                    <i class="fa-solid fa-shield-halved"></i> Send Verification Code
+                    <i class="fa-solid fa-shield-halved"></i> <span data-i18n="modal.enable2FA.sendCode">Send Verification Code</span>
                 </button>
             </form>
         </div>
@@ -3484,26 +3485,26 @@
     <div id="verify-2fa-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; align-items: center; justify-content: center;">
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: #D32F2F;">Verify 2FA Code</h2>
+                <h2 style="margin: 0; color: #D32F2F;" data-i18n="modal.verify2FA.title">Verify 2FA Code</h2>
                 <button onclick="close2FAVerifyModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
-                    <i class="fa-solid fa-envelope"></i> We've sent a 6-digit verification code to your email.
+                    <i class="fa-solid fa-envelope"></i> <span data-i18n="modal.verify2FA.subtitle">We\'ve sent a 6-digit verification code to your email.</span>
                 </p>
             </div>
             <form id="verify-2fa-form" onsubmit="handleVerify2FA(event)">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;">Verification Code</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.verify2FA.verificationCode">Verification Code</label>
                     <input type="text" id="verify-2fa-code" required maxlength="6" pattern="[0-9]{6}"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 18px; text-align: center; letter-spacing: 6px;"
                         placeholder="000000">
-                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px; text-align: center;">
+                    <p style="color: #8b93a7; font-size: 12px; margin-top: 5px; text-align: center;" data-i18n="modal.verify2FA.codeHelp">
                         Enter the 6-digit code sent to your email
                     </p>
                 </div>
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
-                    <i class="fa-solid fa-check-circle"></i> Verify and Enable 2FA
+                    <i class="fa-solid fa-check-circle"></i> <span data-i18n="modal.verify2FA.verify">Verify and Enable 2FA</span>
                 </button>
             </form>
         </div>
@@ -3513,37 +3514,37 @@
     <div id="disable-2fa-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; align-items: center; justify-content: center;">
         <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: #D32F2F;">Disable Two-Factor Authentication</h2>
+                <h2 style="margin: 0; color: #D32F2F;" data-i18n="modal.disable2FA.title">Disable Two-Factor Authentication</h2>
                 <button onclick="close2FADisableModal()" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
             </div>
             <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #ff6b6b; margin: 0; font-size: 13px; line-height: 1.5;">
-                    <i class="fa-solid fa-exclamation-triangle"></i> Disabling 2FA will make your account less secure. We recommend keeping 2FA enabled.
+                    <i class="fa-solid fa-exclamation-triangle"></i> <span data-i18n="modal.disable2FA.warning">Disabling 2FA will make your account less secure. We recommend keeping 2FA enabled.</span>
                 </p>
             </div>
             <div style="background: rgba(123, 182, 218, 0.1); border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <p style="color: #8b93a7; margin: 0; font-size: 13px; line-height: 1.5;">
-                    <i class="fa-solid fa-info-circle"></i> Click the button below to receive a verification code, then enter your password and the code to disable 2FA.
+                    <i class="fa-solid fa-info-circle"></i> <span data-i18n="modal.disable2FA.instructions">Click the button below to receive a verification code, then enter your password and the code to disable 2FA.</span>
                 </p>
             </div>
             <button onclick="send2FADisableCode()" class="btn-primary-custom" style="width: 100%; margin-bottom: 20px; background: #5a9abf;">
-                <i class="fa-solid fa-envelope"></i> Send Verification Code
+                <i class="fa-solid fa-envelope"></i> <span data-i18n="modal.disable2FA.sendCode">Send Verification Code</span>
             </button>
             <form id="disable-2fa-form" onsubmit="handleDisable2FA(event)">
                 <div style="margin-bottom: 15px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px;">Password</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="settings.security.password">Password</label>
                     <input type="password" id="disable-2fa-password" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000;"
-                        placeholder="Enter your password">
+                        data-i18n-placeholder="modal.enable2FA.passwordPlaceholder">
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #8b93a7; margin-bottom: 8px;">Verification Code</label>
+                    <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.disable2FA.code">Verification Code</label>
                     <input type="text" id="disable-2fa-code" required maxlength="6" pattern="[0-9]{6}"
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 20px; text-align: center; letter-spacing: 6px;"
                         placeholder="000000">
                 </div>
                 <button type="submit" class="btn-primary-custom" style="width: 100%; background: #ff6b6b;">
-                    <i class="fa-solid fa-shield-slash"></i> Disable 2FA
+                    <i class="fa-solid fa-shield-slash"></i> <span data-i18n="modal.disable2FA.disable">Disable 2FA</span>
                 </button>
             </form>
         </div>
@@ -3636,13 +3637,13 @@
         function copyReferralLink() {
             const linkText = document.getElementById('referral-link').textContent;
             navigator.clipboard.writeText(linkText).then(() => {
-                alert('Referral link copied to clipboard!');
+                alert(TED_LANG.t('alert.referralCopied', 'Referral link copied to clipboard!'));
             });
         }
 
         // Logout function
         function handleLogout() {
-            if (confirm('Are you sure you want to log out?')) {
+            if (confirm(TED_LANG.t('alert.logoutConfirm', 'Are you sure you want to log out?'))) {
                 TED_AUTH.logout();
             }
         }

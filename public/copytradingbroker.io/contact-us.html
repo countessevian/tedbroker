@@ -113,63 +113,63 @@
 	<div class="navbar-content-inner ms-lg-auto d-flex flex-column flex-lg-row align-lg-center gap-4 gap-lg-10 p-2 p-lg-0">
 		<ul class="navbar-nav gap-lg-2 gap-xl-5">
 			<li class="nav-item ">
-				<a class="nav-link" href="index">Home</a>
+				<a class="nav-link" href="index" data-i18n="nav.home">Home</a>
 			</li>
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.company">
 					Company
 				</a>
 				<ul class="dropdown-menu">
 					<li>
-						<a class="dropdown-item " href="about-us">About Us</a>
+						<a class="dropdown-item " href="about-us" data-i18n="nav.about">About Us</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="faqs">FAQs</a>
+						<a class="dropdown-item " href="faqs" data-i18n="nav.faq">FAQs</a>
 					</li>
 					<li>
-						<a class="dropdown-item active" href="contact-us">Contact Us</a>
+						<a class="dropdown-item active" href="contact-us" data-i18n="nav.contact">Contact Us</a>
 					</li>
 				</ul>
 			</li>
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="resources">
 					Resources
 				</a>
 				<ul class="dropdown-menu">
 					<li>
-						<a class="dropdown-item " href="investors">Investors</a>
+						<a class="dropdown-item " href="investors" data-i18n="investors">Investors</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="traders">Traders</a>
+						<a class="dropdown-item " href="traders" data-i18n="nav.traders">Traders</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="how_it_works">How it Works</a>
+						<a class="dropdown-item " href="how_it_works" data-i18n="howItWorks">How it Works</a>
 					</li>
 
 				</ul>
 			</li>
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="legal">
 					Legal
 				</a>
 				<ul class="dropdown-menu">
 					<li>
 						<a class="dropdown-item "
-							href="legal/privacy_policy">Privacy Policy</a>
+							href="legal/privacy_policy" data-i18n="nav.privacyPolicy">Privacy Policy</a>
 					</li>
 					<li>
 						<a class="dropdown-item "
-							href="legal/terms_conditions">Terms & Conditions</a>
+							href="legal/terms_conditions" data-i18n="nav.termsConditions">Terms & Conditions</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="legal/aml_policy">AML
+						<a class="dropdown-item " href="legal/aml_policy" data-i18n="nav.amlPolicy">AML
 							Policy</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="legal/risk_closure">Risk
+						<a class="dropdown-item " href="legal/risk_closure" data-i18n="nav.riskClosure">Risk
 							Closure</a>
 					</li>
 
@@ -178,22 +178,61 @@
 
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="account">
 					Account
 				</a>
 				<ul class="dropdown-menu">
 					<li>
-						<a class="dropdown-item " href="register">Sign Up</a>
+						<a class="dropdown-item " href="register" data-i18n="nav.register">Sign Up</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="login">Sign In</a>
+						<a class="dropdown-item " href="login" data-i18n="nav.login">Sign In</a>
 					</li>
 				</ul>
 			</li>
 
 		</ul>
-		<div class="">
-			<a href="register" class="btn btn-outline-primary-dark">Get started</a>
+		<div class="d-flex align-items-center gap-3">
+			<a href="register" class="btn btn-outline-primary-dark" data-i18n="btn.getStarted">Get started</a>
+			<!-- Language Selector -->
+			<div class="dropdown">
+				<button class="btn btn-outline-primary-dark dropdown-toggle d-flex align-items-center gap-2" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 120px;">
+					<span id="current-lang-flag">🇺🇸</span>
+					<span id="current-lang-code">EN</span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('en'); return false;">
+						<span>🇺🇸</span> <span>English</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('zh'); return false;">
+						<span>🇨🇳</span> <span>中文 (Chinese)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('hi'); return false;">
+						<span>🇮🇳</span> <span>हिन्दी (Hindi)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('es'); return false;">
+						<span>🇪🇸</span> <span>Español (Spanish)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('fr'); return false;">
+						<span>🇫🇷</span> <span>Français (French)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('ar'); return false;">
+						<span>🇸🇦</span> <span>العربية (Arabic)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('bn'); return false;">
+						<span>🇧🇩</span> <span>বাংলা (Bengali)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('ru'); return false;">
+						<span>🇷🇺</span> <span>Русский (Russian)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('pt'); return false;">
+						<span>🇵🇹</span> <span>Português (Portuguese)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('de'); return false;">
+						<span>🇩🇪</span> <span>Deutsch (German)</span>
+					</a></li>
+				</ul>
+			</div>
 		</div>
 	</div>
 </div>
@@ -213,11 +252,11 @@
 <section class="py-10 py-lg-15 bg-primary-dark" data-aos="fade-up-sm" data-aos-delay="50">
     <div class="container">
         <div class="text-center">
-            <h1 class="mb-2 text-white">Contact Us</h1>
+            <h1 class="mb-2 text-white" data-i18n="contactUs.pageTitle">Contact Us</h1>
         </div>
     </div>
 </section>
-	
+
 	<section class="py-15 pt-lg-30 bg-white">
 		<div class="container">
 			<div class="row justify-center">
@@ -233,7 +272,7 @@
 										<path d="M10.5 4.75 9 4 3 7v13l6-3 6 3 6-3v-2M9 4v13m6-2v5" />
 									</svg>
 								</div>
-								<h3 class="fw-medium mb-0">330 Hudson Street, 12th Floor<br>New York, NY 10013</h3>
+								<h3 class="fw-medium mb-0" data-i18n="contactUs.address">330 Hudson Street, 12th Floor<br>New York, NY 10013</h3>
 							</div>
 						</div>
 						<div class="col" data-aos="fade-up-sm" data-aos-delay="100">
@@ -246,7 +285,7 @@
 											d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2m10 3a2 2 0 0 1 2 2m-2-6a6 6 0 0 1 6 6" />
 									</svg>
 								</div>
-								<h3 class="fw-medium mb-0">
+								<h3 class="fw-medium mb-0" data-i18n="contactUs.phone">
 									+13322208968
 								</h3>
 							</div>
@@ -259,7 +298,7 @@
 				<div class="col-lg-8 col-xl-6">
 					<form class="vstack gap-8" id="contact-form" method="post" action="https://copytradingbroker.io/sendcontact">
 						<input type="hidden" name="_token" value="M3XMFmO1P72RsP9UzSPWrMgCcJt9CFMThtEHyGMu">						<div class="">
-							<label for="name" class="form-label fs-lg fw-medium mb-4"> Your name* </label>
+							<label for="name" class="form-label fs-lg fw-medium mb-4" data-i18n="contactUs.name"> Your name* </label>
 							<div class="input-group with-icon">
 								<span class="icon">
 									<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round"
@@ -270,11 +309,11 @@
 									</svg>
 								</span>
 								<input type="text" id="name" name="name" class="form-control rounded-2"
-									placeholder="What's your name?" required />
+									data-i18n-placeholder="contactUs.namePlaceholder" placeholder="What's your name?" required />
 							</div>
 						</div>
 						<div class="">
-							<label for="email" class="form-label fs-lg fw-medium mb-4">
+							<label for="email" class="form-label fs-lg fw-medium mb-4" data-i18n="contactUs.email">
 								Email Address*
 							</label>
 							<div class="input-group with-icon">
@@ -287,12 +326,12 @@
 										</g>
 									</svg>
 								</span>
-								<input type="email" id="email" name="email" class="form-control rounded-2" placeholder="Enter Your Email"
+								<input type="email" id="email" name="email" class="form-control rounded-2" data-i18n-placeholder="contactUs.emailPlaceholder" placeholder="Enter Your Email"
 									required />
 							</div>
 						</div>
 						<div class="">
-							<label for="phone" class="form-label fs-lg fw-medium mb-4">
+							<label for="phone" class="form-label fs-lg fw-medium mb-4" data-i18n="contactUs.phoneLabel">
 								Phone Number
 							</label>
 							<div class="input-group with-icon">
@@ -304,27 +343,27 @@
 											d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2m10 3a2 2 0 0 1 2 2m-2-6a6 6 0 0 1 6 6" />
 									</svg>
 								</span>
-								<input type="tel" id="phone" name="phone" class="form-control rounded-2" placeholder="Phone Number" />
+								<input type="tel" id="phone" name="phone" class="form-control rounded-2" data-i18n-placeholder="contactUs.phonePlaceholder" placeholder="Phone Number" />
 							</div>
 						</div>
 						<div class="">
-							<label for="message" class="form-label fs-lg fw-medium mb-4">
+							<label for="message" class="form-label fs-lg fw-medium mb-4" data-i18n="contactUs.message">
 								Your Message*
 							</label>
-							<textarea id="message" name="message" class="form-control rounded-2" placeholder="Write here your details message"
+							<textarea id="message" name="message" class="form-control rounded-2" data-i18n-placeholder="contactUs.messagePlaceholder" placeholder="Write here your details message"
 							 rows="4" required></textarea>
 						</div>
 						<div class="input-group">
 							<div class="input-group-prepend" style="width:50%">
 								<img src="temp/frontpage/img/captcha/captcha.png" alt="" srcset="4BE232">
 							</div>
-							<input style="color:black;width:50%" type="text" value="" placeholder="Enter Captcha"
+							<input style="color:black;width:50%" type="text" value="" data-i18n-placeholder="contactUs.captchaPlaceholder" placeholder="Enter Captcha"
 								name="_captcha" class="form-control font-weight-bold" id="captcha" required>
 						</div>
 						<span style="color:crimson"></span>
 						<br>
 						<div class="d-grid">
-							<button class="btn btn-info" id="sendemail" type="submit" name="contact">
+							<button class="btn btn-info" id="sendemail" type="submit" name="contact" data-i18n="contactUs.btnSend">
 								Send Message
 							</button>
 						</div>
@@ -431,6 +470,8 @@
 	    <!-- Chat Support Widget -->
     <script src="/assets/js/chat-events.js"></script>
     <script src="/assets/js/chat-widget.js"></script>
+    <!-- Language System -->
+    <script src="/assets/js/language.js?v=3.0"></script>
 </body>
 
 

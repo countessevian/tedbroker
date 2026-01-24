@@ -137,8 +137,8 @@
 										</a>
 									</div>
 									<div class="card-body mt-2 mb-2">
-										<h2 class="text-start mb-2">Sign Up for Free</h2>
-										<p class="mb-4 text-muted tx-13 ms-0 text-start">It's Free to Sign up and only
+										<h2 class="text-start mb-2" data-i18n="register.title">Sign Up for Free</h2>
+										<p class="mb-4 text-muted tx-13 ms-0 text-start" data-i18n="register.subtitle">It's Free to Sign up and only
 											takes a minute.</p>
 
 										<center>
@@ -152,17 +152,17 @@
 												<div class="row"> <!-- Add row for horizontal alignment -->
 													<div class="col-lg-6">
 														<div class="mb-4">
-															<label class="tx-medium">Full Name</label>
-															<input class="form-control" placeholder="Enter your Name" type="text" name="name" required=""
+															<label class="tx-medium" data-i18n="register.fullNameLabel">Full Name</label>
+															<input class="form-control" placeholder="Enter your Name" data-i18n-placeholder="register.fullNamePlaceholder" type="text" name="name" required=""
 																value="">
 
-														</div> 
+														</div>
 													</div>
 
 													<div class="col-lg-6">
 														<div class="mb-4">
-															<label class="tx-medium">Username</label>
-															<input class="form-control" placeholder="Enter Preferred Username" type="text" name="username"
+															<label class="tx-medium" data-i18n="register.usernameLabel">Username</label>
+															<input class="form-control" placeholder="Enter Preferred Username" data-i18n-placeholder="register.usernamePlaceholder" type="text" name="username"
 																value=""required="">
 
 														</div>
@@ -179,8 +179,8 @@
 												<div class="row"> <!-- Add row for horizontal alignment -->
 													<div class="col-lg-6">
 														<div class="mb-4">
-															<label class="tx-medium">Email</label>
-															<input class="form-control" placeholder="Enter your email" type="email" autocomplete="username"
+															<label class="tx-medium" data-i18n="register.emailLabel">Email</label>
+															<input class="form-control" placeholder="Enter your email" data-i18n-placeholder="register.emailPlaceholder" type="email" autocomplete="username"
 																name="email" value="" required="">
 
 														</div>
@@ -188,8 +188,8 @@
 													<div class="col-lg-6">
 														<div class="mb-4">
 															<div class="form-group text-start">
-																<label class="tx-medium">Phone</label>
-																<input class="form-control" placeholder="Enter your phone" type="text" maxlength="13" name="phone"
+																<label class="tx-medium" data-i18n="register.phoneLabel">Phone</label>
+																<input class="form-control" placeholder="Enter your phone" data-i18n-placeholder="register.phonePlaceholder" type="text" maxlength="13" name="phone"
 																	value="" required="">
 
 															</div>
@@ -202,14 +202,14 @@
 														<div class="row"> <!-- Add row for horizontal alignment -->
 															<div class="col-lg-6">
 																<div class="mb-4">
-																	<label class="tx-medium">Gender</label>
+																	<label class="tx-medium" data-i18n="register.genderLabel">Gender</label>
 																	<select class="form-control select2-no-search" value="" name="gender"
 																		required="">
-																		<option label="Select Gender">
+																		<option label="Select Gender" data-i18n="register.genderPlaceholder">
 																		</option>
-																		<option value="Female">Female</option>
-																		<option value="Male">Male</option>
-																		<option value="Others">Others</option>
+																		<option value="Female" data-i18n="register.female">Female</option>
+																		<option value="Male" data-i18n="register.male">Male</option>
+																		<option value="Others" data-i18n="register.others">Others</option>
 																	</select>
 																	<span class="alert-danger" style="float:right;"></span>
 																</div>
@@ -219,7 +219,7 @@
 
 															<div class="col-lg-6">
 																<div class="mb-4">
-																	<label class="tx-medium">Country</label>
+																	<label class="tx-medium" data-i18n="register.countryLabel">Country</label>
 																	<select class="form-control select2" name="country" value=""required="">
 																		<option value="Afganistan">Afghanistan</option>
 <option value="Albania">Albania</option>
@@ -482,8 +482,8 @@
 														<div class="row"> <!-- Add row for horizontal alignment -->
 															<div class="col-lg-6">
 																<div class="mb-4">
-																	<label class="tx-medium">Password</label>
-																	<input class="form-control border-end-0" placeholder="Enter your password" autocomplete="new-password"
+																	<label class="tx-medium" data-i18n="register.passwordLabel">Password</label>
+																	<input class="form-control border-end-0" placeholder="Enter your password" data-i18n-placeholder="register.passwordPlaceholder" autocomplete="new-password"
 																		type="password" data-bs-toggle="password" name="password" required="">
 
 																</div>
@@ -491,8 +491,8 @@
 
 															<div class="col-lg-6">
 																<div class="mb-4">
-																	<label class="tx-medium">Confirm Password</label>
-																	<input class="form-control border-end-0" placeholder="Confirm Password" type="password"
+																	<label class="tx-medium" data-i18n="register.confirmPasswordLabel">Confirm Password</label>
+																	<input class="form-control border-end-0" placeholder="Confirm Password" data-i18n-placeholder="register.confirmPasswordPlaceholder" type="password"
 																		data-bs-toggle="password" name="password_confirmation" required="">
 
 																</div>
@@ -506,25 +506,25 @@
 
 													<div class="col-lg-12">
 														<div class="mb-4">
-															<label class="tx-medium">Account Type</label>
+															<label class="tx-medium" data-i18n="register.accountTypeLabel">Account Type</label>
 
 															<select class="form-control" name="account[]" data-live-search="true" tabindex="-1"
 																aria-hidden="true" required multiple>
-																<option>Binary Option Trading</option>
-																<option>Forex Trading</option>
-																<option>Stock Trading</option>
-																<option>CryptoCurrency Investment</option>
-																<option>NFT Trading</option>
+																<option data-i18n="register.accountType.binary">Binary Option Trading</option>
+																<option data-i18n="register.accountType.forex">Forex Trading</option>
+																<option data-i18n="register.accountType.stock">Stock Trading</option>
+																<option data-i18n="register.accountType.crypto">CryptoCurrency Investment</option>
+																<option data-i18n="register.accountType.nft">NFT Trading</option>
 															</select>
 														</div>
 													</div>
 
 
-													<button type="submit" name="submit" class="btn btn-primary btn-block">Register</button>
+													<button type="submit" name="submit" class="btn btn-primary btn-block" data-i18n="register.btnRegister">Register</button>
 
 													<!-- Divider -->
 													<div class="text-center my-3">
-														<span style="color: #8b93a7;">or</span>
+														<span style="color: #8b93a7;" data-i18n="register.or">or</span>
 													</div>
 
 													<!-- Google Sign-In Button -->
@@ -537,12 +537,12 @@
 															<path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.348 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
 															<path fill="#EA4335" d="M9 3.582c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.582 9 3.582z"/>
 														</svg>
-														Sign up with Google
+														<span data-i18n="register.googleSignUp">Sign up with Google</span>
 													</button>
 
 										</form>
 										<div class="text-start mt-4 ms-0 mb-3">
-											<p class="mb-0">Already have an account? <a href="login">Sign In</a></p>
+											<p class="mb-0"><span data-i18n="register.haveAccount">Already have an account?</span> <a href="login" data-i18n="register.signIn">Sign In</a></p>
 										</div>
 
 									</div>
@@ -616,6 +616,8 @@
     <!-- Chat Support Widget -->
     <script src="/assets/js/chat-events.js"></script>
     <script src="/assets/js/chat-widget.js"></script>
+    <!-- Language System -->
+    <script src="/assets/js/language.js?v=3.0"></script>
 </body>
 
 

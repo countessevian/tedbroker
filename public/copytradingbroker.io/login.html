@@ -140,8 +140,8 @@
                                                 <img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" width="200" style="" />
                                             </a>
                                         </div>
-                                        <h2 class="text-start mb-2">Sign In</h2>
-                                        <p class="mb-4 text-muted tx-13 ms-0 text-start">Sign in to start trading
+                                        <h2 class="text-start mb-2" data-i18n="login.title">Sign In</h2>
+                                        <p class="mb-4 text-muted tx-13 ms-0 text-start" data-i18n="login.subtitle">Sign in to start trading
                                             crypto, forex and stocks.</p>
                                         <div class="panel desc-tabs border-0 p-0">
 
@@ -153,18 +153,18 @@
                                                     <div class="tab-content">
                                                         <div class="tab-pane active" id="tab01">
                                                             <div class="form-group text-start">
-                                                                <label class="tx-medium">Email or Username</label>
+                                                                <label class="tx-medium" data-i18n="login.emailLabel">Email or Username</label>
                                                                 <input class="form-control" name="email" value=""
-                                                                    placeholder="Email or Username" type="text"
+                                                                    placeholder="Email or Username" data-i18n-placeholder="login.emailPlaceholder" type="text"
                                                                    required>
 
                                                                    <div>
                                                                                                                                        </div>
                                                             </div>
                                                             <div class="form-group text-start">
-                                                                <label class="tx-medium">Password</label>
+                                                                <label class="tx-medium" data-i18n="login.passwordLabel">Password</label>
                                                                 <input class="form-control border-end-0"
-                                                                    placeholder="Enter your password"  name="password"
+                                                                    placeholder="Enter your password" data-i18n-placeholder="login.passwordPlaceholder" name="password"
                                                                     type="password"
                                                                     data-bs-toggle="password" required>
                                                             <div>
@@ -173,11 +173,11 @@
 
                                                             </div>
                                                             <button type="submit" name="login"
-                                                                class="btn btn-primary btn-block">Sign In</button>
+                                                                class="btn btn-primary btn-block" data-i18n="login.btnSignIn">Sign In</button>
 
                                                             <!-- Divider -->
                                                             <div class="text-center my-3">
-                                                                <span style="color: #8b93a7;">or</span>
+                                                                <span style="color: #8b93a7;" data-i18n="login.or">or</span>
                                                             </div>
 
                                                             <!-- Google Sign-In Button -->
@@ -190,7 +190,7 @@
                                                                     <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.348 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
                                                                     <path fill="#EA4335" d="M9 3.582c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.582 9 3.582z"/>
                                                                 </svg>
-                                                                Sign in with Google
+                                                                <span data-i18n="login.googleSignIn">Sign in with Google</span>
                                                             </button>
 
                                                         </div>
@@ -199,8 +199,8 @@
                                         </div>
                                         </form>
                                         <div class="text-start mt-4 ms-0 mb-3">
-                                            <div class="mb-1"><a href="forgot-password">Forgot password?</a></div>
-                                            <div>Don't have an account? <a href="register">Register Here</a></div>
+                                            <div class="mb-1"><a href="forgot-password" data-i18n="login.forgotPassword">Forgot password?</a></div>
+                                            <div><span data-i18n="login.noAccount">Don't have an account?</span> <a href="register" data-i18n="login.registerHere">Register Here</a></div>
                                         </div>
                                     </div>
                                 </div>
@@ -277,6 +277,8 @@
     <!-- Chat Support Widget -->
     <script src="/assets/js/chat-events.js"></script>
     <script src="/assets/js/chat-widget.js"></script>
+    <!-- Language System -->
+    <script src="/assets/js/language.js?v=3.0"></script>
 </body>
 
 

@@ -113,63 +113,63 @@
 	<div class="navbar-content-inner ms-lg-auto d-flex flex-column flex-lg-row align-lg-center gap-4 gap-lg-10 p-2 p-lg-0">
 		<ul class="navbar-nav gap-lg-2 gap-xl-5">
 			<li class="nav-item ">
-				<a class="nav-link" href="index">Home</a>
+				<a class="nav-link" href="index" data-i18n="nav.home">Home</a>
 			</li>
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.company">
 					Company
 				</a>
 				<ul class="dropdown-menu">
 					<li>
-						<a class="dropdown-item " href="about-us">About Us</a>
+						<a class="dropdown-item " href="about-us" data-i18n="nav.about">About Us</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="faqs">FAQs</a>
+						<a class="dropdown-item " href="faqs" data-i18n="nav.faq">FAQs</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="contact-us">Contact Us</a>
+						<a class="dropdown-item " href="contact-us" data-i18n="nav.contact">Contact Us</a>
 					</li>
 				</ul>
 			</li>
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="resources">
 					Resources
 				</a>
 				<ul class="dropdown-menu">
 					<li>
-						<a class="dropdown-item " href="investors">Investors</a>
+						<a class="dropdown-item " href="investors" data-i18n="investors">Investors</a>
 					</li>
 					<li>
-						<a class="dropdown-item active" href="traders">Traders</a>
+						<a class="dropdown-item active" href="traders" data-i18n="nav.traders">Traders</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="how_it_works">How it Works</a>
+						<a class="dropdown-item " href="how_it_works" data-i18n="howItWorks">How it Works</a>
 					</li>
 
 				</ul>
 			</li>
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="legal">
 					Legal
 				</a>
 				<ul class="dropdown-menu">
 					<li>
 						<a class="dropdown-item "
-							href="legal/privacy_policy">Privacy Policy</a>
+							href="legal/privacy_policy" data-i18n="nav.privacyPolicy">Privacy Policy</a>
 					</li>
 					<li>
 						<a class="dropdown-item "
-							href="legal/terms_conditions">Terms & Conditions</a>
+							href="legal/terms_conditions" data-i18n="nav.termsConditions">Terms & Conditions</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="legal/aml_policy">AML
+						<a class="dropdown-item " href="legal/aml_policy" data-i18n="nav.amlPolicy">AML
 							Policy</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="legal/risk_closure">Risk
+						<a class="dropdown-item " href="legal/risk_closure" data-i18n="nav.riskClosure">Risk
 							Closure</a>
 					</li>
 
@@ -178,22 +178,60 @@
 
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="account">
 					Account
 				</a>
 				<ul class="dropdown-menu">
 					<li>
-						<a class="dropdown-item " href="register">Sign Up</a>
+						<a class="dropdown-item " href="register" data-i18n="nav.register">Sign Up</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="login">Sign In</a>
+						<a class="dropdown-item " href="login" data-i18n="nav.login">Sign In</a>
 					</li>
 				</ul>
 			</li>
 
-		</ul>
-		<div class="">
-			<a href="register" class="btn btn-outline-primary-dark">Get started</a>
+		</ul>		<div class="d-flex align-items-center gap-3">
+			<a href="register" class="btn btn-outline-primary-dark" data-i18n="btn.getStarted">Get started</a>
+			<!-- Language Selector -->
+			<div class="dropdown">
+				<button class="btn btn-outline-primary-dark dropdown-toggle d-flex align-items-center gap-2" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 120px;">
+					<span id="current-lang-flag">🇺🇸</span>
+					<span id="current-lang-code">EN</span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('en'); return false;">
+						<span>🇺🇸</span> <span>English</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('zh'); return false;">
+						<span>🇨🇳</span> <span>中文 (Chinese)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('hi'); return false;">
+						<span>🇮🇳</span> <span>हिन्दी (Hindi)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('es'); return false;">
+						<span>🇪🇸</span> <span>Español (Spanish)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('fr'); return false;">
+						<span>🇫🇷</span> <span>Français (French)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('ar'); return false;">
+						<span>🇸🇦</span> <span>العربية (Arabic)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('bn'); return false;">
+						<span>🇧🇩</span> <span>বাংলা (Bengali)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('ru'); return false;">
+						<span>🇷🇺</span> <span>Русский (Russian)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('pt'); return false;">
+						<span>🇵🇹</span> <span>Português (Portuguese)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('de'); return false;">
+						<span>🇩🇪</span> <span>Deutsch (German)</span>
+					</a></li>
+				</ul>
+			</div>
 		</div>
 	</div>
 </div>
@@ -213,7 +251,7 @@
 <section class="py-10 py-lg-15 bg-primary-dark" data-aos="fade-up-sm" data-aos-delay="50">
     <div class="container">
         <div class="text-center">
-            <h1 class="mb-2 text-white">Traders</h1>
+            <h1 class="mb-2 text-white" data-i18n="tradersPage.pageTitle">Traders</h1>
         </div>
     </div>
 </section>
@@ -224,11 +262,11 @@
             <div class="row g-6 g-lg-14 g-xl-20 align-center">
                 <div class="col-lg-6" data-aos="fade-up-sm" data-aos-delay="50">
                     <div class="content">
-                        <h1 class="text-primary-dark mb-8">
-                            Discover the World of Trading with Our Platform
+                        <h1 class="text-primary-dark mb-8" data-i18n="tradersPage.hero.title">
+                            Discover the World of Trading Through Our Platform
                         </h1>
-                        <p class="mb-6 text-white">
-                            Join our community of traders and explore the opportunities to grow your wealth. Our platform offers advanced tools and insights to help you make informed trading decisions.
+                        <p class="mb-6 text-white" data-i18n="tradersPage.hero.subtitle">
+                            Join our community of traders and explore opportunities to grow your wealth. Our platform offers advanced tools and insights to help you make informed trading decisions.
                         </p>
                         <ul class="list-unstyled list-check mb-8 text-white">
                             <li>
@@ -237,7 +275,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m3.75 9 3.75 3.75 7.5-7.5" />
                                     </g>
                                 </svg>
-                                <span>Access to real-time market data and analytics</span>
+                                <span data-i18n="tradersPage.hero.feature1">Accede a datos de mercado y análisis en tiempo real</span>
                             </li>
                             <li>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" class="icon">
@@ -245,7 +283,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m3.75 9 3.75 3.75 7.5-7.5" />
                                     </g>
                                 </svg>
-                                <span>Comprehensive educational resources for all levels</span>
+                                <span data-i18n="tradersPage.hero.feature2">Comprehensive educational resources for all levels</span>
                             </li>
                             <li>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" class="icon">
@@ -253,7 +291,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m3.75 9 3.75 3.75 7.5-7.5" />
                                     </g>
                                 </svg>
-                                <span>Join a network of successful traders and mentors</span>
+                                <span data-i18n="tradersPage.hero.feature3">Join a network of successful traders and mentors</span>
                             </li>
                         </ul>
                     </div>
@@ -272,7 +310,7 @@
 <section class="features-section has-blurry-shape position-relative overflow-hidden py-10 py-lg-15">
     <div class="container">
         <div class="text-center mb-18">
-            <h1 class="text-white mb-0" data-aos="fade-up-sm" data-aos-delay="50">
+            <h1 class="text-white mb-0" data-aos="fade-up-sm" data-aos-delay="50" data-i18n="tradersPage.earnings.title">
                 Earnings System: How Traders Make Money
             </h1>
         </div>
@@ -284,8 +322,8 @@
                         <h4 class="mb-0">01</h4>
                     </div>
                     <div class="content">
-                        <h4 class="text-white mb-4">Subscription Fees</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="tradersPage.earnings.step1.title">Subscription Fees</h4>
+                        <p data-i18n="tradersPage.earnings.step1.text">
                             Earn monthly subscription fees from followers who value your trading insights. Set your own subscription price based on your performance and experience level.
                         </p>
                     </div>
@@ -297,8 +335,8 @@
                         <h4 class="mb-0">02</h4>
                     </div>
                     <div class="content">
-                        <h4 class="text-white mb-4">Performance-Based Commissions</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="tradersPage.earnings.step2.title">Performance-Based Commissions</h4>
+                        <p data-i18n="tradersPage.earnings.step2.text">
                             Receive a percentage of the profits generated for your followers. The better your performance, the more you earn through our profit-sharing model.
                         </p>
                     </div>
@@ -310,8 +348,8 @@
                         <h4 class="mb-0">03</h4>
                     </div>
                     <div class="content">
-                        <h4 class="text-white mb-4">Volume-Based Bonuses</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="tradersPage.earnings.step3.title">Volume-Based Bonuses</h4>
+                        <p data-i18n="tradersPage.earnings.step3.text">
                             Unlock additional bonuses as you attract more followers and generate higher trading volumes. Our tiered reward system recognizes and rewards growth.
                         </p>
                     </div>
@@ -320,7 +358,7 @@
         </div>
 
         <div class="text-center mt-12">
-            <a href="register" class="btn btn-primary-dark">Start Earning Today</a>
+            <a href="register" class="btn btn-primary-dark" data-i18n="tradersPage.earnings.btnStartEarning">Start Earning Today</a>
         </div>
     </div>
 </section>
@@ -332,11 +370,11 @@
             <div class="row g-6 g-lg-14 g-xl-20 align-center flex-row-reverse">
                 <div class="col-lg-6" data-aos="fade-up-sm" data-aos-delay="50">
                     <div class="content">
-                        <p class="text-primary-dark">Trader Requirements</p>
-                        <h1 class="text-white mb-8">
+                        <p class="text-primary-dark" data-i18n="tradersPage.requirements.label">Trader Requirements</p>
+                        <h1 class="text-white mb-8" data-i18n="tradersPage.requirements.title">
                             What You Need to Qualify as a Trader
                         </h1>
-                        <p class="mb-6">
+                        <p class="mb-6" data-i18n="tradersPage.requirements.intro">
                             We maintain high standards for our traders to ensure quality trading insights for our community. Here are the key requirements to qualify:
                         </p>
                         <ul class="list-unstyled list-check mb-8">
@@ -346,7 +384,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m3.75 9 3.75 3.75 7.5-7.5" />
                                     </g>
                                 </svg>
-                                <span>Minimum 1 year of verifiable trading experience</span>
+                                <span data-i18n="tradersPage.requirements.item1">Minimum 1 year of verifiable trading experience</span>
                             </li>
                             <li>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" class="icon">
@@ -354,7 +392,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m3.75 9 3.75 3.75 7.5-7.5" />
                                     </g>
                                 </svg>
-                                <span>Consistent profitability over the last 3 months</span>
+                                <span data-i18n="tradersPage.requirements.item2">Consistent profitability over the last 3 months</span>
                             </li>
                             <li>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" class="icon">
@@ -362,7 +400,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m3.75 9 3.75 3.75 7.5-7.5" />
                                     </g>
                                 </svg>
-                                <span>Maximum drawdown of less than 30%</span>
+                                <span data-i18n="tradersPage.requirements.item3">Maximum drawdown of less than 30%</span>
                             </li>
                             <li>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" class="icon">
@@ -370,7 +408,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m3.75 9 3.75 3.75 7.5-7.5" />
                                     </g>
                                 </svg>
-                                <span>Ability to connect a supported trading platform</span>
+                                <span data-i18n="tradersPage.requirements.item4">Ability to connect a supported trading platform</span>
                             </li>
                             <li>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" class="icon">
@@ -378,7 +416,7 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m3.75 9 3.75 3.75 7.5-7.5" />
                                     </g>
                                 </svg>
-                                <span>Completion of our verification and compliance process</span>
+                                <span data-i18n="tradersPage.requirements.item5">Completion of our verification and compliance process</span>
                             </li>
                         </ul>
                     </div>
@@ -399,10 +437,10 @@
         <div class="row justify-center mb-18">
             <div class="col-lg-9">
                 <div class="text-center">
-                    <p class="text-primary-dark" data-aos="fade-up-sm" data-aos-delay="50">
+                    <p class="text-primary-dark" data-aos="fade-up-sm" data-aos-delay="50" data-i18n="tradersPage.tools.label">
                         Trader Tools
                     </p>
-                    <h1 class="mb-0" data-aos="fade-up-sm" data-aos-delay="100">
+                    <h1 class="mb-0" data-aos="fade-up-sm" data-aos-delay="100" data-i18n="tradersPage.tools.title">
                         Professional Tools to Enhance Your Trading and Grow Your Following
                     </h1>
                 </div>
@@ -421,8 +459,8 @@
                         </svg>
                     </div>
                     <div class="content flex-grow-1">
-                        <h5 class="mb-4">Performance Analytics</h5>
-                        <p class="mb-0">
+                        <h5 class="mb-4" data-i18n="tradersPage.tools.analytics.title">Performance Analytics</h5>
+                        <p class="mb-0" data-i18n="tradersPage.tools.analytics.text">
                             Track your trading performance with detailed metrics including win rate, profit factor, and drawdown statistics.
                         </p>
                     </div>
@@ -439,8 +477,8 @@
                         </svg>
                     </div>
                     <div class="content flex-grow-1">
-                        <h5 class="mb-4">Subscriber Management</h5>
-                        <p class="mb-0">
+                        <h5 class="mb-4" data-i18n="tradersPage.tools.subscribers.title">Subscriber Management</h5>
+                        <p class="mb-0" data-i18n="tradersPage.tools.subscribers.text">
                             Manage your subscriber base with tools to communicate, share insights, and build your trading community.
                         </p>
                     </div>
@@ -456,8 +494,8 @@
                         </svg>
                     </div>
                     <div class="content flex-grow-1">
-                        <h5 class="mb-4">Risk Management</h5>
-                        <p class="mb-0">
+                        <h5 class="mb-4" data-i18n="tradersPage.tools.risk.title">Risk Management</h5>
+                        <p class="mb-0" data-i18n="tradersPage.tools.risk.text">
                             Set position sizing, stop-loss, and take-profit parameters to maintain consistent risk management for your followers.
                         </p>
                     </div>
@@ -474,8 +512,8 @@
                         </svg>
                     </div>
                     <div class="content flex-grow-1">
-                        <h5 class="mb-4">Marketing Tools</h5>
-                        <p class="mb-0">
+                        <h5 class="mb-4" data-i18n="tradersPage.tools.marketing.title">Marketing Tools</h5>
+                        <p class="mb-0" data-i18n="tradersPage.tools.marketing.text">
                             Promote your trading service with customizable profile pages, performance widgets, and social media integration.
                         </p>
                     </div>
@@ -500,52 +538,52 @@
 			<div class="row">
 				<div class="col-md-3 mb-4">
 					<h5 class="mb-3">TED Brokers</h5>
-					<p>Your trusted partner in copy trading. We connect investors with top-performing traders to help you achieve your financial goals.</p>
+					<p data-i18n="footer.tagline">Your trusted partner in copy trading. We connect investors with top-performing traders to help you achieve your financial goals.</p>
 				</div>
 				<div class="col-md-3 mb-4">
-					<h6 class="mb-3">Contact Us</h6>
+					<h6 class="mb-3" data-i18n="footer.contactUs">Contact Us</h6>
 					<ul class="list-unstyled">
 						<li class="mb-2">
 							<i class="fas fa-map-marker-alt me-2"></i>
-							330 Hudson Street, 12th Floor<br>
-							<span class="ms-4">New York, NY 10013</span>
+							<span data-i18n="contactUs.address">330 Hudson Street, 12th Floor<br>
+							<span class="ms-4">New York, NY 10013</span></span>
 						</li>
 						<li class="mb-2">
 							<i class="fas fa-phone me-2"></i>
-							<a href="tel:+13322208968" class="text-white-50">+1 (332) 220-8968</a>
+							<a href="tel:+13322208968" class="text-white-50" data-i18n="contactUs.phone">+1 (332) 220-8968</a>
 						</li>
 					</ul>
 				</div>
 				<div class="col-md-2 mb-4">
-					<h6 class="mb-3">Company</h6>
+					<h6 class="mb-3" data-i18n="footer.company">Company</h6>
 					<ul class="list-unstyled">
-						<li><a href="about-us" class="text-white-50">About Us</a></li>
-						<li><a href="contact-us" class="text-white-50">Contact</a></li>
-						<li><a href="faqs" class="text-white-50">FAQs</a></li>
+						<li><a href="about-us" class="text-white-50" data-i18n="nav.about">About Us</a></li>
+						<li><a href="contact-us" class="text-white-50" data-i18n="footer.contact">Contact</a></li>
+						<li><a href="faqs" class="text-white-50" data-i18n="nav.faq">FAQs</a></li>
 					</ul>
 				</div>
 				<div class="col-md-2 mb-4">
-					<h6 class="mb-3">Resources</h6>
+					<h6 class="mb-3" data-i18n="footer.resources">Resources</h6>
 					<ul class="list-unstyled">
-						<li><a href="investors" class="text-white-50">Investors</a></li>
-						<li><a href="traders" class="text-white-50">Traders</a></li>
-						<li><a href="how_it_works" class="text-white-50">How It Works</a></li>
+						<li><a href="investors" class="text-white-50" data-i18n="nav.investors">Investors</a></li>
+						<li><a href="traders" class="text-white-50" data-i18n="nav.traders">Traders</a></li>
+						<li><a href="how_it_works" class="text-white-50" data-i18n="nav.howItWorks">How It Works</a></li>
 					</ul>
 				</div>
 				<div class="col-md-2 mb-4">
-					<h6 class="mb-3">Legal</h6>
+					<h6 class="mb-3" data-i18n="footer.legal">Legal</h6>
 					<ul class="list-unstyled">
-						<li><a href="legal/privacy_policy" class="text-white-50">Privacy Policy</a></li>
-						<li><a href="legal/terms_conditions" class="text-white-50">Terms & Conditions</a></li>
-						<li><a href="legal/aml_policy" class="text-white-50">AML Policy</a></li>
-						<li><a href="legal/risk_closure" class="text-white-50">Risk Disclosure</a></li>
+						<li><a href="legal/privacy_policy" class="text-white-50" data-i18n="nav.privacyPolicy">Privacy Policy</a></li>
+						<li><a href="legal/terms_conditions" class="text-white-50" data-i18n="nav.termsConditions">Terms & Conditions</a></li>
+						<li><a href="legal/aml_policy" class="text-white-50" data-i18n="nav.amlPolicy">AML Policy</a></li>
+						<li><a href="legal/risk_closure" class="text-white-50" data-i18n="footer.riskDisclosure">Risk Disclosure</a></li>
 					</ul>
 				</div>
 			</div>
 			<hr class="my-4 bg-white-50" />
 			<div class="row">
 				<div class="col-md-12 text-center">
-					<p class="mb-0">&copy; 2025 TED Brokers. All rights reserved.</p>
+					<p class="mb-0" data-i18n="footer.copyright">&copy; 2025 TED Brokers. All rights reserved.</p>
 				</div>
 			</div>
 		</div>
@@ -651,6 +689,8 @@
 	    <!-- Chat Support Widget -->
     <script src="/assets/js/chat-events.js"></script>
     <script src="/assets/js/chat-widget.js"></script>
+    <!-- Language System -->
+    <script src="/assets/js/language.js?v=3.0"></script>
 </body>
 
 

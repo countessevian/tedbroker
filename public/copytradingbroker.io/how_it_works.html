@@ -10,7 +10,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-		<title>
+		<title data-i18n="howItWorks.pageTitle">
 							How it Works | TED Brokers
 					</title>
 		<meta name="description" content="TED Brokers helps traders of all levels copy expert strategies in real-time. Discover a smarter way to trade forex, crypto, and stocks with advanced automation and risk management tools.">
@@ -113,63 +113,63 @@
 	<div class="navbar-content-inner ms-lg-auto d-flex flex-column flex-lg-row align-lg-center gap-4 gap-lg-10 p-2 p-lg-0">
 		<ul class="navbar-nav gap-lg-2 gap-xl-5">
 			<li class="nav-item ">
-				<a class="nav-link" href="index">Home</a>
+				<a class="nav-link" href="index" data-i18n="nav.home">Home</a>
 			</li>
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.company">
 					Company
 				</a>
 				<ul class="dropdown-menu">
 					<li>
-						<a class="dropdown-item " href="about-us">About Us</a>
+						<a class="dropdown-item " href="about-us" data-i18n="nav.about">About Us</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="faqs">FAQs</a>
+						<a class="dropdown-item " href="faqs" data-i18n="nav.faq">FAQs</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="contact-us">Contact Us</a>
+						<a class="dropdown-item " href="contact-us" data-i18n="nav.contact">Contact Us</a>
 					</li>
 				</ul>
 			</li>
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="resources">
 					Resources
 				</a>
 				<ul class="dropdown-menu">
 					<li>
-						<a class="dropdown-item " href="investors">Investors</a>
+						<a class="dropdown-item " href="investors" data-i18n="investors">Investors</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="traders">Traders</a>
+						<a class="dropdown-item " href="traders" data-i18n="nav.traders">Traders</a>
 					</li>
 					<li>
-						<a class="dropdown-item active" href="how_it_works">How it Works</a>
+						<a class="dropdown-item active" href="how_it_works" data-i18n="howItWorks">How it Works</a>
 					</li>
 
 				</ul>
 			</li>
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="legal">
 					Legal
 				</a>
 				<ul class="dropdown-menu">
 					<li>
 						<a class="dropdown-item "
-							href="legal/privacy_policy">Privacy Policy</a>
+							href="legal/privacy_policy" data-i18n="nav.privacyPolicy">Privacy Policy</a>
 					</li>
 					<li>
 						<a class="dropdown-item "
-							href="legal/terms_conditions">Terms & Conditions</a>
+							href="legal/terms_conditions" data-i18n="nav.termsConditions">Terms & Conditions</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="legal/aml_policy">AML
+						<a class="dropdown-item " href="legal/aml_policy" data-i18n="nav.amlPolicy">AML
 							Policy</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="legal/risk_closure">Risk
+						<a class="dropdown-item " href="legal/risk_closure" data-i18n="nav.riskClosure">Risk
 							Closure</a>
 					</li>
 
@@ -178,22 +178,60 @@
 
 
 			<li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-i18n="account">
 					Account
 				</a>
 				<ul class="dropdown-menu">
 					<li>
-						<a class="dropdown-item " href="register">Sign Up</a>
+						<a class="dropdown-item " href="register" data-i18n="nav.register">Sign Up</a>
 					</li>
 					<li>
-						<a class="dropdown-item " href="login">Sign In</a>
+						<a class="dropdown-item " href="login" data-i18n="nav.login">Sign In</a>
 					</li>
 				</ul>
 			</li>
 
-		</ul>
-		<div class="">
-			<a href="register" class="btn btn-outline-primary-dark">Get started</a>
+		</ul>		<div class="d-flex align-items-center gap-3">
+			<a href="register" class="btn btn-outline-primary-dark" data-i18n="btn.getStarted">Get started</a>
+			<!-- Language Selector -->
+			<div class="dropdown">
+				<button class="btn btn-outline-primary-dark dropdown-toggle d-flex align-items-center gap-2" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 120px;">
+					<span id="current-lang-flag">🇺🇸</span>
+					<span id="current-lang-code">EN</span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('en'); return false;">
+						<span>🇺🇸</span> <span>English</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('zh'); return false;">
+						<span>🇨🇳</span> <span>中文 (Chinese)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('hi'); return false;">
+						<span>🇮🇳</span> <span>हिन्दी (Hindi)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('es'); return false;">
+						<span>🇪🇸</span> <span>Español (Spanish)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('fr'); return false;">
+						<span>🇫🇷</span> <span>Français (French)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('ar'); return false;">
+						<span>🇸🇦</span> <span>العربية (Arabic)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('bn'); return false;">
+						<span>🇧🇩</span> <span>বাংলা (Bengali)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('ru'); return false;">
+						<span>🇷🇺</span> <span>Русский (Russian)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('pt'); return false;">
+						<span>🇵🇹</span> <span>Português (Portuguese)</span>
+					</a></li>
+					<li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="changeLanguage('de'); return false;">
+						<span>🇩🇪</span> <span>Deutsch (German)</span>
+					</a></li>
+				</ul>
+			</div>
 		</div>
 	</div>
 </div>
@@ -213,7 +251,7 @@
 <section class="py-10 py-lg-15 bg-primary-dark" data-aos="fade-up-sm" data-aos-delay="50">
     <div class="container">
         <div class="text-center">
-            <h1 class="mb-2 text-white">How it Works</h1>
+            <h1 class="mb-2 text-white" data-i18n="howItWorks">How it Works</h1>
         </div>
     </div>
 </section>
@@ -223,14 +261,14 @@
         <div class="row align-center">
             <div class="col-lg-6 col-xl-5" data-aos="fade-up-sm" data-aos-delay="50">
                 <div class="text-center text-lg-start">
-                    <p class="text-primary-dark fs-sm">Copy Trading Platform</p>
-                    <h2 class="mb-4">
+                    <p class="text-primary-dark fs-sm" data-i18n="howItWorks.intro.label">Copy Trading Platform</p>
+                    <h2 class="mb-4" data-i18n="howItWorks.intro.title">
                         The Easiest Way to Follow Successful Traders and Replicate Their Success
                     </h2>
-                    <p class="mb-8">
+                    <p class="mb-8" data-i18n="howItWorks.intro.text">
                         Our copy trading platform connects investors with expert traders, allowing you to automatically copy their trades and benefit from their expertise without having to analyze markets yourself.
                     </p>
-                    <a href="register" class="btn btn-lg btn-primary-dark">Start Trading Today</a>
+                    <a href="register" class="btn btn-lg btn-primary-dark" data-i18n="howItWorks.intro.btnStart">Start Trading Today</a>
                 </div>
             </div>
             <div class="col-lg-6 offset-xl-1" data-aos="fade-up-sm" data-aos-delay="100">
@@ -246,10 +284,10 @@
 <section class="py-10 py-lg-15 bg-dark-blue-3">
     <div class="container">
         <div class="text-center mb-18">
-            <h2 class="text-white mb-4" data-aos="fade-up-sm" data-aos-delay="50">
+            <h2 class="text-white mb-4" data-aos="fade-up-sm" data-aos-delay="50" data-i18n="howItWorks.investors.title">
                 <span class="text-primary-dark">For Investors:</span> How to Copy Trades
             </h2>
-            <p class="lead mb-0 mx-auto" style="max-width: 760px;" data-aos="fade-up-sm" data-aos-delay="100">
+            <p class="lead mb-0 mx-auto" style="max-width: 760px;" data-aos="fade-up-sm" data-aos-delay="100" data-i18n="howItWorks.investors.subtitle">
                 Follow these simple steps to start copying successful traders and potentially grow your investment
             </p>
         </div>
@@ -265,8 +303,8 @@
                         </svg>
                     </div>
                     <div class="content text-center">
-                        <h4 class="text-white mb-4">1. Create an Account</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="howItWorks.investors.step1.title">1. Create an Account</h4>
+                        <p data-i18n="howItWorks.investors.step1.text">
                             Sign up for a free account on our platform. Complete your profile and verify your identity to get started.
                         </p>
                     </div>
@@ -283,8 +321,8 @@
                         </svg>
                     </div>
                     <div class="content text-center">
-                        <h4 class="text-white mb-4">2. Fund Your Account</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="howItWorks.investors.step2.title">2. Fund Your Account</h4>
+                        <p data-i18n="howItWorks.investors.step2.text">
                             Deposit funds into your account using one of our secure payment methods. Start with an amount you're comfortable with.
                         </p>
                     </div>
@@ -301,8 +339,8 @@
                         </svg>
                     </div>
                     <div class="content text-center">
-                        <h4 class="text-white mb-4">3. Choose Traders</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="howItWorks.investors.step3.title">3. Choose Traders</h4>
+                        <p data-i18n="howItWorks.investors.step3.text">
                             Browse our marketplace of verified traders. Review their performance history, risk level, and trading style before selecting.
                         </p>
                     </div>
@@ -319,8 +357,8 @@
                         </svg>
                     </div>
                     <div class="content text-center">
-                        <h4 class="text-white mb-4">4. Start Copying</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="howItWorks.investors.step4.title">4. Start Copying</h4>
+                        <p data-i18n="howItWorks.investors.step4.text">
                             Set your copy trading parameters, including investment amount and risk management settings. Then activate copying to start automatically replicating trades.
                         </p>
                     </div>
@@ -334,10 +372,10 @@
 <section class="py-10 py-lg-15 bg-white">
     <div class="container">
         <div class="text-center mb-18">
-            <h2 class="mb-4" data-aos="fade-up-sm" data-aos-delay="50">
+            <h2 class="mb-4" data-aos="fade-up-sm" data-aos-delay="50" data-i18n="howItWorks.traders.title">
                 <span class="text-primary-dark">For Traders:</span> How to Get Followed
             </h2>
-            <p class="lead mb-0 mx-auto" style="max-width: 760px;" data-aos="fade-up-sm" data-aos-delay="100">
+            <p class="lead mb-0 mx-auto" style="max-width: 760px;" data-aos="fade-up-sm" data-aos-delay="100" data-i18n="howItWorks.traders.subtitle">
                 Share your trading expertise and earn additional income by allowing others to copy your trades
             </p>
         </div>
@@ -346,8 +384,8 @@
             <div class="col" data-aos="fade-up-sm" data-aos-delay="50">
                 <div class="d-flex flex-column gap-6">
                     <div class="content text-center">
-                        <h4 class="mb-4">1. Register as a Trader</h4>
-                        <p>
+                        <h4 class="mb-4" data-i18n="howItWorks.traders.step1.title">1. Register as a Trader</h4>
+                        <p data-i18n="howItWorks.traders.step1.text">
                             Create an account and apply to become a featured trader. Complete your profile with your trading experience and strategy.
                         </p>
                     </div>
@@ -356,8 +394,8 @@
             <div class="col" data-aos="fade-up-sm" data-aos-delay="100">
                 <div class="d-flex flex-column gap-6">
                     <div class="content text-center">
-                        <h4 class="mb-4">2. Connect Trading Account</h4>
-                        <p>
+                        <h4 class="mb-4" data-i18n="howItWorks.traders.step2.title">2. Connect Trading Account</h4>
+                        <p data-i18n="howItWorks.traders.step2.text">
                             Link your existing trading account or create a new one through our platform. Set up API connections to share your trades.
                         </p>
                     </div>
@@ -366,8 +404,8 @@
             <div class="col" data-aos="fade-up-sm" data-aos-delay="150">
                 <div class="d-flex flex-column gap-6">
                     <div class="content text-center">
-                        <h4 class="mb-4">3. Build Your Track Record</h4>
-                        <p>
+                        <h4 class="mb-4" data-i18n="howItWorks.traders.step3.title">3. Build Your Track Record</h4>
+                        <p data-i18n="howItWorks.traders.step3.text">
                             Trade consistently and build a verifiable performance history. Focus on risk management and consistent returns to attract followers.
                         </p>
                     </div>
@@ -376,8 +414,8 @@
             <div class="col" data-aos="fade-up-sm" data-aos-delay="200">
                 <div class="d-flex flex-column gap-6">
                     <div class="content text-center">
-                        <h4 class="mb-4">4. Earn From Followers</h4>
-                        <p>
+                        <h4 class="mb-4" data-i18n="howItWorks.traders.step4.title">4. Earn From Followers</h4>
+                        <p data-i18n="howItWorks.traders.step4.text">
                             Set your commission structure and start earning from successful trades. Receive performance fees based on profits generated for your followers.
                         </p>
                     </div>
@@ -391,10 +429,10 @@
 <section class="py-10 py-lg-15 bg-dark-blue-3">
     <div class="container">
         <div class="text-center mb-18">
-            <h2 class="text-white mb-4" data-aos="fade-up-sm" data-aos-delay="50">
+            <h2 class="text-white mb-4" data-aos="fade-up-sm" data-aos-delay="50" data-i18n="howItWorks.process.title">
                 How Copy Trading Works
             </h2>
-            <p class="lead mb-0 mx-auto" style="max-width: 760px;" data-aos="fade-up-sm" data-aos-delay="100">
+            <p class="lead mb-0 mx-auto" style="max-width: 760px;" data-aos="fade-up-sm" data-aos-delay="100" data-i18n="howItWorks.process.subtitle">
                 A simple yet powerful system that connects investors with expert traders
             </p>
         </div>
@@ -411,8 +449,8 @@
             <div class="col" data-aos="fade-up-sm" data-aos-delay="50">
                 <div class="d-flex flex-column gap-6">
                     <div class="content text-center">
-                        <h4 class="text-white mb-4">1. Connection</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="howItWorks.process.step1.title">1. Connection</h4>
+                        <p data-i18n="howItWorks.process.step1.text">
                             Our platform connects investors looking for returns with experienced traders seeking additional income. The system automatically matches based on risk profiles and trading styles.
                         </p>
                     </div>
@@ -421,8 +459,8 @@
             <div class="col" data-aos="fade-up-sm" data-aos-delay="100">
                 <div class="d-flex flex-column gap-6">
                     <div class="content text-center">
-                        <h4 class="text-white mb-4">2. Replication</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="howItWorks.process.step2.title">2. Replication</h4>
+                        <p data-i18n="howItWorks.process.step2.text">
                             When a trader executes a position, the same trade is automatically replicated in the investor's account, adjusted proportionally based on the investment amount allocated.
                         </p>
                     </div>
@@ -431,8 +469,8 @@
             <div class="col" data-aos="fade-up-sm" data-aos-delay="150">
                 <div class="d-flex flex-column gap-6">
                     <div class="content text-center">
-                        <h4 class="text-white mb-4">3. Profit Sharing</h4>
-                        <p>
+                        <h4 class="text-white mb-4" data-i18n="howItWorks.process.step3.title">3. Profit Sharing</h4>
+                        <p data-i18n="howItWorks.process.step3.text">
                             Investors keep the majority of profits generated, while traders earn performance fees based on successful trades. This creates a win-win relationship aligned with mutual success.
                         </p>
                     </div>
@@ -446,10 +484,10 @@
 <section class="py-10 py-lg-15 bg-white">
     <div class="container">
         <div class="text-center mb-18">
-            <h2 class="tmb-4" data-aos="fade-up-sm" data-aos-delay="50">
+            <h2 class="tmb-4" data-aos="fade-up-sm" data-aos-delay="50" data-i18n="howItWorks.earnings.title">
                 Potential Earnings
             </h2>
-            <p class="lead mb-0 mx-auto" style="max-width: 760px;" data-aos="fade-up-sm" data-aos-delay="100">
+            <p class="lead mb-0 mx-auto" style="max-width: 760px;" data-aos="fade-up-sm" data-aos-delay="100" data-i18n="howItWorks.earnings.subtitle">
                 See how copy trading can potentially grow your investment or create additional income streams
             </p>
         </div>
@@ -459,16 +497,16 @@
             <div class="col-lg-6" data-aos="fade-up-sm" data-aos-delay="50">
                 <div class="card bg-dark-blue-4 border-0 h-100">
                     <div class="card-header bg-transparent border-0 pt-6">
-                        <h3 class="text-center">Investor Earnings Example</h3>
+                        <h3 class="text-center" data-i18n="howItWorks.earnings.investor.title">Investor Earnings Example</h3>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-dark table-borderless">
                                 <thead>
                                     <tr>
-                                        <th>Investment</th>
-                                        <th>Monthly Return</th>
-                                        <th>Annual Return</th>
+                                        <th data-i18n="howItWorks.earnings.investor.investment">Investment</th>
+                                        <th data-i18n="howItWorks.earnings.investor.monthly">Monthly Return</th>
+                                        <th data-i18n="howItWorks.earnings.investor.annual">Annual Return</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -495,7 +533,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <p class="small text-light-blue-3 mt-4">
+                        <p class="small text-light-blue-3 mt-4" data-i18n="howItWorks.earnings.investor.disclaimer">
                             * These figures are based on historical performance of our top traders with monthly returns ranging from 5-10%. Past performance is not indicative of future results. Trading involves risk.
                         </p>
                     </div>
@@ -506,16 +544,16 @@
             <div class="col-lg-6" data-aos="fade-up-sm" data-aos-delay="100">
                 <div class="card bg-dark-blue-4 border-0 h-100">
                     <div class="card-header bg-transparent border-0 pt-6">
-                        <h3 class="text-center">Trader Earnings Example</h3>
+                        <h3 class="text-center" data-i18n="howItWorks.earnings.trader.title">Trader Earnings Example</h3>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-dark table-borderless">
                                 <thead>
                                     <tr>
-                                        <th>Followers' Capital</th>
-                                        <th>Monthly Commission</th>
-                                        <th>Annual Commission</th>
+                                        <th data-i18n="howItWorks.earnings.trader.capital">Followers' Capital</th>
+                                        <th data-i18n="howItWorks.earnings.trader.monthly">Monthly Commission</th>
+                                        <th data-i18n="howItWorks.earnings.trader.annual">Annual Commission</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -542,7 +580,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <p class="small text-light-blue-3 mt-4">
+                        <p class="small text-light-blue-3 mt-4" data-i18n="howItWorks.earnings.trader.disclaimer">
                             * Based on a performance fee of 20% on profits generated. Assumes monthly returns of 5-10%. Actual earnings depend on trading performance and number of followers.
                         </p>
                     </div>
@@ -566,52 +604,52 @@
 			<div class="row">
 				<div class="col-md-3 mb-4">
 					<h5 class="mb-3">TED Brokers</h5>
-					<p>Your trusted partner in copy trading. We connect investors with top-performing traders to help you achieve your financial goals.</p>
+					<p data-i18n="footer.tagline">Your trusted partner in copy trading. We connect investors with top-performing traders to help you achieve your financial goals.</p>
 				</div>
 				<div class="col-md-3 mb-4">
-					<h6 class="mb-3">Contact Us</h6>
+					<h6 class="mb-3" data-i18n="footer.contactUs">Contact Us</h6>
 					<ul class="list-unstyled">
 						<li class="mb-2">
 							<i class="fas fa-map-marker-alt me-2"></i>
-							330 Hudson Street, 12th Floor<br>
-							<span class="ms-4">New York, NY 10013</span>
+							<span data-i18n="contactUs.address">330 Hudson Street, 12th Floor<br>
+							<span class="ms-4">New York, NY 10013</span></span>
 						</li>
 						<li class="mb-2">
 							<i class="fas fa-phone me-2"></i>
-							<a href="tel:+13322208968" class="text-white-50">+1 (332) 220-8968</a>
+							<a href="tel:+13322208968" class="text-white-50" data-i18n="contactUs.phone">+1 (332) 220-8968</a>
 						</li>
 					</ul>
 				</div>
 				<div class="col-md-2 mb-4">
-					<h6 class="mb-3">Company</h6>
+					<h6 class="mb-3" data-i18n="footer.company">Company</h6>
 					<ul class="list-unstyled">
-						<li><a href="about-us" class="text-white-50">About Us</a></li>
-						<li><a href="contact-us" class="text-white-50">Contact</a></li>
-						<li><a href="faqs" class="text-white-50">FAQs</a></li>
+						<li><a href="about-us" class="text-white-50" data-i18n="nav.about">About Us</a></li>
+						<li><a href="contact-us" class="text-white-50" data-i18n="footer.contact">Contact</a></li>
+						<li><a href="faqs" class="text-white-50" data-i18n="nav.faq">FAQs</a></li>
 					</ul>
 				</div>
 				<div class="col-md-2 mb-4">
-					<h6 class="mb-3">Resources</h6>
+					<h6 class="mb-3" data-i18n="footer.resources">Resources</h6>
 					<ul class="list-unstyled">
-						<li><a href="investors" class="text-white-50">Investors</a></li>
-						<li><a href="traders" class="text-white-50">Traders</a></li>
-						<li><a href="how_it_works" class="text-white-50">How It Works</a></li>
+						<li><a href="investors" class="text-white-50" data-i18n="nav.investors">Investors</a></li>
+						<li><a href="traders" class="text-white-50" data-i18n="nav.traders">Traders</a></li>
+						<li><a href="how_it_works" class="text-white-50" data-i18n="nav.howItWorks">How It Works</a></li>
 					</ul>
 				</div>
 				<div class="col-md-2 mb-4">
-					<h6 class="mb-3">Legal</h6>
+					<h6 class="mb-3" data-i18n="footer.legal">Legal</h6>
 					<ul class="list-unstyled">
-						<li><a href="legal/privacy_policy" class="text-white-50">Privacy Policy</a></li>
-						<li><a href="legal/terms_conditions" class="text-white-50">Terms & Conditions</a></li>
-						<li><a href="legal/aml_policy" class="text-white-50">AML Policy</a></li>
-						<li><a href="legal/risk_closure" class="text-white-50">Risk Disclosure</a></li>
+						<li><a href="legal/privacy_policy" class="text-white-50" data-i18n="nav.privacyPolicy">Privacy Policy</a></li>
+						<li><a href="legal/terms_conditions" class="text-white-50" data-i18n="nav.termsConditions">Terms & Conditions</a></li>
+						<li><a href="legal/aml_policy" class="text-white-50" data-i18n="nav.amlPolicy">AML Policy</a></li>
+						<li><a href="legal/risk_closure" class="text-white-50" data-i18n="footer.riskDisclosure">Risk Disclosure</a></li>
 					</ul>
 				</div>
 			</div>
 			<hr class="my-4 bg-white-50" />
 			<div class="row">
 				<div class="col-md-12 text-center">
-					<p class="mb-0">&copy; 2025 TED Brokers. All rights reserved.</p>
+					<p class="mb-0" data-i18n="footer.copyright">&copy; 2025 TED Brokers. All rights reserved.</p>
 				</div>
 			</div>
 		</div>
@@ -717,6 +755,8 @@
 	    <!-- Chat Support Widget -->
     <script src="/assets/js/chat-events.js"></script>
     <script src="/assets/js/chat-widget.js"></script>
+    <!-- Language System -->
+    <script src="/assets/js/language.js?v=3.0"></script>
 </body>
 
 
