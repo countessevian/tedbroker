@@ -2565,6 +2565,19 @@ async function showWithdrawModal() {
 function closeWithdrawModal() {
     const modal = document.getElementById('withdraw-modal');
     modal.style.display = 'none';
+
+    // Reset views
+    document.getElementById('withdraw-form').style.display = 'block';
+    document.getElementById('withdraw-verification-view').style.display = 'none';
+
+    // Reset forms
+    document.getElementById('withdraw-form').reset();
+    if (document.getElementById('withdraw-verification-form')) {
+        document.getElementById('withdraw-verification-form').reset();
+    }
+
+    // Clear stored request ID
+    currentWithdrawalRequestId = null;
 }
 
 /**
@@ -2701,6 +2714,9 @@ async function handleDeposit(event) {
 /**
  * Handle withdraw form submission
  */
+// Store withdrawal request ID globally for verification
+let currentWithdrawalRequestId = null;
+
 async function handleWithdraw(event) {
     event.preventDefault();
 
@@ -2740,7 +2756,7 @@ async function handleWithdraw(event) {
     }
 
     try {
-        TED_AUTH.showLoading('Processing withdrawal...');
+        TED_AUTH.showLoading('Processing withdrawal request...');
 
         const response = await TED_AUTH.apiCall('/api/wallet/withdraw', {
             method: 'POST',
@@ -2754,40 +2770,147 @@ async function handleWithdraw(event) {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.detail || 'Withdrawal failed');
+            throw new Error(error.detail || 'Withdrawal request failed');
         }
 
         const result = await response.json();
 
-        // Reload pending transactions to show the new pending withdrawal
-        await loadPendingTransactions();
+        // Store request ID for verification step
+        currentWithdrawalRequestId = result.request_id || result.transaction?.id;
 
-        // Reload transactions list
+        // Show verification view
+        showWithdrawVerificationView(amount, paymentMethod, currentWithdrawalRequestId);
+
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        console.error('Withdrawal request error:', error);
+        Swal.fire({ title: 'Error!', text: `Withdrawal request failed: ${error.message}`, icon: 'error' });
+    }
+}
+
+/**
+ * Show the verification code entry view
+ */
+function showWithdrawVerificationView(amount, method, requestId) {
+    // Hide the main form
+    document.getElementById('withdraw-form').style.display = 'none';
+
+    // Show verification view
+    const verificationView = document.getElementById('withdraw-verification-view');
+    verificationView.style.display = 'block';
+
+    // Populate summary
+    document.getElementById('verify-amount-display').textContent =
+        `$${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    document.getElementById('verify-method-display').textContent = method;
+    document.getElementById('verify-request-id-display').textContent = requestId.substring(0, 8) + '...';
+
+    // Clear and focus on code input
+    document.getElementById('withdraw-verification-code').value = '';
+    document.getElementById('withdraw-verification-code').focus();
+}
+
+/**
+ * Handle verification code submission
+ */
+async function handleWithdrawVerification(event) {
+    event.preventDefault();
+
+    const verificationCode = document.getElementById('withdraw-verification-code').value.trim();
+
+    if (!verificationCode || verificationCode.length !== 8) {
+        Swal.fire({
+            title: 'Warning',
+            text: 'Please enter a valid 8-character verification code',
+            icon: 'warning'
+        });
+        return;
+    }
+
+    if (!currentWithdrawalRequestId) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Request ID not found. Please start over.',
+            icon: 'error'
+        });
+        return;
+    }
+
+    try {
+        TED_AUTH.showLoading('Verifying code...');
+
+        const response = await TED_AUTH.apiCall('/api/withdrawals/verify-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                request_id: currentWithdrawalRequestId,
+                verification_code: verificationCode
+            })
+        });
+
+        TED_AUTH.closeLoading();
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Verification failed');
+        }
+
+        const result = await response.json();
+
+        // Reload pending transactions and transactions list
+        await loadPendingTransactions();
         await loadTransactions();
 
         // Close modal
         closeWithdrawModal();
 
+        // Reset for next use
+        currentWithdrawalRequestId = null;
+
+        // Navigate to wallet tab
+        navigateToWalletTab();
+
         // Show success message
         Swal.fire({
             icon: 'success',
-            title: 'Withdrawal Request Submitted',
+            title: 'Withdrawal Request Confirmed',
             html: `
-                <p>Your withdrawal request has been submitted successfully!</p>
-                <p><strong>Amount:</strong> $${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                <p><strong>Payment Method:</strong> ${paymentMethod}</p>
-                <p><strong>Reference:</strong> ${result.transaction.reference_number}</p>
+                <p>Your withdrawal request has been verified and submitted successfully!</p>
+                <p><strong>Amount:</strong> ${document.getElementById('verify-amount-display').textContent}</p>
+                <p><strong>Status:</strong> Pending Admin Approval</p>
                 <p style="color: #ff9800; margin-top: 15px;">
-                    <i class="fa fa-info-circle"></i> Your withdrawal will be processed once confirmed on-chain.
+                    <i class="fa fa-info-circle"></i> Your withdrawal will be processed by our team shortly.
                 </p>
             `,
             confirmButtonColor: '#D32F2F'
         });
+
     } catch (error) {
         TED_AUTH.closeLoading();
-        console.error('Withdrawal error:', error);
-        Swal.fire({ title: 'Error!', text: `Withdrawal failed: ${error.message}`, icon: 'error' });
+        console.error('Verification error:', error);
+        Swal.fire({
+            title: 'Verification Failed',
+            text: error.message,
+            icon: 'error',
+            confirmButtonColor: '#D32F2F'
+        });
     }
+}
+
+/**
+ * Cancel verification and go back to form
+ */
+function cancelWithdrawVerification() {
+    // Reset withdrawal request ID
+    currentWithdrawalRequestId = null;
+
+    // Hide verification view
+    document.getElementById('withdraw-verification-view').style.display = 'none';
+
+    // Show main form
+    document.getElementById('withdraw-form').style.display = 'block';
 }
 
 /**
@@ -4223,6 +4346,8 @@ window.showWithdrawModal = showWithdrawModal;
 window.closeWithdrawModal = closeWithdrawModal;
 window.handleDeposit = handleDeposit;
 window.handleWithdraw = handleWithdraw;
+window.handleWithdrawVerification = handleWithdrawVerification;
+window.cancelWithdrawVerification = cancelWithdrawVerification;
 window.copyReferralLink = copyReferralLink;
 window.handleReferralSubmission = handleReferralSubmission;
 window.closeReferralModal = closeReferralModal;

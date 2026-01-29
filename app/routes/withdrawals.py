@@ -1,13 +1,15 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from datetime import datetime
+from datetime import datetime, timedelta
 from bson import ObjectId
 from typing import List, Optional
 import secrets
+import string
+import random
 
 from app.schemas import (
     BankAccountCreate, BankAccountResponse,
     CryptoWithdrawalAddressCreate, CryptoWithdrawalAddressResponse,
-    WithdrawalRequest, WithdrawalRequestResponse
+    WithdrawalRequest, WithdrawalRequestResponse, WithdrawalCodeVerification
 )
 from app.auth import get_current_user_token
 from app.database import (
@@ -17,6 +19,12 @@ from app.database import (
 )
 
 router = APIRouter(prefix="/api/withdrawals", tags=["Withdrawals"])
+
+
+def generate_withdrawal_code() -> str:
+    """Generate 8-digit alphanumeric withdrawal verification code"""
+    characters = string.ascii_uppercase + string.digits
+    return ''.join(random.choices(characters, k=8))
 
 
 def get_user_by_id(user_id: str):
@@ -566,6 +574,9 @@ async def create_withdrawal_request(
             "label": address.get("label")
         }
 
+    # Generate verification code
+    verification_code = generate_withdrawal_code()
+
     # Create withdrawal request
     withdrawal_request = {
         "user_id": current_user["user_id"],
@@ -576,7 +587,11 @@ async def create_withdrawal_request(
         "account_id": withdrawal_data.account_id,
         "account_details": account_details,
         "notes": withdrawal_data.notes,
-        "status": "pending",
+        "status": "pending_verification",
+        "verification_code": verification_code,
+        "code_expires_at": datetime.utcnow() + timedelta(minutes=15),
+        "code_verified_at": None,
+        "verification_attempts": 0,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
         "reviewed_by": None,
@@ -589,10 +604,11 @@ async def create_withdrawal_request(
     withdrawal_request["_id"] = result.inserted_id
 
     return {
-        "message": "Withdrawal request submitted successfully. Please wait for admin approval.",
+        "message": "Withdrawal request initiated. Please contact support for your verification code.",
         "request_id": str(withdrawal_request["_id"]),
         "status": withdrawal_request["status"],
-        "amount": withdrawal_request["amount"]
+        "amount": withdrawal_request["amount"],
+        "requires_verification": True
     }
 
 
@@ -669,4 +685,100 @@ async def get_withdrawal_request(
         "created_at": request["created_at"].isoformat(),
         "reviewed_at": request["reviewed_at"].isoformat() if request.get("reviewed_at") else None,
         "completed_at": request["completed_at"].isoformat() if request.get("completed_at") else None
+    }
+
+
+@router.post("/verify-code")
+async def verify_withdrawal_code(
+    verification_data: WithdrawalCodeVerification,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """
+    Verify the withdrawal code and complete the withdrawal request submission
+    """
+    withdrawal_requests_col = get_collection(WITHDRAWAL_REQUESTS_COLLECTION)
+
+    # Get withdrawal request
+    try:
+        request = withdrawal_requests_col.find_one({
+            "_id": ObjectId(verification_data.request_id),
+            "user_id": current_user["user_id"]
+        })
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid request ID"
+        )
+
+    if not request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Withdrawal request not found"
+        )
+
+    # Check if already verified
+    if request["status"] != "pending_verification":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This withdrawal request has already been processed"
+        )
+
+    # Check if code expired
+    if datetime.utcnow() > request["code_expires_at"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification code has expired. Please create a new withdrawal request."
+        )
+
+    # Check max attempts (prevent brute force)
+    if request.get("verification_attempts", 0) >= 5:
+        # Mark request as failed
+        withdrawal_requests_col.update_one(
+            {"_id": ObjectId(verification_data.request_id)},
+            {
+                "$set": {
+                    "status": "failed",
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Too many failed attempts. Please create a new withdrawal request."
+        )
+
+    # Verify code
+    if verification_data.verification_code.upper() != request["verification_code"].upper():
+        # Increment failed attempts
+        withdrawal_requests_col.update_one(
+            {"_id": ObjectId(verification_data.request_id)},
+            {
+                "$inc": {"verification_attempts": 1},
+                "$set": {"updated_at": datetime.utcnow()}
+            }
+        )
+
+        attempts_left = 5 - request.get("verification_attempts", 0) - 1
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid verification code. {attempts_left} attempts remaining."
+        )
+
+    # Code is valid - update status to pending (awaiting admin approval)
+    withdrawal_requests_col.update_one(
+        {"_id": ObjectId(verification_data.request_id)},
+        {
+            "$set": {
+                "status": "pending",
+                "code_verified_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "message": "Withdrawal request verified successfully. Awaiting admin approval.",
+        "request_id": str(request["_id"]),
+        "status": "pending",
+        "amount": request["amount"]
     }

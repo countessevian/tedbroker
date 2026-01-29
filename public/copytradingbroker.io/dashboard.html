@@ -3242,9 +3242,78 @@
                 </div>
 
                 <button type="submit" class="btn-primary-custom" style="width: 100%; margin-top: 10px;">
-                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="modal.withdraw.completeWithdrawal">Complete Withdrawal</span>
+                    <i class="fa-solid fa-arrow-right"></i> <span data-i18n="modal.withdraw.next">Next</span>
                 </button>
             </form>
+
+            <!-- Verification Code View (Initially Hidden) -->
+            <div id="withdraw-verification-view" style="display: none;">
+                <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <i class="fa-solid fa-shield-halved" style="font-size: 48px; color: #ff9800;"></i>
+                    </div>
+                    <h3 style="color: #D32F2F; text-align: center; margin: 0 0 15px 0; font-size: 18px;" data-i18n="modal.withdraw.securityVerification">
+                        Security Verification Required
+                    </h3>
+                    <p style="color: #8b93a7; text-align: center; margin: 0; font-size: 14px; line-height: 1.6;" data-i18n="modal.withdraw.verificationMessage">
+                        For your security and to protect your funds, a one-time verification code is required to complete this withdrawal.
+                        <br><br>
+                        <strong style="color: #ff9800;">Please contact our support team via the chat to receive your unique withdrawal code.</strong>
+                    </p>
+                </div>
+
+                <!-- Withdrawal Request Summary -->
+                <div style="background: rgba(123, 182, 218, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <h4 style="color: #D32F2F; margin: 0 0 10px 0; font-size: 14px;" data-i18n="modal.withdraw.requestSummary">Withdrawal Request Summary</h4>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #8b93a7; font-size: 13px;" data-i18n="modal.withdraw.amount">Amount:</span>
+                        <span style="color: #000; font-weight: 600; font-size: 13px;" id="verify-amount-display">$0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #8b93a7; font-size: 13px;" data-i18n="modal.withdraw.method">Method:</span>
+                        <span style="color: #000; font-size: 13px;" id="verify-method-display">-</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #8b93a7; font-size: 13px;" data-i18n="modal.withdraw.requestId">Request ID:</span>
+                        <span style="color: #000; font-size: 13px; font-family: monospace;" id="verify-request-id-display">-</span>
+                    </div>
+                </div>
+
+                <!-- Code Entry Form -->
+                <form id="withdraw-verification-form" onsubmit="handleWithdrawVerification(event)">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.withdraw.enterCode">
+                            <i class="fa-solid fa-key"></i> Enter Verification Code
+                        </label>
+                        <input
+                            type="text"
+                            id="withdraw-verification-code"
+                            required
+                            maxlength="8"
+                            style="width: 100%; padding: 12px; background: #ffffff; border: 2px solid rgba(255, 152, 0, 0.3); border-radius: 8px; color: #000; font-size: 16px; font-family: monospace; text-align: center; letter-spacing: 3px; text-transform: uppercase;"
+                            data-i18n-placeholder="modal.withdraw.codePlaceholder"
+                            placeholder="XXXXXXXX">
+                        <p style="color: #8b93a7; font-size: 12px; margin-top: 5px;" data-i18n="modal.withdraw.codeHelp">
+                            <i class="fa-solid fa-info-circle"></i> Enter the 8-character code provided by support
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button
+                            type="button"
+                            onclick="cancelWithdrawVerification()"
+                            style="flex: 1; padding: 12px; background: transparent; border: 1px solid rgba(211, 47, 47, 0.3); border-radius: 8px; color: #D32F2F; font-size: 14px; cursor: pointer; transition: all 0.3s;">
+                            <i class="fa-solid fa-arrow-left"></i> <span data-i18n="modal.withdraw.back">Back</span>
+                        </button>
+                        <button
+                            type="submit"
+                            class="btn-primary-custom"
+                            style="flex: 2; margin: 0;">
+                            <i class="fa-solid fa-check-circle"></i> <span data-i18n="modal.withdraw.verifyAndComplete">Verify & Complete Withdrawal</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

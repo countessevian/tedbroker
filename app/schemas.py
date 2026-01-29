@@ -458,6 +458,12 @@ class WithdrawalRequest(BaseModel):
         return v
 
 
+class WithdrawalCodeVerification(BaseModel):
+    """Schema for verifying withdrawal code"""
+    request_id: str = Field(..., description="ID of the withdrawal request")
+    verification_code: str = Field(..., min_length=8, max_length=8, description="8-digit verification code")
+
+
 class WithdrawalRequestResponse(BaseModel):
     """Schema for withdrawal request response"""
     id: str

@@ -2423,6 +2423,7 @@ async function loadWithdrawalRequests(statusFilter = '') {
                         <th>Amount</th>
                         <th>Method</th>
                         <th>Status</th>
+                        <th>Verification Code</th>
                         <th>Date</th>
                         <th>Actions</th>
                     </tr>
@@ -2433,7 +2434,8 @@ async function loadWithdrawalRequests(statusFilter = '') {
         allWithdrawals.forEach(req => {
             const date = new Date(req.created_at).toLocaleDateString();
             const statusBadge = req.status === 'completed' ? 'badge-approved' :
-                              req.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+                              req.status === 'rejected' ? 'badge-rejected' :
+                              req.status === 'pending_verification' ? 'badge-pending' : 'badge-pending';
 
             // Different action buttons for transaction-based vs request-based withdrawals
             let actionButtons = '';
@@ -2455,12 +2457,20 @@ async function loadWithdrawalRequests(statusFilter = '') {
                 `;
             }
 
+            const displayStatus = req.status === 'pending_verification' ? 'PENDING VERIFICATION' : req.status.toUpperCase();
+
+            // Display verification code if available
+            const verificationCodeDisplay = req.verification_code
+                ? `<code style="background: #fff3cd; padding: 4px 8px; border-radius: 4px; font-size: 14px; font-weight: 700; color: #D32F2F; letter-spacing: 1px;">${req.verification_code}</code>`
+                : '-';
+
             html += `
                 <tr>
                     <td>${req.username}<br><small style="color: #8b93a7;">${req.email}</small></td>
                     <td><strong>$${req.amount.toLocaleString()}</strong></td>
                     <td>${req.withdrawal_method}</td>
-                    <td><span class="badge ${statusBadge}">${req.status}</span></td>
+                    <td><span class="badge ${statusBadge}">${displayStatus}</span></td>
+                    <td>${verificationCodeDisplay}</td>
                     <td>${date}</td>
                     <td>
                         <div class="action-buttons">
@@ -2500,7 +2510,8 @@ function viewWithdrawalDetails(requestId) {
             // Populate modal with withdrawal details
             const statusBadge = withdrawal.status === 'completed' ? 'badge-approved' :
                               withdrawal.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
-            document.getElementById('wd-status-badge').innerHTML = `<span class="badge ${statusBadge}">${withdrawal.status.toUpperCase()}</span>`;
+            const statusText = withdrawal.status === 'pending_verification' ? 'PENDING VERIFICATION' : withdrawal.status.toUpperCase();
+            document.getElementById('wd-status-badge').innerHTML = `<span class="badge ${statusBadge}">${statusText}</span>`;
             document.getElementById('wd-amount').textContent = `$${withdrawal.amount.toLocaleString()}`;
             document.getElementById('wd-username').textContent = withdrawal.username || '-';
             document.getElementById('wd-email').textContent = withdrawal.email || '-';
@@ -2517,6 +2528,29 @@ function viewWithdrawalDetails(requestId) {
                 document.getElementById('wd-notes').textContent = withdrawal.notes;
             } else {
                 document.getElementById('wd-notes-container').style.display = 'none';
+            }
+
+            // Show verification code if available
+            if (withdrawal.verification_code) {
+                const verificationCodeContainer = document.getElementById('wd-verification-code-container');
+                if (verificationCodeContainer) {
+                    verificationCodeContainer.style.display = 'block';
+                    document.getElementById('wd-verification-code').textContent = withdrawal.verification_code;
+
+                    // Show verification status
+                    if (withdrawal.code_verified_at) {
+                        document.getElementById('wd-code-status').innerHTML =
+                            `<span style="color: #4caf50;"><i class="fa fa-check-circle"></i> Verified at ${new Date(withdrawal.code_verified_at).toLocaleString()}</span>`;
+                    } else {
+                        document.getElementById('wd-code-status').innerHTML =
+                            `<span style="color: #ff9800;"><i class="fa fa-clock"></i> Pending verification</span>`;
+                    }
+                }
+            } else {
+                const verificationCodeContainer = document.getElementById('wd-verification-code-container');
+                if (verificationCodeContainer) {
+                    verificationCodeContainer.style.display = 'none';
+                }
             }
 
             // Show modal

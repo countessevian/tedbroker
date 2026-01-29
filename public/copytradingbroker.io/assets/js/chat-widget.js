@@ -24,7 +24,7 @@ class ChatWidget {
                 position: fixed;
                 bottom: 20px;
                 right: 20px;
-                z-index: 9999;
+                z-index: 10002;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             }
 

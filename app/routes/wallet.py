@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Body
-from datetime import datetime
+from datetime import datetime, timedelta
 from bson import ObjectId
 from typing import List, Optional, Dict, Any
 import secrets
+import string
+import random
 from pydantic import BaseModel
 
 from app.schemas import TransactionResponse
@@ -38,6 +40,12 @@ def get_user_by_id(user_id: str):
         return users.find_one({"_id": ObjectId(user_id)})
     except:
         return None
+
+
+def generate_withdrawal_code() -> str:
+    """Generate 8-digit alphanumeric withdrawal verification code"""
+    characters = string.ascii_uppercase + string.digits
+    return ''.join(random.choices(characters, k=8))
 
 
 @router.get("/transactions", response_model=List[TransactionResponse])
@@ -244,7 +252,7 @@ async def create_withdrawal(
     result = transactions_col.insert_one(transaction)
     transaction["_id"] = result.inserted_id
 
-    # Also create withdrawal request for admin dashboard
+    # Also create withdrawal request for admin dashboard with verification code
     withdrawal_request = {
         "user_id": current_user["user_id"],
         "username": user.get("username", ""),
@@ -258,7 +266,11 @@ async def create_withdrawal(
             "wallet_address": payment_details.get("wallet_address")
         },
         "notes": None,
-        "status": "pending",
+        "status": "pending_verification",  # Set to pending_verification initially
+        "verification_code": generate_withdrawal_code(),  # Generate verification code
+        "code_expires_at": datetime.utcnow() + timedelta(minutes=15),  # 15 minute expiration
+        "code_verified_at": None,
+        "verification_attempts": 0,
         "transaction_id": str(transaction["_id"]),  # Link to transaction
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
@@ -266,10 +278,11 @@ async def create_withdrawal(
         "reviewed_at": None,
         "completed_at": None
     }
-    withdrawal_requests_col.insert_one(withdrawal_request)
+    wr_result = withdrawal_requests_col.insert_one(withdrawal_request)
 
     return {
         "message": "Withdrawal request submitted successfully. Your request will be processed confirmed on-chain.",
+        "request_id": str(wr_result.inserted_id),  # Include request ID for verification
         "transaction": TransactionResponse(
             id=str(transaction["_id"]),
             transaction_type=transaction["transaction_type"],
