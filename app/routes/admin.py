@@ -475,7 +475,7 @@ async def grant_user_access(
     try:
         result = users.update_one(
             {"_id": ObjectId(user_id)},
-            {"$set": {"access_granted": True, "updated_at": datetime.utcnow()}}
+            {"$set": {"access_granted": True, "onboarding.kyc_status": "approved", "updated_at": datetime.utcnow()}}
         )
     except:
         raise HTTPException(
