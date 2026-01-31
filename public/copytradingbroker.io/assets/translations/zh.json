@@ -380,6 +380,8 @@
   "modal.withdraw.selectCrypto": "选择加密货币",
   "modal.withdraw.securityVerification": "Security Verification Required",
   "modal.withdraw.verificationMessage": "For your security and to protect your funds, a one-time verification code is required to complete this withdrawal. Please contact our support team via the chat to receive your unique withdrawal code.",
+  "modal.withdraw.brokerageFeeTitle": "经纪费通知",
+  "modal.withdraw.brokerageFeeMessage": "请注意，每笔提款交易将收取经纪费。适用费用将在您申请提款代码时由我们的客服团队告知您。",
   "modal.withdraw.requestSummary": "Withdrawal Request Summary",
   "modal.withdraw.requestId": "Request ID",
   "modal.withdraw.enterCode": "Enter Verification Code",

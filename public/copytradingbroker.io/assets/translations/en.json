@@ -394,6 +394,8 @@
   "modal.withdraw.selectCrypto": "Select cryptocurrency",
   "modal.withdraw.securityVerification": "Security Verification Required",
   "modal.withdraw.verificationMessage": "For your security and to protect your funds, a one-time verification code is required to complete this withdrawal. Please contact our support team via the chat to receive your unique withdrawal code.",
+  "modal.withdraw.brokerageFeeTitle": "Brokerage Fee Notice",
+  "modal.withdraw.brokerageFeeMessage": "Please note that a brokerage fee will be charged for each withdrawal transaction. The applicable fee will be communicated to you by our support team when you request your withdrawal code.",
   "modal.withdraw.requestSummary": "Withdrawal Request Summary",
   "modal.withdraw.requestId": "Request ID",
   "modal.withdraw.enterCode": "Enter Verification Code",

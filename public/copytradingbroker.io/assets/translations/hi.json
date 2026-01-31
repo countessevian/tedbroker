@@ -414,6 +414,8 @@
   "modal.withdraw.selectCrypto": "क्रिप्टोकरेंसी चुनें",
   "modal.withdraw.securityVerification": "Security Verification Required",
   "modal.withdraw.verificationMessage": "For your security and to protect your funds, a one-time verification code is required to complete this withdrawal. Please contact our support team via the chat to receive your unique withdrawal code.",
+  "modal.withdraw.brokerageFeeTitle": "ब्रोकरेज शुल्क सूचना",
+  "modal.withdraw.brokerageFeeMessage": "कृपया ध्यान दें कि प्रत्येक निकासी लेनदेन के लिए ब्रोकरेज शुल्क लिया जाएगा। लागू शुल्क आपको हमारी सहायता टीम द्वारा बताया जाएगा जब आप अपना निकासी कोड का अनुरोध करेंगे।",
   "modal.withdraw.requestSummary": "Withdrawal Request Summary",
   "modal.withdraw.requestId": "Request ID",
   "modal.withdraw.enterCode": "Enter Verification Code",

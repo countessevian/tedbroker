@@ -584,6 +584,8 @@
   "modal.withdraw.verifyAddress": "التحقق من العنوان",
   "modal.withdraw.completeWithdrawal": "إكمال السحب",
   "modal.withdraw.minimumAmount": "الحد الأدنى للمبلغ",
+  "modal.withdraw.brokerageFeeTitle": "إشعار رسوم الوساطة",
+  "modal.withdraw.brokerageFeeMessage": "يرجى ملاحظة أنه سيتم فرض رسوم وساطة على كل معاملة سحب. سيتم إبلاغك بالرسوم المطبقة من قبل فريق الدعم لدينا عند طلب رمز السحب الخاص بك.",
 
   "modal.2fa.disabled": "المصادقة الثنائية معطلة",
 

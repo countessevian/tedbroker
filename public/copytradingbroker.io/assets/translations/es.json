@@ -530,6 +530,8 @@
   "modal.withdraw.verifyAddress": "Verificar Dirección",
   "modal.withdraw.completeWithdrawal": "Completar Retiro",
   "modal.withdraw.minimumAmount": "Cantidad Mínima",
+  "modal.withdraw.brokerageFeeTitle": "Aviso de Tarifa de Corretaje",
+  "modal.withdraw.brokerageFeeMessage": "Tenga en cuenta que se cobrará una tarifa de corretaje por cada transacción de retiro. La tarifa aplicable le será comunicada por nuestro equipo de soporte cuando solicite su código de retiro.",
   "modal.2fa.disabled": "2FA Deshabilitado",
   "profile.gender": "Género",
   "profile.tradingInterests": "Intereses de Trading",

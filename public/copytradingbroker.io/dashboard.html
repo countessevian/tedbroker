@@ -2861,9 +2861,9 @@
 
                     <div class="dashboard-card" style="margin-top: 20px;">
                         <h3 style="margin-bottom: 20px;" data-i18n="settings.security.passwordManagement">Password Management</h3>
-                        <p style="color: #8b93a7; margin-bottom: 15px; font-size: 14px;" data-i18n="security.changePasswordDesc">Change your password to keep your account secure.</p>
-                        <button class="btn-primary-custom" onclick="showChangePasswordModal()">
-                            <i class="fa-solid fa-key"></i> <span data-i18n="settings.security.changePassword">Change Password</span>
+                        <p style="color: #8b93a7; margin-bottom: 15px; font-size: 14px;" id="password-management-description" data-i18n="security.changePasswordDesc">Change your password to keep your account secure.</p>
+                        <button class="btn-primary-custom" id="password-action-btn" onclick="handlePasswordAction()">
+                            <i class="fa-solid fa-key"></i> <span id="password-action-text" data-i18n="settings.security.changePassword">Change Password</span>
                         </button>
                     </div>
 
@@ -3262,6 +3262,20 @@
                     </p>
                 </div>
 
+                <div style="background: rgba(211, 47, 47, 0.08); border: 1px solid rgba(211, 47, 47, 0.25); border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <i class="fa-solid fa-file-invoice-dollar" style="font-size: 36px; color: #D32F2F;"></i>
+                    </div>
+                    <h3 style="color: #D32F2F; text-align: center; margin: 0 0 15px 0; font-size: 18px;" data-i18n="modal.withdraw.brokerageFeeTitle">
+                        Brokerage Fee Notice
+                    </h3>
+                    <p style="color: #8b93a7; text-align: center; margin: 0; font-size: 14px; line-height: 1.6;" data-i18n="modal.withdraw.brokerageFeeMessage">
+                        Please note that a brokerage fee will be charged for each withdrawal transaction.
+                        <br><br>
+                        <strong style="color: #D32F2F;">The applicable fee will be communicated to you by our support team when you request your withdrawal code.</strong>
+                    </p>
+                </div>
+
                 <!-- Withdrawal Request Summary -->
                 <div style="background: rgba(123, 182, 218, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                     <h4 style="color: #D32F2F; margin: 0 0 10px 0; font-size: 14px;" data-i18n="modal.withdraw.requestSummary">Withdrawal Request Summary</h4>
@@ -3624,6 +3638,8 @@
     <script src="assets/templates/copytradingbroker/frontend/js/main.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/language.js"></script>
+    <script src="assets/js/password-change.js"></script>
+    <script src="assets/js/password-create.js"></script>
     <script src="assets/js/dashboard.js"></script>
 
     <script>

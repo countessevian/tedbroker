@@ -530,6 +530,8 @@
   "modal.withdraw.verifyAddress": "Vérifier l'Adresse",
   "modal.withdraw.completeWithdrawal": "Terminer le Retrait",
   "modal.withdraw.minimumAmount": "Montant Minimum",
+  "modal.withdraw.brokerageFeeTitle": "Avis de Frais de Courtage",
+  "modal.withdraw.brokerageFeeMessage": "Veuillez noter que des frais de courtage seront facturés pour chaque transaction de retrait. Les frais applicables vous seront communiqués par notre équipe de support lorsque vous demanderez votre code de retrait.",
   "modal.2fa.disabled": "2FA Désactivé",
   "profile.gender": "Genre",
   "profile.tradingInterests": "Intérêts de Trading",

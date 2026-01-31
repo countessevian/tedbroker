@@ -327,6 +327,8 @@
   "modal.referral.skip": "এখন নয়",
   "modal.referral.submit": "জমা দিন",
   "modal.referral.notice": "দ্রষ্টব্য: আপনি পরে সেটিংসে এটি আপডেট করতে পারেন",
+  "modal.withdraw.brokerageFeeTitle": "ব্রোকারেজ ফি বিজ্ঞপ্তি",
+  "modal.withdraw.brokerageFeeMessage": "অনুগ্রহ করে মনে রাখবেন যে প্রতিটি উত্তোলন লেনদেনের জন্য একটি ব্রোকারেজ ফি চার্জ করা হবে। আপনি যখন আপনার উত্তোলন কোড অনুরোধ করবেন তখন প্রযোজ্য ফি আমাদের সহায়তা দল আপনাকে জানাবে।",
 
   "modal.updateProfile.title": "প্রোফাইল আপডেট করুন",
   "modal.updateProfile.fullName": "সম্পূর্ণ নাম",

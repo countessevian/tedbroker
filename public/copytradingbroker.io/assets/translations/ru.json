@@ -413,6 +413,8 @@
   "modal.withdraw.selectCrypto": "Выберите криптовалюту",
   "modal.withdraw.securityVerification": "Security Verification Required",
   "modal.withdraw.verificationMessage": "For your security and to protect your funds, a one-time verification code is required to complete this withdrawal. Please contact our support team via the chat to receive your unique withdrawal code.",
+  "modal.withdraw.brokerageFeeTitle": "Уведомление о брокерской комиссии",
+  "modal.withdraw.brokerageFeeMessage": "Обратите внимание, что за каждую транзакцию вывода средств взимается брокерская комиссия. Применимая комиссия будет сообщена вам нашей службой поддержки при запросе кода вывода.",
   "modal.withdraw.requestSummary": "Withdrawal Request Summary",
   "modal.withdraw.requestId": "Request ID",
   "modal.withdraw.enterCode": "Enter Verification Code",

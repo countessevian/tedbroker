@@ -413,6 +413,8 @@
   "modal.withdraw.selectCrypto": "Kryptowährung auswählen",
   "modal.withdraw.securityVerification": "Security Verification Required",
   "modal.withdraw.verificationMessage": "For your security and to protect your funds, a one-time verification code is required to complete this withdrawal. Please contact our support team via the chat to receive your unique withdrawal code.",
+  "modal.withdraw.brokerageFeeTitle": "Hinweis zur Maklergebühr",
+  "modal.withdraw.brokerageFeeMessage": "Bitte beachten Sie, dass für jede Auszahlungstransaktion eine Maklergebühr erhoben wird. Die anfallende Gebühr wird Ihnen von unserem Support-Team mitgeteilt, wenn Sie Ihren Auszahlungscode anfordern.",
   "modal.withdraw.requestSummary": "Withdrawal Request Summary",
   "modal.withdraw.requestId": "Request ID",
   "modal.withdraw.enterCode": "Enter Verification Code",

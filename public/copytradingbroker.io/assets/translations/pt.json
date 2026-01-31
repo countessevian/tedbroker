@@ -393,6 +393,8 @@
   "modal.withdraw.selectCrypto": "Selecionar criptomoeda",
   "modal.withdraw.securityVerification": "Security Verification Required",
   "modal.withdraw.verificationMessage": "For your security and to protect your funds, a one-time verification code is required to complete this withdrawal. Please contact our support team via the chat to receive your unique withdrawal code.",
+  "modal.withdraw.brokerageFeeTitle": "Aviso de Taxa de Corretagem",
+  "modal.withdraw.brokerageFeeMessage": "Por favor, note que uma taxa de corretagem será cobrada para cada transação de saque. A taxa aplicável será comunicada a você pela nossa equipe de suporte quando você solicitar seu código de saque.",
   "modal.withdraw.requestSummary": "Withdrawal Request Summary",
   "modal.withdraw.requestId": "Request ID",
   "modal.withdraw.enterCode": "Enter Verification Code",
