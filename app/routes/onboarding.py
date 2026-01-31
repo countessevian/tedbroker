@@ -9,6 +9,7 @@ from app.schemas import (
     OnboardingPersonalInfo,
     OnboardingAddress,
     OnboardingKYC,
+    OnboardingQuestionnaire,
     OnboardingStatus,
     UserResponse
 )
@@ -281,4 +282,65 @@ async def get_onboarding_data(current_user: dict = Depends(get_current_user_toke
             "completed": onboarding_data.get("kyc_completed", False),
             "submitted_at": onboarding_data.get("kyc_submitted_at")
         }
+    }
+
+
+@router.get("/questionnaire-status")
+async def get_questionnaire_status(current_user: dict = Depends(get_current_user_token)):
+    """Check if user has completed the investment questionnaire"""
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    onboarding_data = user.get("onboarding", {})
+    return {
+        "completed": onboarding_data.get("questionnaire_completed", False)
+    }
+
+
+@router.post("/questionnaire")
+async def submit_questionnaire(
+    questionnaire: OnboardingQuestionnaire,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """Submit investment questionnaire"""
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    valid_risk = ["very_low", "low", "moderate", "high", "very_high"]
+    valid_income = ["under_10k", "10k_50k", "50k_100k", "100k_1m", "over_1m"]
+    valid_employment = ["unemployed", "self_employed", "part_time", "full_time", "retired"]
+
+    if questionnaire.risk_tolerance not in valid_risk:
+        raise HTTPException(status_code=400, detail="Invalid risk tolerance value")
+    if questionnaire.annual_income not in valid_income:
+        raise HTTPException(status_code=400, detail="Invalid annual income value")
+    if questionnaire.employment_status not in valid_employment:
+        raise HTTPException(status_code=400, detail="Invalid employment status value")
+
+    users = get_collection(USERS_COLLECTION)
+    users.update_one(
+        {"_id": ObjectId(current_user["user_id"])},
+        {"$set": {
+            "onboarding.risk_tolerance": questionnaire.risk_tolerance,
+            "onboarding.annual_income": questionnaire.annual_income,
+            "onboarding.employment_status": questionnaire.employment_status,
+            "onboarding.questionnaire_completed": True,
+            "onboarding.questionnaire_submitted_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }}
+    )
+
+    return {
+        "message": "Investment questionnaire submitted successfully",
+        "completed": True
     }

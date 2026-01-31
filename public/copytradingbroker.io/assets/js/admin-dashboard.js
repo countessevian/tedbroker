@@ -398,6 +398,31 @@ async function loadUsers(search = '') {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Investment Questionnaire -->
+                        <div style="margin-top: 16px;">
+                            <h5 style="margin: 0 0 8px 0; color: #5a5a5a; font-size: 12px; font-weight: 600; text-transform: uppercase;">Investment Questionnaire</h5>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; padding: 14px; background: #fdf2f8; border-radius: 8px; border-left: 3px solid #D32F2F;">
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Risk Tolerance</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${{'very_low':'Very Low','low':'Low','moderate':'Moderate','high':'High','very_high':'Very High'}[kyc.risk_tolerance] || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Annual Income</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${{'under_10k':'Less than $10,000','10k_50k':'$10,000 - $50,000','50k_100k':'$50,000 - $100,000','100k_1m':'$100,000 - $1,000,000','over_1m':'More than $1,000,000'}[kyc.annual_income] || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Employment Status</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">${{'unemployed':'Unemployed','self_employed':'Self-Employed','part_time':'Part Time','full_time':'Full Time','retired':'Retired'}[kyc.employment_status] || '-'}</p>
+                                </div>
+                                <div>
+                                    <label style="display: block; color: #8b93a7; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">Completed</label>
+                                    <p style="margin: 0; color: #2D3748; font-weight: 600;">
+                                        ${kyc.questionnaire_completed ? '<i class="fas fa-check-circle" style="color: #4caf50;"></i> Yes' : '<i class="fas fa-times-circle" style="color: #f44336;"></i> No'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -496,6 +521,15 @@ async function viewUser(userId) {
         } else {
             docContainer.innerHTML = '<p style="color: #8b93a7;">No document uploaded</p>';
         }
+
+        // Populate questionnaire data
+        const riskLabels = { very_low: 'Very Low', low: 'Low', moderate: 'Moderate', high: 'High', very_high: 'Very High' };
+        const incomeLabels = { under_10k: 'Less than $10,000', '10k_50k': '$10,000 - $50,000', '50k_100k': '$50,000 - $100,000', '100k_1m': '$100,000 - $1,000,000', over_1m: 'More than $1,000,000' };
+        const employmentLabels = { unemployed: 'Unemployed', self_employed: 'Self-Employed', part_time: 'Part Time', full_time: 'Full Time', retired: 'Retired' };
+
+        document.getElementById('kyc-risk-tolerance').textContent = riskLabels[kyc.risk_tolerance] || kyc.risk_tolerance || '-';
+        document.getElementById('kyc-annual-income').textContent = incomeLabels[kyc.annual_income] || kyc.annual_income || '-';
+        document.getElementById('kyc-employment-status').textContent = employmentLabels[kyc.employment_status] || kyc.employment_status || '-';
 
         // Populate login statistics
         const stats = user.login_statistics || {};

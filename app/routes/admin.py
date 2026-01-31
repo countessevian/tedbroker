@@ -348,7 +348,11 @@ async def get_user_details(
         "country": onboarding_data.get("country"),
         "personal_info_completed": onboarding_data.get("personal_info_completed", False),
         "address_completed": onboarding_data.get("address_completed", False),
-        "kyc_completed": onboarding_data.get("kyc_completed", False)
+        "kyc_completed": onboarding_data.get("kyc_completed", False),
+        "risk_tolerance": onboarding_data.get("risk_tolerance"),
+        "annual_income": onboarding_data.get("annual_income"),
+        "employment_status": onboarding_data.get("employment_status"),
+        "questionnaire_completed": onboarding_data.get("questionnaire_completed", False)
     }
 
     # Get login history

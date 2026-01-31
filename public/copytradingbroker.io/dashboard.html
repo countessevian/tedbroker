@@ -4127,6 +4127,130 @@
     <script src="/assets/js/chat-events.js"></script>
     <script src="/assets/js/chat-widget.js"></script>
 
+    <!-- Investment Questionnaire Modal -->
+    <div id="questionnaire-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10002; align-items: center; justify-content: center;">
+        <div class="modal-content" style="border-radius: 16px; padding: 30px; max-width: 520px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: -10px;">
+                <button onclick="document.getElementById('questionnaire-modal').style.display='none'" style="background: transparent; border: none; color: #8b93a7; font-size: 18px; cursor: pointer; padding: 0; width: 28px; height: 28px;">&times;</button>
+            </div>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <i class="fa-solid fa-clipboard-question" style="font-size: 40px; color: #D32F2F;"></i>
+                <h2 style="margin: 12px 0 4px; color: #D32F2F;" data-i18n="questionnaire.title">Investment Profile</h2>
+                <p style="color: #8b93a7; font-size: 13px; margin: 0;" data-i18n="questionnaire.subtitle">Help us understand your investment preferences</p>
+            </div>
+
+            <!-- Progress indicator -->
+            <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 24px;">
+                <div id="q-dot-1" style="width: 10px; height: 10px; border-radius: 50%; background: #D32F2F;"></div>
+                <div id="q-dot-2" style="width: 10px; height: 10px; border-radius: 50%; background: #ddd;"></div>
+                <div id="q-dot-3" style="width: 10px; height: 10px; border-radius: 50%; background: #ddd;"></div>
+            </div>
+
+            <!-- View 1: Risk Tolerance -->
+            <div id="q-view-1">
+                <h3 style="color: #333; margin: 0 0 6px; font-size: 16px;" data-i18n="questionnaire.riskTitle">What is your investment risk tolerance?</h3>
+                <p style="color: #8b93a7; font-size: 12px; margin: 0 0 16px;" data-i18n="questionnaire.riskDesc">Select the level of risk you are comfortable with.</p>
+                <div id="risk-options" style="display: flex; flex-direction: column; gap: 10px;">
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="risk_tolerance" value="very_low" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.riskVeryLow">Very Low</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="risk_tolerance" value="low" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.riskLow">Low</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="risk_tolerance" value="moderate" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.riskModerate">Moderate</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="risk_tolerance" value="high" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.riskHigh">High</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="risk_tolerance" value="very_high" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.riskVeryHigh">Very High</span>
+                    </label>
+                </div>
+                <button onclick="questionnaireNext(1)" class="btn-primary-custom" style="width: 100%; margin-top: 18px;">
+                    <span data-i18n="questionnaire.next">Next</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- View 2: Annual Income -->
+            <div id="q-view-2" style="display: none;">
+                <h3 style="color: #333; margin: 0 0 6px; font-size: 16px;" data-i18n="questionnaire.incomeTitle">What is your annual income?</h3>
+                <p style="color: #8b93a7; font-size: 12px; margin: 0 0 16px;" data-i18n="questionnaire.incomeDesc">Select the range that best describes your annual earnings.</p>
+                <div id="income-options" style="display: flex; flex-direction: column; gap: 10px;">
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="annual_income" value="under_10k" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.incomeUnder10k">Less than $10,000</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="annual_income" value="10k_50k" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.income10k50k">$10,000 - $50,000</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="annual_income" value="50k_100k" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.income50k100k">$50,000 - $100,000</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="annual_income" value="100k_1m" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.income100k1m">$100,000 - $1,000,000</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="annual_income" value="over_1m" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.incomeOver1m">More than $1,000,000</span>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 18px;">
+                    <button onclick="questionnaireBack(2)" class="btn-primary-custom" style="flex: 1; background: #6c757d;">
+                        <i class="fa-solid fa-arrow-left"></i> <span data-i18n="questionnaire.back">Back</span>
+                    </button>
+                    <button onclick="questionnaireNext(2)" class="btn-primary-custom" style="flex: 1;">
+                        <span data-i18n="questionnaire.next">Next</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- View 3: Employment Status -->
+            <div id="q-view-3" style="display: none;">
+                <h3 style="color: #333; margin: 0 0 6px; font-size: 16px;" data-i18n="questionnaire.employmentTitle">What is your employment status?</h3>
+                <p style="color: #8b93a7; font-size: 12px; margin: 0 0 16px;" data-i18n="questionnaire.employmentDesc">Select the option that best describes your current status.</p>
+                <div id="employment-options" style="display: flex; flex-direction: column; gap: 10px;">
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="employment_status" value="unemployed" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.unemployed">Unemployed</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="employment_status" value="self_employed" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.selfEmployed">Self-Employed</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="employment_status" value="part_time" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.partTime">Part Time</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="employment_status" value="full_time" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.fullTime">Full Time</span>
+                    </label>
+                    <label class="q-radio-label" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid rgba(123,182,218,0.2); border-radius: 8px; cursor: pointer; transition: border-color 0.2s;">
+                        <input type="radio" name="employment_status" value="retired" style="accent-color: #D32F2F;">
+                        <span style="color: #333; font-size: 14px;" data-i18n="questionnaire.retired">Retired</span>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 18px;">
+                    <button onclick="questionnaireBack(3)" class="btn-primary-custom" style="flex: 1; background: #6c757d;">
+                        <i class="fa-solid fa-arrow-left"></i> <span data-i18n="questionnaire.back">Back</span>
+                    </button>
+                    <button onclick="submitQuestionnaire()" class="btn-primary-custom" style="flex: 1;">
+                        <i class="fa-solid fa-check"></i> <span data-i18n="questionnaire.submit">Submit</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Page Loader Script -->
     <script>
         // Initialize theme immediately before page loads

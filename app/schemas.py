@@ -76,6 +76,7 @@ class UserResponse(BaseModel):
     is_verified: bool = False
     two_fa_enabled: bool = False
     auth_provider: str = "local"  # "local" or "google"
+    has_password: bool = True  # Whether user has a password set up
     access_granted: bool = False  # Admin approval for dashboard access
     selected_traders: List[str] = Field(default=[], description="List of trader IDs selected for copy trading")
     created_at: datetime
@@ -568,6 +569,13 @@ class OnboardingKYC(BaseModel):
     document_photo: str = Field(..., description="Base64 encoded document photo or file path")
 
 
+class OnboardingQuestionnaire(BaseModel):
+    """Schema for onboarding investment questionnaire"""
+    risk_tolerance: str = Field(..., description="Investment risk tolerance level")
+    annual_income: str = Field(..., description="Annual income range")
+    employment_status: str = Field(..., description="Current employment status")
+
+
 class OnboardingStatus(BaseModel):
     """Schema for checking onboarding completion status"""
     is_onboarding_complete: bool
@@ -770,3 +778,33 @@ class OptionsPlanResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CreatePasswordRequest(BaseModel):
+    """Schema for creating password for OAuth users"""
+    password: str = Field(..., min_length=8)
+    confirm_password: str = Field(..., min_length=8)
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not re.search(r'[0-9]', v):
+            raise ValueError('Password must contain at least one number')
+        return v
+
+    def model_post_init(self, __context):
+        """Validate that passwords match after model initialization"""
+        if self.password != self.confirm_password:
+            raise ValueError('Passwords do not match')
+
+
+class VerifyPasswordCreation(BaseModel):
+    """Schema for verifying password creation with 2FA code"""
+    code: str = Field(..., min_length=6, max_length=6)
+    password_hash: str

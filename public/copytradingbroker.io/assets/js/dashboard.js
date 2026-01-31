@@ -27,6 +27,83 @@ async function checkOnboardingStatus() {
 }
 
 /**
+ * Check if user needs to complete the investment questionnaire
+ */
+async function checkQuestionnaireStatus() {
+    try {
+        const response = await TED_AUTH.apiCall('/api/onboarding/questionnaire-status');
+        const data = await response.json();
+
+        if (!data.completed) {
+            const modal = document.getElementById('questionnaire-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+    } catch (error) {
+        console.error('Error checking questionnaire status:', error);
+    }
+}
+
+function questionnaireNext(currentView) {
+    const viewEl = document.getElementById(`q-view-${currentView}`);
+    const radios = viewEl.querySelectorAll('input[type="radio"]');
+    const selected = Array.from(radios).some(r => r.checked);
+
+    if (!selected) {
+        Swal.fire({ icon: 'warning', title: 'Selection Required', text: 'Please select an option before proceeding.', confirmButtonColor: '#D32F2F' });
+        return;
+    }
+
+    viewEl.style.display = 'none';
+    document.getElementById(`q-view-${currentView + 1}`).style.display = 'block';
+    document.getElementById(`q-dot-${currentView}`).style.background = '#4CAF50';
+    document.getElementById(`q-dot-${currentView + 1}`).style.background = '#D32F2F';
+}
+
+function questionnaireBack(currentView) {
+    document.getElementById(`q-view-${currentView}`).style.display = 'none';
+    document.getElementById(`q-view-${currentView - 1}`).style.display = 'block';
+    document.getElementById(`q-dot-${currentView}`).style.background = '#ddd';
+    document.getElementById(`q-dot-${currentView - 1}`).style.background = '#D32F2F';
+}
+
+async function submitQuestionnaire() {
+    const employment = document.querySelector('input[name="employment_status"]:checked');
+    if (!employment) {
+        Swal.fire({ icon: 'warning', title: 'Selection Required', text: 'Please select an option before submitting.', confirmButtonColor: '#D32F2F' });
+        return;
+    }
+
+    const payload = {
+        risk_tolerance: document.querySelector('input[name="risk_tolerance"]:checked').value,
+        annual_income: document.querySelector('input[name="annual_income"]:checked').value,
+        employment_status: employment.value
+    };
+
+    try {
+        TED_AUTH.showLoading('Saving your profile...');
+        const response = await TED_AUTH.apiCall('/api/onboarding/questionnaire', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        TED_AUTH.closeLoading();
+
+        if (response.ok) {
+            document.getElementById('questionnaire-modal').style.display = 'none';
+            Swal.fire({ icon: 'success', title: 'Profile Complete', text: 'Your investment profile has been saved.', confirmButtonColor: '#D32F2F' });
+        } else {
+            const err = await response.json();
+            Swal.fire({ icon: 'error', title: 'Error', text: err.detail || 'Failed to save questionnaire.', confirmButtonColor: '#D32F2F' });
+        }
+    } catch (error) {
+        TED_AUTH.closeLoading();
+        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred. Please try again.', confirmButtonColor: '#D32F2F' });
+    }
+}
+
+/**
  * Show KYC notification banner at the top of home tab
  */
 function showKYCNotification() {
@@ -534,6 +611,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Check onboarding status - redirect if incomplete
     await checkOnboardingStatus();
 
+    // Check if investment questionnaire needs to be shown
+    await checkQuestionnaireStatus();
+
     // Load notifications
     await loadNotifications();
 
@@ -560,6 +640,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Check if Google OAuth user needs to set password
     checkAndShowPasswordSetupModal(userData);
+
+    // Update password button based on user's password status
+    updatePasswordButtonUI(userData);
 
     // Load active investments on dashboard
     loadDashboardActiveInvestments();
@@ -4344,6 +4427,64 @@ window.showDepositModal = showDepositModal;
 window.closeDepositModal = closeDepositModal;
 window.showWithdrawModal = showWithdrawModal;
 window.closeWithdrawModal = closeWithdrawModal;
+/**
+ * Update password button UI based on user's password status
+ */
+function updatePasswordButtonUI(userData) {
+    const passwordActionBtn = document.getElementById('password-action-btn');
+    const passwordActionText = document.getElementById('password-action-text');
+    const passwordDescription = document.getElementById('password-management-description');
+
+    if (!passwordActionBtn || !passwordActionText) return;
+
+    // Check if user has a password set
+    if (userData.has_password === false) {
+        // User doesn't have a password - show "Create Password"
+        passwordActionText.textContent = 'Create Password';
+        passwordActionText.setAttribute('data-i18n', 'settings.security.createPassword');
+
+        if (passwordDescription) {
+            passwordDescription.textContent = 'Create a password to enable password-based login alongside Google Sign-In.';
+            passwordDescription.setAttribute('data-i18n', 'security.createPasswordDesc');
+        }
+    } else {
+        // User has a password - show "Change Password"
+        passwordActionText.textContent = 'Change Password';
+        passwordActionText.setAttribute('data-i18n', 'settings.security.changePassword');
+
+        if (passwordDescription) {
+            passwordDescription.textContent = 'Change your password to keep your account secure.';
+            passwordDescription.setAttribute('data-i18n', 'security.changePasswordDesc');
+        }
+    }
+}
+
+/**
+ * Handle password action - either create or change password based on user status
+ */
+function handlePasswordAction() {
+    const userData = TED_AUTH.getUser();
+
+    if (!userData) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Please refresh the page and try again.',
+            confirmButtonColor: '#D32F2F'
+        });
+        return;
+    }
+
+    // Check if user has a password
+    if (userData.has_password === false) {
+        // Open password creation modal
+        openPasswordCreationModal();
+    } else {
+        // Open password change modal
+        openPasswordChangeModal();
+    }
+}
+
 window.handleDeposit = handleDeposit;
 window.handleWithdraw = handleWithdraw;
 window.handleWithdrawVerification = handleWithdrawVerification;
@@ -4367,6 +4508,8 @@ window.copyCryptoAddress = copyCryptoAddress;
 window.handleCryptoTypeChange = handleCryptoTypeChange;
 window.updateWalletDisplay = updateWalletDisplay;
 window.navigateToWalletTab = navigateToWalletTab;
+window.updatePasswordButtonUI = updatePasswordButtonUI;
+window.handlePasswordAction = handlePasswordAction;
 
 /**
  * Show update email modal
