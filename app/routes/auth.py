@@ -12,7 +12,7 @@ from google.auth.transport import requests as google_requests
 from app.schemas import (
     UserRegister, UserLogin, Token, UserResponse, PasswordChange,
     ForgotPasswordRequest, VerifyPasswordResetCode, ResetPasswordRequest,
-    PasswordChangeWithVerification
+    PasswordChangeWithVerification, CreatePasswordRequest, VerifyPasswordCreation
 )
 from app.auth import (
     get_password_hash,
@@ -349,6 +349,7 @@ async def get_current_user(current_user: dict = Depends(get_current_user_token))
         is_verified=user.get("is_verified", False),
         two_fa_enabled=user.get("two_fa_enabled", False),
         auth_provider=user.get("auth_provider", "local"),
+        has_password=bool(user.get("hashed_password")),
         access_granted=user.get("access_granted", False),
         selected_traders=user.get("selected_traders", []),
         created_at=user["created_at"],
@@ -462,6 +463,7 @@ async def update_profile(
         is_verified=updated_user.get("is_verified", False),
         two_fa_enabled=updated_user.get("two_fa_enabled", False),
         auth_provider=updated_user.get("auth_provider", "local"),
+        has_password=bool(updated_user.get("hashed_password")),
         access_granted=updated_user.get("access_granted", False),
         selected_traders=updated_user.get("selected_traders", []),
         created_at=updated_user["created_at"],
@@ -1470,19 +1472,16 @@ async def verify_password_change(
     }
 
 
-class SetupOAuthPassword(BaseModel):
-    """Schema for setting up password for OAuth users"""
-    password: str = Field(..., min_length=8)
-
-
-@router.post("/setup-oauth-password")
-async def setup_oauth_password(
-    password_data: SetupOAuthPassword,
+@router.post("/create-password")
+async def create_password(
+    password_data: CreatePasswordRequest,
     current_user: dict = Depends(get_current_user_token)
 ):
     """
-    Set up password for Google OAuth users who don't have one
+    Initiate password creation for Google OAuth users - sends 2FA code for verification
     """
+    from app.schemas import CreatePasswordRequest
+
     users = get_collection(USERS_COLLECTION)
 
     # Get user from database
@@ -1494,11 +1493,56 @@ async def setup_oauth_password(
             detail="User not found"
         )
 
-    # Check if user is a Google OAuth user
-    if user.get("auth_provider") != "google":
+    # Check if user is a Google OAuth user without password
+    if user.get("hashed_password"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="This endpoint is only for Google OAuth users"
+            detail="You already have a password set up. Use 'Change Password' instead."
+        )
+
+    # Generate 2FA code for password creation verification
+    code = twofa_service.create_2fa_session(
+        email=user["email"],
+        user_id=str(user["_id"])
+    )
+
+    # Send verification code via email
+    username = user.get("full_name", user.get("username", "User"))
+    email_sent = email_service.send_2fa_code(
+        to_email=user["email"],
+        code=code,
+        username=username
+    )
+
+    if not email_sent:
+        print(f"Password Creation Code for {user['email']}: {code}")
+
+    return {
+        "message": "Verification code sent to your email. Please verify to complete password creation.",
+        "email": user["email"],
+        "password_hash": get_password_hash(password_data.password)  # Temporarily store for verification
+    }
+
+
+@router.post("/verify-password-creation")
+async def verify_password_creation(
+    verification_data: VerifyPasswordCreation,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """
+    Verify 2FA code and complete password creation for OAuth users
+    """
+    from app.schemas import VerifyPasswordCreation
+
+    users = get_collection(USERS_COLLECTION)
+
+    # Get user
+    user = get_user_by_id(current_user["user_id"])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
         )
 
     # Check if user already has a password
@@ -1508,17 +1552,32 @@ async def setup_oauth_password(
             detail="You already have a password set up"
         )
 
-    # Set password
+    # Verify the code
+    result = twofa_service.verify_code(
+        email=user["email"],
+        code=verification_data.code
+    )
+
+    if not result["success"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"]
+        )
+
+    # Set password with the pre-hashed password
     users.update_one(
         {"_id": user["_id"]},
         {
             "$set": {
-                "hashed_password": get_password_hash(password_data.password),
+                "hashed_password": verification_data.password_hash,
                 "updated_at": datetime.utcnow()
             }
         }
     )
 
+    # Clean up 2FA session
+    twofa_service.delete_session(user["email"])
+
     return {
-        "message": "Password has been set up successfully. You can now login with either Google or your password."
+        "message": "Password has been created successfully. You can now login with either Google or your password."
     }
