@@ -65,6 +65,138 @@
 		</script>
 
 	<style>
+		/* Cookie Consent Toast */
+		.cookie-toast {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+			color: #fff;
+			padding: 20px 30px;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+			z-index: 10000;
+			width: 100%;
+			opacity: 0;
+			visibility: hidden;
+			transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+			border-top: 1px solid rgba(255, 255, 255, 0.1);
+		}
+
+		.cookie-toast.show {
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+		}
+
+		.cookie-toast-content {
+			display: flex;
+			flex-direction: row;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 20px;
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+
+		.cookie-toast-text {
+			flex: 1;
+			max-width: 800px;
+		}
+
+		.cookie-toast-title {
+			font-size: 18px;
+			font-weight: 600;
+			margin-bottom: 8px;
+		}
+
+		.cookie-toast-message {
+			font-size: 14px;
+			line-height: 1.6;
+			color: rgba(255, 255, 255, 0.85);
+		}
+
+		.cookie-toast-message a {
+			color: #4dabf7;
+			text-decoration: underline;
+			margin-left: 8px;
+		}
+
+		.cookie-toast-buttons {
+			display: flex;
+			gap: 10px;
+			flex-shrink: 0;
+			align-items: flex-start;
+		}
+
+		.cookie-btn {
+			padding: 10px 20px;
+			border-radius: 6px;
+			font-size: 14px;
+			font-weight: 500;
+			cursor: pointer;
+			border: none;
+			transition: all 0.3s ease;
+			white-space: nowrap;
+		}
+
+		.cookie-btn-accept {
+			background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+			color: #fff;
+		}
+
+		.cookie-btn-accept:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+		}
+
+		.cookie-btn-reject {
+			background: transparent;
+			color: rgba(255, 255, 255, 0.7);
+			border: 1px solid rgba(255, 255, 255, 0.3);
+		}
+
+		.cookie-btn-reject:hover {
+			background: rgba(255, 255, 255, 0.1);
+			color: #fff;
+		}
+
+		/* Responsive - Mobile */
+		@media (max-width: 768px) {
+			.cookie-toast {
+				padding: 15px 20px;
+			}
+
+			.cookie-toast-content {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 15px;
+			}
+
+			.cookie-toast-text {
+				flex: none;
+				width: 100%;
+			}
+
+			.cookie-toast-title {
+				font-size: 16px;
+			}
+
+			.cookie-toast-message {
+				font-size: 13px;
+			}
+
+			.cookie-toast-buttons {
+				width: 100%;
+				justify-content: flex-start;
+			}
+
+			.cookie-btn {
+				padding: 10px 16px;
+				font-size: 13px;
+			}
+		}
+
 		.text-center {
 			text-align: center;
 		}
@@ -1321,3 +1453,96 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 });
 </script>
+
+	<!-- Cookie Consent Toast -->
+	<div id="cookieToast" class="cookie-toast">
+		<div class="cookie-toast-content">
+			<div class="cookie-toast-text">
+				<div class="cookie-toast-title" data-i18n="cookie.title">Cookie Consent</div>
+				<div class="cookie-toast-message">
+					<span data-i18n="cookie.message">We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. By continuing to browse this website, you agree to our use of cookies to improve our services. Your data is handled in accordance with our Privacy Policy. You can manage your cookie preferences at any time.</span>
+					<a href="privacy-policy.html" data-i18n="cookie.privacy" class="cookie-privacy-link">Privacy Policy</a>
+				</div>
+			</div>
+			<div class="cookie-toast-buttons">
+				<button id="cookieReject" class="cookie-btn cookie-btn-reject" data-i18n="cookie.reject">Reject All</button>
+				<button id="cookieAccept" class="cookie-btn cookie-btn-accept" data-i18n="cookie.accept">Accept All</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// Cookie Consent Manager
+		const CookieConsent = {
+			COOKIE_NAME: 'ted_cookie_consent',
+			COOKIE_EXPIRY_DAYS: 365,
+
+			init() {
+				const consent = this.getConsent();
+				if (!consent) {
+					// Show toast after a short delay
+					setTimeout(() => {
+						this.showToast();
+					}, 1500);
+				}
+			},
+
+			getConsent() {
+				return localStorage.getItem(this.COOKIE_NAME);
+			},
+
+			setConsent(value) {
+				localStorage.setItem(this.COOKIE_NAME, value);
+			},
+
+			showToast() {
+				const toast = document.getElementById('cookieToast');
+				if (toast) {
+					toast.classList.add('show');
+				}
+			},
+
+			hideToast() {
+				const toast = document.getElementById('cookieToast');
+				if (toast) {
+					toast.classList.remove('show');
+				}
+			},
+
+			accept() {
+				this.setConsent('accepted');
+				this.hideToast();
+				console.log('Cookie consent: Accepted');
+			},
+
+			reject() {
+				this.setConsent('rejected');
+				this.hideToast();
+				console.log('Cookie consent: Rejected');
+			}
+		};
+
+		// Initialize cookie consent
+		document.addEventListener('DOMContentLoaded', function() {
+			CookieConsent.init();
+
+			// Event listeners for buttons
+			const acceptBtn = document.getElementById('cookieAccept');
+			const rejectBtn = document.getElementById('cookieReject');
+
+			if (acceptBtn) {
+				acceptBtn.addEventListener('click', function() {
+					CookieConsent.accept();
+				});
+			}
+
+			if (rejectBtn) {
+				rejectBtn.addEventListener('click', function() {
+					CookieConsent.reject();
+				});
+			}
+		});
+	</script>
+
+</body>
+</html>

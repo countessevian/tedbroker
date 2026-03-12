@@ -1022,5 +1022,12 @@
   "risk.section6.title": "6. Risque Réglementaire et Juridique",
   "risk.section6.text": "Les marchés financiers sont soumis à une surveillance réglementaire, et les changements dans les lois ou les réglementations peuvent avoir un impact sur votre capacité à négocier ou à accéder à notre plateforme. Certaines juridictions peuvent imposer des restrictions sur les activités de trading ou interdire complètement les services de copy trading. Il est de votre responsabilité de comprendre et de vous conformer aux lois fiscales locales.",
   "risk.section7.title": "7. Risque de Perte de Capital",
-  "risk.section7.text": "Il existe un risque réel et substantiel que vous puissiez perdre une partie ou la totalité de votre capital investi. Le trading d'instruments financiers ne convient pas à tout le monde, et vous ne devriez négocier qu'avec des fonds que vous pouvez vous permettre de perdre complètement. N'utilisez pas de fonds empruntés, de crédit ou d'argent nécessaire aux dépenses essentielles. Ne supposez jamais que vous récupérerez vos pertes ou que vous réaliserez des profits."
+  "risk.section7.text": "Il existe un risque réel et substantiel que vous puissiez perdre une partie ou la totalité de votre capital investi. Le trading d'instruments financiers ne convient pas à tout le monde, et vous ne devriez négocier qu'avec des fonds que vous pouvez vous permettre de perdre complètement. N'utilisez pas de fonds empruntés, de crédit ou d'argent nécessaire aux dépenses essentielles. Ne supposez jamais que vous récupérerez vos pertes ou que vous réaliserez des profits.",
+
+  "cookie.title": "Consentement aux Cookies",
+  "cookie.message": "Nous utilisons des cookies pour améliorer votre expérience de navigation, analyser le trafic du site et personnaliser le contenu. En continuant à parcourir ce site Web, vous acceptez notre utilisation des cookies pour améliorer nos services. Vos données sont traitées conformément à notre Politique de Confidentialité. Vous pouvez gérer vos préférences de cookies à tout moment.",
+  "cookie.accept": "Tout Accepter",
+  "cookie.reject": "Tout Refuser",
+  "cookie.manage": "Gérer les Cookies",
+  "cookie.privacy": "Politique de Confidentialité"
 }

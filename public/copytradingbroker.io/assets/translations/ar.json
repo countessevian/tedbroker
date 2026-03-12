@@ -938,5 +938,12 @@
 
   "traders.title": "كيفية اختيار متداول",
   "traders.subtitle": "إيجاد المتداولين المناسبين للنسخ أمر حاسم لنجاحك. إليك ما يجب البحث عنه:",
-  "traders.riskLevel": "مستوى المخاطر"
+  "traders.riskLevel": "مستوى المخاطر",
+
+  "cookie.title": "موافقة على ملفات تعريف الارتباط",
+  "cookie.message": "نستخدم ملفات تعريف الارتباط لتحسين تجربة التصفح الخاصة بك وتحليل حركة الموقع وتخصيص المحتوى. By continuing to browse this website, you agree to our use of cookies to improve our services. Your data is handled in accordance with our Privacy Policy.",
+  "cookie.accept": "قبول الكل",
+  "cookie.reject": "رفض الكل",
+  "cookie.manage": "إدارة ملفات تعريف الارتباط",
+  "cookie.privacy": "سياسة الخصوصية"
 }

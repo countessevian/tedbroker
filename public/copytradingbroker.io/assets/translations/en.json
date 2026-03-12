@@ -536,5 +536,12 @@
   "language.bengali": "Bengali",
   "language.russian": "Russian",
   "language.portuguese": "Portuguese",
-  "language.german": "German"
+  "language.german": "German",
+
+  "cookie.title": "Cookie Consent",
+  "cookie.message": "We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. By continuing to browse this website, you agree to our use of cookies to improve our services. Your data is handled in accordance with our Privacy Policy. You can manage your cookie preferences at any time.",
+  "cookie.accept": "Accept All",
+  "cookie.reject": "Reject All",
+  "cookie.manage": "Manage Cookies",
+  "cookie.privacy": "Privacy Policy"
 }

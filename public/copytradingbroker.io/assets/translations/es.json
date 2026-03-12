@@ -1026,5 +1026,12 @@
   "risk.section6.title": "6. Riesgo Regulatorio y Legal",
   "risk.section6.text": "Los mercados financieros están sujetos a supervisión regulatoria, y cambios en leyes o regulaciones pueden impactar su capacidad para operar o acceder a nuestra plataforma. Ciertas jurisdicciones pueden imponer restricciones sobre actividades de trading o prohibir servicios de copy trading por completo. Es su responsabilidad entender y cumplir con las leyes fiscales locales.",
   "risk.section7.title": "7. Riesgo de Pérdida de Capital",
-  "risk.section7.text": "Existe un riesgo real y sustancial de que pueda perder parte o la totalidad de su capital invertido. El trading de instrumentos financieros no es adecuado para todos, y solo debe operar con fondos que pueda permitirse perder por completo. No use fondos prestados, crédito o dinero necesario para gastos esenciales. Nunca asuma que recuperará sus pérdidas o que obtendrá ganancias."
+  "risk.section7.text": "Existe un riesgo real y sustancial de que pueda perder parte o la totalidad de su capital invertido. El trading de instrumentos financieros no es adecuado para todos, y solo debe operar con fondos que pueda permitirse perder por completo. No use fondos prestados, crédito o dinero necesario para gastos esenciales. Nunca asuma que recuperará sus pérdidas o que obtendrá ganancias.",
+
+  "cookie.title": "Consentimiento de Cookies",
+  "cookie.message": "Utilizamos cookies para mejorar su experiencia de navegación, analizar el tráfico del sitio y personalizar el contenido. Al continuar navegando por este sitio web, usted acepta nuestro uso de cookies para mejorar nuestros servicios. Sus datos se manejan de acuerdo con nuestra Política de Privacidad. Puede administrar sus preferencias de cookies en cualquier momento.",
+  "cookie.accept": "Aceptar Todo",
+  "cookie.reject": "Rechazar Todo",
+  "cookie.manage": "Gestionar Cookies",
+  "cookie.privacy": "Política de Privacidad"
 }

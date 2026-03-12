@@ -1024,5 +1024,12 @@
 
   "trader.profile.experience": "Verlauf",
   "trader.profile.riskScore": "Risikobewertung",
-  "trader.profile.strategy": "Handelsstil"
+  "trader.profile.strategy": "Handelsstil",
+
+  "cookie.title": "Cookie-Einwilligung",
+  "cookie.message": "Wir verwenden Cookies, um Ihr Surferlebnis zu verbessern, den Website-Traffic zu analysieren und Inhalte zu personalisieren. Durch die weitere Nutzung dieser Website stimmen Sie unserer Verwendung von Cookies zu, um unsere Dienste zu verbessern. Ihre Daten werden gemäß unserer Datenschutzrichtlinie verarbeitet. Sie können Ihre Cookie-Einstellungen jederzeit verwalten.",
+  "cookie.accept": "Alle Akzeptieren",
+  "cookie.reject": "Alle Ablehnen",
+  "cookie.manage": "Cookies Verwalten",
+  "cookie.privacy": "Datenschutzrichtlinie"
 }
