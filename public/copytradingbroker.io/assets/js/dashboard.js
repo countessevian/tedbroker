@@ -897,6 +897,270 @@ async function loadExpertTraders(forceReload = false) {
     }
 }
 
+let recentTradesCache = null;
+
+function formatOrderType(orderType) {
+    const types = {
+        'market': 'Market',
+        'limit': 'Limit',
+        'stop_loss': 'Stop Loss',
+        'take_profit': 'Take Profit'
+    };
+    return types[orderType] || orderType;
+}
+
+function formatTimestamp(ts) {
+    if (!ts) return '';
+    const date = new Date(ts);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+}
+
+async function loadRecentTrades(forceReload = false) {
+    if (recentTradesCache && !forceReload) {
+        displayRecentTrades(recentTradesCache);
+        return;
+    }
+    
+    const container = document.getElementById('recent-trades-container');
+    container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading recent trades...</p>';
+    
+    try {
+        const response = await TED_AUTH.apiCall('/api/traders/', {
+            method: 'GET'
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch traders: ' + response.status);
+        
+        const traders = await response.json();
+        
+        let allTrades = [];
+        traders.forEach(trader => {
+            const trades = trader.recent_trades || [];
+            trades.forEach(trade => {
+                allTrades.push({
+                    ...trade,
+                    trader_id: trader.id,
+                    trader_name: trader.full_name,
+                    trader_photo: trader.profile_photo
+                });
+            });
+        });
+        
+        allTrades.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        recentTradesCache = allTrades;
+        displayRecentTrades(allTrades);
+        
+    } catch (error) {
+        console.error('Error loading recent trades:', error);
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Failed to load recent trades: ' + error.message + '</p>';
+    }
+}
+
+function viewAllTraderTrades(traderId, traderName) {
+    console.log('[viewAllTraderTrades] Navigating to Recent Trades for trader:', traderId, traderName);
+    
+    // Close the modal first
+    Swal.close();
+    
+    // Navigate to Recent Trades tab
+    document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+    document.querySelectorAll('.submenu-item').forEach(si => si.classList.remove('active'));
+    
+    const recentTradesTab = document.querySelector('.submenu-item[data-tab="recent-trades"]');
+    if (recentTradesTab) {
+        recentTradesTab.classList.add('active');
+    }
+    
+    document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
+    const recentTradesContent = document.getElementById('tab-recent-trades');
+    if (recentTradesContent) {
+        recentTradesContent.classList.add('active');
+    }
+    
+    // Load recent trades if not already loaded
+    if (!recentTradesCache) {
+        loadRecentTrades(true);
+    }
+    
+    // Set the trader ID filter and search term
+    setTimeout(() => {
+        const traderIdInput = document.getElementById('trades-trader-filter');
+        const searchInput = document.getElementById('recent-trades-search');
+        
+        if (traderIdInput) {
+            traderIdInput.value = traderId;
+        }
+        if (searchInput) {
+            searchInput.value = traderName;
+        }
+        
+        // Trigger filter
+        filterRecentTrades();
+    }, 300);
+}
+
+function filterRecentTrades() {
+    const searchTerm = document.getElementById('recent-trades-search')?.value.toLowerCase() || '';
+    const traderFilter = document.getElementById('trades-trader-filter')?.value || '';
+    const sideFilter = document.getElementById('trades-side-filter')?.value || '';
+    const exchangeFilter = document.getElementById('trades-exchange-filter')?.value || '';
+    const orderTypeFilter = document.getElementById('trades-ordertype-filter')?.value || '';
+    
+    if (!recentTradesCache) return;
+    
+    let filtered = recentTradesCache.filter(trade => {
+        if (traderFilter && trade.trader_id !== traderFilter) return false;
+        
+        if (searchTerm) {
+            const symbolMatch = trade.symbol?.toLowerCase().includes(searchTerm);
+            const traderMatch = trade.trader_name?.toLowerCase().includes(searchTerm);
+            if (!symbolMatch && !traderMatch) return false;
+        }
+        
+        if (sideFilter && trade.side !== sideFilter) return false;
+        
+        if (exchangeFilter && !trade.exchange?.toLowerCase().includes(exchangeFilter.toLowerCase())) return false;
+        
+        if (orderTypeFilter && trade.order_type !== orderTypeFilter) return false;
+        
+        return true;
+    });
+    
+    displayRecentTrades(filtered);
+}
+
+function filterPosts() {
+    const searchTerm = document.getElementById('posts-search')?.value.toLowerCase() || '';
+    const traderFilter = document.getElementById('posts-trader-filter')?.value || '';
+    const sortFilter = document.getElementById('posts-sort-filter')?.value || 'newest';
+    
+    if (!postsCache) return;
+    
+    let filtered = postsCache.filter(post => {
+        if (searchTerm) {
+            const contentMatch = post.content?.toLowerCase().includes(searchTerm);
+            const traderMatch = post.trader_name?.toLowerCase().includes(searchTerm);
+            if (!contentMatch && !traderMatch) return false;
+        }
+        
+        if (traderFilter && post.trader_id !== traderFilter) return false;
+        
+        return true;
+    });
+    
+    // Sort
+    if (sortFilter === 'oldest') {
+        filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    } else if (sortFilter === 'most-liked') {
+        filtered.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
+    } else {
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    
+    renderPosts(filtered);
+}
+
+function displayRecentTrades(trades) {
+    const container = document.getElementById('recent-trades-container');
+    
+    if (trades.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No recent trades available.</p>';
+        return;
+    }
+    
+    const tradesHTML = trades.slice(0, 50).map(trade => {
+        const sideClass = trade.side === 'long' ? 'long' : 'short';
+        const tradeAvatarHtml = (trade.trader_photo && trade.trader_photo.trim())
+            ? `<img src="${trade.trader_photo}" class="recent-trade-avatar" onerror="this.outerHTML='<div class=\\'recent-trade-avatar\\'><i class=\\'fa-solid fa-user\\'></i></div>'" />`
+            : `<div class="recent-trade-avatar"><i class="fa-solid fa-user"></i></div>`;
+        
+        return `
+            <div class="recent-trade-card">
+                <div class="recent-trade-header">
+                    <div class="recent-trade-trader">
+                        ${tradeAvatarHtml}
+                        <span class="recent-trade-trader-name">${trade.trader_name}</span>
+                    </div>
+                    <span class="recent-trade-time">${formatTimestamp(trade.timestamp)}</span>
+                </div>
+                <div class="recent-trade-body">
+                    <div class="recent-trade-main">
+                        <span class="recent-trade-symbol">${trade.symbol}</span>
+                        <span class="recent-trade-exchange">${trade.exchange}</span>
+                        <span class="recent-trade-side ${sideClass}">${trade.side.toUpperCase()}</span>
+                    </div>
+                    <div class="recent-trade-details">
+                        <div class="recent-trade-detail">
+                            <span class="label">Order Type</span>
+                            <span class="value">${formatOrderType(trade.order_type)}</span>
+                        </div>
+                        <div class="recent-trade-detail">
+                            <span class="label">Entry</span>
+                            <span class="value">$${trade.entry_price?.toLocaleString()}</span>
+                        </div>
+                        <div class="recent-trade-detail">
+                            <span class="label">Notional</span>
+                            <span class="value">$${trade.notional_value?.toLocaleString()}</span>
+                        </div>
+                        <div class="recent-trade-detail">
+                            <span class="label">Leverage</span>
+                            <span class="value">${trade.leverage}x</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = `<div class="recent-trades-grid">${tradesHTML}</div>`;
+}
+
+function filterTraders() {
+    const searchTerm = document.getElementById('traders-search')?.value.toLowerCase() || '';
+    const specialization = document.getElementById('traders-specialization-filter')?.value || '';
+    const riskFilter = document.getElementById('traders-risk-filter')?.value || '';
+    const winrateFilter = document.getElementById('traders-winrate-filter')?.value || '';
+    
+    if (!tradersCache) return;
+    
+    let filtered = tradersCache.filter(trader => {
+        if (searchTerm && !trader.full_name.toLowerCase().includes(searchTerm)) {
+            return false;
+        }
+        
+        if (specialization && !trader.specialization.toLowerCase().includes(specialization.toLowerCase())) {
+            return false;
+        }
+        
+        if (riskFilter) {
+            const risk = trader.risk_score || 5;
+            if (riskFilter === '1-3' && (risk < 1 || risk > 3)) return false;
+            if (riskFilter === '4-6' && (risk < 4 || risk > 6)) return false;
+            if (riskFilter === '7-10' && (risk < 7 || risk > 10)) return false;
+        }
+        
+        if (winrateFilter) {
+            const winRate = trader.win_rate || 0;
+            if (winrateFilter === '70+' && winRate < 70) return false;
+            if (winrateFilter === '50-70' && (winRate < 50 || winRate > 70)) return false;
+            if (winrateFilter === '<50' && winRate >= 50) return false;
+        }
+        
+        return true;
+    });
+    
+    displayTraders(filtered);
+}
+
 /**
  * Display traders in the container
  */
@@ -916,50 +1180,43 @@ function displayTraders(traders) {
 }
 
 /**
- * Create a trader card element
+ * Create a trader strip element (expandable thin list item)
  */
 function createTraderCard(trader) {
-    const card = document.createElement('div');
-    card.className = 'trader-card';
+    const strip = document.createElement('div');
+    strip.className = 'trader-strip';
+    strip.setAttribute('data-trader-id', trader.id);
 
-    // Determine return color
     const returnColor = trader.ytd_return > 0 ? '#4caf50' : '#f44336';
     const returnSign = trader.ytd_return > 0 ? '+' : '';
 
-    // Check if trader is selected
     const userData = TED_AUTH.getUser();
     const selectedTraders = userData?.selected_traders || [];
     const isSelected = selectedTraders.includes(trader.id);
 
-    // Check if user has sufficient funds to copy this trader
     const userBalance = userData?.wallet_balance || 0;
     const minimumRequired = trader.minimum_copy_amount || 100;
     const hasSufficientFunds = userBalance >= minimumRequired;
-    const canCopyTrader = hasSufficientFunds || isSelected; // Allow uncopy even if balance is low
+    const canCopyTrader = hasSufficientFunds || isSelected;
 
-    // Add visual indicator for unaffordable traders
-    if (!hasSufficientFunds && !isSelected) {
-        card.style.opacity = '0.85';
-        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
-    }
+    const assetsAUM = trader.assets_under_management || 0;
+    const maxDrawdown = trader.max_drawdown || 0;
+    const riskScore = trader.risk_score || 5;
+    
+    const riskColor = riskScore <= 3 ? '#4caf50' : (riskScore <= 6 ? '#ff9800' : '#f44336');
 
-    const buttonText = isSelected ? 'Stop Copying' : (hasSufficientFunds ? 'Copy Trader' : 'Insufficient Funds');
-    const buttonStyle = isSelected ? 'background: #ff6b6b;' : '';
+    const profilePhotoHTML = (trader.profile_photo && trader.profile_photo.trim())
+        ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-strip-photo" onerror="this.outerHTML='<div class=\\'trader-strip-photo\\'><i class=\\'fa-solid fa-user\\'></i></div>'" />`
+        : `<div class="trader-strip-photo"><i class="fa-solid fa-user"></i></div>`;
 
-    // Create profile photo HTML with fallback
-    const profilePhotoHTML = trader.profile_photo
-        ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-profile-photo" />`
-        : `<div class="trader-profile-photo" style="display: flex; align-items: center; justify-content: center; background: rgba(123, 182, 218, 0.1);"><i class="fa fa-user" style="font-size: 32px; color: #8b93a7;"></i></div>`;
-
-    // Create trades HTML
     const tradesHTML = trader.trades && trader.trades.length > 0 ? `
-        <div class="trader-trades">
-            <div class="trader-trades-title">Recent Trades (${trader.trades.length})</div>
-            <div class="trades-grid">
+        <div class="trader-strip-trades">
+            <div class="trader-strip-trades-title">Recent Trades</div>
+            <div class="trader-strip-trades-grid">
                 ${trader.trades.map(trade => `
-                    <div class="trade-item">
-                        <div class="trade-ticker">${trade.ticker}</div>
-                        <div class="trade-price">$${trade.current_price.toLocaleString()}</div>
+                    <div class="trader-strip-trade-item">
+                        <span class="trade-ticker">${trade.ticker}</span>
+                        <span class="trade-price">$${trade.current_price.toLocaleString()}</span>
                         <span class="trade-position ${trade.position}">${trade.position.toUpperCase()}</span>
                     </div>
                 `).join('')}
@@ -967,61 +1224,514 @@ function createTraderCard(trader) {
         </div>
     ` : '';
 
-    card.innerHTML = `
-        <div class="trader-profile">
-            ${profilePhotoHTML}
-            <div>
-                <h3 style="margin: 0;">${trader.full_name}${isSelected ? ' <span style="color: #4caf50; font-size: 14px;"><i class="fa fa-check-circle"></i> Selected</span>' : ''}</h3>
-                <p style="color: #8b93a7; margin: 5px 0 0 0; font-size: 14px;">${trader.specialization}</p>
-            </div>
-        </div>
-
-        <p style="color: #8b93a7; margin-bottom: 15px;">${trader.description}</p>
-
-        <div style="padding: 10px; background: rgba(123, 182, 218, 0.05); border-radius: 6px; margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #8b93a7; font-size: 13px;">Minimum to Copy:</span>
-                <span style="color: #D32F2F; font-weight: 600; font-size: 15px;">$${minimumRequired.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-            </div>
-        </div>
-
-        ${!hasSufficientFunds && !isSelected ? `
-            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
-                <p style="color: #ff6b6b; font-size: 13px; margin: 0;">
-                    <i class="fa fa-exclamation-triangle"></i> Insufficient funds. You need $${(minimumRequired - userBalance).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} more.
-                </p>
-            </div>
-        ` : ''}
-
-        <div class="trader-header">
-            <div class="trader-stats-grid">
-                <div>
-                    <div style="font-size: 24px; color: ${returnColor}; font-weight: bold;">${returnSign}${trader.ytd_return}%</div>
-                    <div style="color: #8b93a7; font-size: 12px;">YTD Return</div>
-                </div>
-                <div>
-                    <div style="font-size: 24px; color: #D32F2F; font-weight: bold;">${trader.win_rate}%</div>
-                    <div style="color: #8b93a7; font-size: 12px;">Win Rate</div>
-                </div>
-                <div>
-                    <div style="font-size: 24px; color: #ff9800; font-weight: bold;">${trader.copiers}</div>
-                    <div style="color: #8b93a7; font-size: 12px;">Copiers</div>
+    strip.innerHTML = `
+        <div class="trader-strip-header" onclick="toggleTraderStrip('${trader.id}')">
+            <div class="trader-strip-main">
+                ${profilePhotoHTML}
+                <div class="trader-strip-info">
+                    <span class="trader-strip-name">${trader.full_name}</span>
+                    <span class="trader-strip-spec">${trader.specialization}</span>
                 </div>
             </div>
-            <button
-                class="btn-primary-custom"
-                style="${buttonStyle} ${!canCopyTrader ? 'pointer-events: none;' : ''}"
-                ${!canCopyTrader ? 'disabled' : ''}
-                ${canCopyTrader ? `onclick="copyTrader('${trader.id}', '${trader.full_name}')"` : ''}
-            >
-                ${isSelected ? '<i class="fa fa-times-circle"></i> ' : (hasSufficientFunds ? '<i class="fa fa-check-circle"></i> ' : '<i class="fa fa-lock"></i> ')}${buttonText}
-            </button>
+            <div class="trader-strip-meta">
+                <span class="trader-strip-return" style="color: ${returnColor};">${returnSign}${trader.ytd_return}%</span>
+                <span class="trader-strip-winrate">${trader.win_rate}% WR</span>
+                <span class="trader-strip-risk" style="color: ${riskColor};">Risk: ${riskScore}</span>
+            </div>
+            <div class="trader-strip-chevron">
+                <i class="fa fa-chevron-down"></i>
+            </div>
         </div>
+        <div class="trader-strip-content" id="trader-content-${trader.id}">
+            <div class="trader-strip-details">
+                <p class="trader-strip-desc">${trader.description}</p>
+                
+                <div class="trader-strip-stats-row">
+                    <div class="trader-strip-stat-item">
+                        <span class="label">Min. to Copy</span>
+                        <span class="value">$${minimumRequired.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                    </div>
+                    <div class="trader-strip-stat-item">
+                        <span class="label">AUM</span>
+                        <span class="value">$${assetsAUM >= 1000000 ? (assetsAUM/1000000).toFixed(1) + 'M' : assetsAUM.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span>
+                    </div>
+                    <div class="trader-strip-stat-item">
+                        <span class="label">Max Drawdown</span>
+                        <span class="value" style="color: ${maxDrawdown > 20 ? '#f44336' : '#ff9800'};">${maxDrawdown}%</span>
+                    </div>
+                    <div class="trader-strip-stat-item">
+                        <span class="label">Risk Score</span>
+                        <span class="value" style="color: ${riskColor};">${riskScore}/10</span>
+                    </div>
+                </div>
 
-        ${tradesHTML}
+                ${!hasSufficientFunds && !isSelected ? `
+                    <div class="trader-strip-warning">
+                        <i class="fa fa-exclamation-triangle"></i>
+                        <span>Insufficient funds. Need $${(minimumRequired - userBalance).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} more</span>
+                    </div>
+                ` : ''}
+
+                ${tradesHTML}
+
+                <div class="trader-strip-actions">
+                    <button
+                        class="trader-strip-btn copy ${isSelected ? 'active' : ''}"
+                        ${!canCopyTrader ? 'disabled' : ''}
+                        ${canCopyTrader ? `onclick="event.stopPropagation(); copyTrader('${trader.id}', '${trader.full_name}')"` : ''}
+                    >
+                        ${isSelected ? '<i class="fa fa-check"></i> Copying' : '<i class="fa fa-copy"></i> Copy Trader'}
+                    </button>
+                    <button
+                        class="trader-strip-btn trades"
+                        onclick="event.stopPropagation(); viewAllTraderTrades('${trader.id}', '${trader.full_name}');"
+                    >
+                        <i class="fa fa-exchange"></i> Recent Trades
+                    </button>
+                    <button
+                        class="trader-strip-btn profile"
+                        onclick="event.stopPropagation(); viewTraderProfile('${trader.id}', '${trader.full_name}')"
+                    >
+                        <i class="fa fa-user"></i> Full Profile
+                    </button>
+                    <button
+                        class="trader-strip-btn track ${isSelected ? 'tracking' : ''}"
+                        onclick="event.stopPropagation(); trackTrader('${trader.id}', '${trader.full_name}')"
+                    >
+                        <i class="fa fa-line-chart"></i> ${isSelected ? 'Tracking' : 'Track Trader'}
+                    </button>
+                </div>
+            </div>
+        </div>
     `;
 
-    return card;
+    return strip;
+}
+
+/**
+ * View trader full profile
+ */
+function viewTraderProfile(traderId, traderName) {
+    const traders = tradersCache || [];
+    const trader = traders.find(t => t.id === traderId);
+    
+    if (!trader) return;
+
+    const returnColor = trader.ytd_return > 0 ? '#4caf50' : '#f44336';
+    const returnSign = trader.ytd_return > 0 ? '+' : '';
+    const riskScore = trader.risk_score || 5;
+    const riskColor = riskScore <= 3 ? '#4caf50' : (riskScore <= 6 ? '#ff9800' : '#f44336');
+    const maxDrawdown = trader.max_drawdown || 0;
+    const assetsAUM = trader.assets_under_management || 0;
+
+    const recentTradesHTML = trader.recent_trades && trader.recent_trades.length > 0 ? `
+        <div class="trader-profile-recent-trades">
+            <div class="recent-trades-header-row">
+                <h4>Recent Trades (10)</h4>
+                <a href="#" class="view-all-trades-link view-all-trades-btn" data-trader-id="${trader.id}" data-trader-name="${trader.full_name}">View All <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="trader-profile-recent-trades-list">
+                ${trader.recent_trades.map(trade => `
+                    <div class="trader-profile-recent-trade-item">
+                        <div class="trade-main-info">
+                            <span class="trade-symbol">${trade.symbol}</span>
+                            <span class="trade-exchange">${trade.exchange}</span>
+                            <span class="trade-side ${trade.side}">${trade.side.toUpperCase()}</span>
+                        </div>
+                        <div class="trade-details-info">
+                            <span class="trade-order-type">${formatOrderType(trade.order_type)}</span>
+                            <span class="trade-entry">$${trade.entry_price?.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            <span class="trade-notional">$${trade.notional_value?.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            <span class="trade-leverage">${trade.leverage}x</span>
+                        </div>
+                        <div class="trade-timestamp">${formatTimestamp(trade.timestamp)}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    ` : '<p style="color: #8b93a7; text-align: center;">No recent trades available</p>';
+
+    const profileImgHtml = (trader.profile_photo && trader.profile_photo.trim())
+        ? `<img src="${trader.profile_photo}" alt="${trader.full_name}" class="trader-profile-img" onerror="this.outerHTML='<div class=\\'trader-profile-img-placeholder\\'><i class=\\'fa-solid fa-user\\'></i></div>'" />`
+        : `<div class="trader-profile-img-placeholder"><i class="fa-solid fa-user"></i></div>`;
+
+    Swal.fire({
+        title: trader.full_name,
+        html: `
+            <div class="trader-profile-modal">
+                <div class="trader-profile-header">
+                    ${profileImgHtml}
+                    <div class="trader-profile-info">
+                        <h3>${trader.full_name}</h3>
+                        <p class="trader-profile-spec">${trader.specialization}</p>
+                    </div>
+                </div>
+                <div class="trader-profile-stats">
+                    <div class="trader-profile-stat">
+                        <span class="value" style="color: ${returnColor};">${returnSign}${trader.ytd_return}%</span>
+                        <span class="label">YTD Return</span>
+                    </div>
+                    <div class="trader-profile-stat">
+                        <span class="value">${trader.win_rate}%</span>
+                        <span class="label">Win Rate</span>
+                    </div>
+                    <div class="trader-profile-stat">
+                        <span class="value">${trader.copiers}</span>
+                        <span class="label">Copiers</span>
+                    </div>
+                    <div class="trader-profile-stat">
+                        <span class="value" style="color: ${riskColor};">${riskScore}/10</span>
+                        <span class="label">Risk Score</span>
+                    </div>
+                </div>
+                <div class="trader-profile-stats" style="margin-top: 10px;">
+                    <div class="trader-profile-stat">
+                        <span class="value">$${assetsAUM >= 1000000 ? (assetsAUM/1000000).toFixed(1) + 'M' : assetsAUM.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span>
+                        <span class="label">AUM</span>
+                    </div>
+                    <div class="trader-profile-stat">
+                        <span class="value" style="color: ${maxDrawdown > 20 ? '#f44336' : '#ff9800'};">${maxDrawdown}%</span>
+                        <span class="label">Max Drawdown</span>
+                    </div>
+                    <div class="trader-profile-stat">
+                        <span class="value">$${trader.minimum_copy_amount?.toLocaleString() || '100'}</span>
+                        <span class="label">Min. Amount</span>
+                    </div>
+                </div>
+                <div class="trader-profile-actions">
+                    <button class="btn-primary-custom trader-recent-trades-btn" data-trader-id="${trader.id}" data-trader-name="${trader.full_name}">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Recent Trades
+                    </button>
+                </div>
+                <div class="trader-profile-desc">
+                    <h4>About</h4>
+                    <p>${trader.description}</p>
+                </div>
+                ${recentTradesHTML}
+            </div>
+        `,
+        width: '650px',
+        showConfirmButton: true,
+        confirmButtonText: 'Close',
+        customClass: {
+            popup: 'trader-profile-popup'
+        },
+        didOpen: () => {
+            // Add event listener for the Recent Trades button
+            const recentTradesBtn = document.querySelector('.trader-recent-trades-btn');
+            if (recentTradesBtn) {
+                recentTradesBtn.addEventListener('click', function() {
+                    const traderId = this.getAttribute('data-trader-id');
+                    const traderName = this.getAttribute('data-trader-name');
+                    viewAllTraderTrades(traderId, traderName);
+                });
+            }
+            
+            // Add event listener for the View All link
+            const viewAllTradesBtn = document.querySelector('.view-all-trades-btn');
+            if (viewAllTradesBtn) {
+                viewAllTradesBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const traderId = this.getAttribute('data-trader-id');
+                    const traderName = this.getAttribute('data-trader-name');
+                    viewAllTraderTrades(traderId, traderName);
+                });
+            }
+        }
+    });
+}
+
+// Posts functions - global scope
+let postsCache = null;
+let currentUserId = null;
+
+async function loadPosts(forceReload = false) {
+    console.log('[loadPosts] Called, forceReload:', forceReload);
+    
+    if (postsCache && !forceReload) {
+        console.log('[loadPosts] Using cache, count:', postsCache.length);
+        renderPosts(postsCache);
+        return;
+    }
+    
+    const container = document.getElementById('posts-container');
+    if (!container) {
+        console.error('[loadPosts] posts-container not found!');
+        return;
+    }
+    container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading posts...</p>';
+    
+    try {
+        console.log('[loadPosts] Fetching from API...');
+        console.log('[loadPosts] Full URL:', TED_AUTH.API_BASE + '/api/traders/posts');
+        const postsResponse = await TED_AUTH.apiCall('/api/traders/posts', { method: 'GET' });
+        console.log('[loadPosts] Response status:', postsResponse.status);
+        
+        if (!postsResponse.ok) {
+            throw new Error('Failed to fetch posts: ' + postsResponse.status);
+        }
+        
+        const posts = await postsResponse.json();
+        console.log('[loadPosts] Posts received:', posts.length, posts);
+        
+        // Try to get current user for like status
+        try {
+            const userResponse = await TED_AUTH.apiCall('/api/auth/me', { method: 'GET' });
+            if (userResponse.ok) {
+                const userData = await userResponse.json();
+                currentUserId = userData.id;
+            }
+        } catch (e) {
+            console.log('Could not fetch user:', e);
+        }
+        
+        postsCache = posts;
+        
+        // Populate trader filter dropdown
+        const traderSelect = document.getElementById('posts-trader-filter');
+        if (traderSelect) {
+            const uniqueTraders = [];
+            const seen = new Set();
+            posts.forEach(post => {
+                if (post.trader_id && !seen.has(post.trader_id)) {
+                    seen.add(post.trader_id);
+                    uniqueTraders.push({ id: post.trader_id, name: post.trader_name });
+                }
+            });
+            // Also add traders from cache if available
+            if (tradersCache) {
+                tradersCache.forEach(trader => {
+                    if (!seen.has(trader.id)) {
+                        seen.add(trader.id);
+                        uniqueTraders.push({ id: trader.id, name: trader.name });
+                    }
+                });
+            }
+            traderSelect.innerHTML = '<option value="">All Traders</option>' + 
+                uniqueTraders.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+        }
+        
+        renderPosts(posts);
+        
+    } catch (error) {
+        console.error('[loadPosts] Error:', error);
+        container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 0;">Failed to load posts: ' + error.message + '</p>';
+    }
+}
+
+function renderPosts(posts) {
+    console.log('[renderPosts] Called with:', posts);
+    const container = document.getElementById('posts-container');
+    if (!container) {
+        console.error('[renderPosts] Container not found!');
+        return;
+    }
+    
+    if (!posts || posts.length === 0) {
+        console.log('[renderPosts] No posts, showing empty message');
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No posts available yet.</p>';
+        return;
+    }
+    
+    console.log('[renderPosts] Rendering', posts.length, 'posts');
+    
+    // Calculate like_count and dislike_count from arrays if not present
+    posts.forEach(post => {
+        if (post.like_count === undefined) {
+            post.like_count = post.likes ? post.likes.length : 0;
+        }
+        if (post.dislike_count === undefined) {
+            post.dislike_count = post.dislikes ? post.dislikes.length : 0;
+        }
+    });
+    
+    const postsHTML = posts.map(post => {
+        const isLiked = currentUserId && post.likes && post.likes.includes(currentUserId);
+        const likeClass = isLiked ? 'liked' : '';
+        
+        const avatarHtml = (post.trader_photo && post.trader_photo.trim()) 
+            ? `<img src="${post.trader_photo}" class="post-avatar" onerror="this.outerHTML='<div class=\\'post-avatar\\'><i class=\\'fa-solid fa-user\\'></i></div>'" />`
+            : `<div class="post-avatar"><i class="fa-solid fa-user"></i></div>`;
+        
+        const isDisliked = currentUserId && post.dislikes && post.dislikes.includes(currentUserId);
+        const dislikeClass = isDisliked ? 'disliked' : '';
+        
+        return `
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="post-trader">
+                        ${avatarHtml}
+                        <div class="post-trader-info">
+                            <span class="post-trader-name">${post.trader_name}</span>
+                            <span class="post-time">${formatTimestamp(post.created_at)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <p>${post.content}</p>
+                    ${post.image_url ? `<img src="${post.image_url}" class="post-image" />` : ''}
+                </div>
+                <div class="post-actions">
+                    <button class="post-like-btn ${likeClass}" onclick="likePost('${post.id}')">
+                        <i class="fa-${isLiked ? 'solid' : 'regular'} fa-thumbs-up"></i>
+                        <span class="like-count">${post.like_count || 0}</span>
+                    </button>
+                    <button class="post-dislike-btn ${dislikeClass}" onclick="dislikePost('${post.id}')">
+                        <i class="fa-${isDisliked ? 'solid' : 'regular'} fa-thumbs-down"></i>
+                        <span class="dislike-count">${post.dislike_count || 0}</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = `<div class="posts-grid">${postsHTML}</div>`;
+}
+
+async function likePost(postId) {
+    try {
+        const response = await TED_AUTH.apiCall(`/api/traders/posts/${postId}/like`, {
+            method: 'POST'
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to like post');
+        }
+        
+        const result = await response.json();
+        
+        if (postsCache) {
+            const post = postsCache.find(p => p.id === postId);
+            if (post) {
+                if (result.action === 'liked') {
+                    post.likes = post.likes || [];
+                    post.likes.push(currentUserId);
+                    // Remove from dislikes if present
+                    if (post.dislikes && post.dislikes.includes(currentUserId)) {
+                        post.dislikes = post.dislikes.filter(id => id !== currentUserId);
+                    }
+                } else {
+                    post.likes = post.likes || [];
+                    post.likes = post.likes.filter(id => id !== currentUserId);
+                }
+                post.like_count = result.like_count;
+                post.dislike_count = post.dislikes ? post.dislikes.length : 0;
+            }
+        }
+        
+        renderPosts(postsCache);
+        
+    } catch (error) {
+        console.error('Error liking post:', error);
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        }
+    }
+}
+
+async function dislikePost(postId) {
+    try {
+        const response = await TED_AUTH.apiCall(`/api/traders/posts/${postId}/dislike`, {
+            method: 'POST'
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to dislike post');
+        }
+        
+        const result = await response.json();
+        
+        if (postsCache) {
+            const post = postsCache.find(p => p.id === postId);
+            if (post) {
+                if (result.action === 'disliked') {
+                    post.dislikes = post.dislikes || [];
+                    post.dislikes.push(currentUserId);
+                    // Remove from likes if present
+                    if (post.likes && post.likes.includes(currentUserId)) {
+                        post.likes = post.likes.filter(id => id !== currentUserId);
+                    }
+                } else {
+                    post.dislikes = post.dislikes || [];
+                    post.dislikes = post.dislikes.filter(id => id !== currentUserId);
+                }
+                post.dislike_count = result.dislike_count;
+                post.like_count = post.likes ? post.likes.length : 0;
+            }
+        }
+        
+        renderPosts(postsCache);
+        
+    } catch (error) {
+        console.error('Error disliking post:', error);
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        }
+    }
+}
+
+/**
+ * Track/untrack trader
+ */
+async function trackTrader(traderId, traderName) {
+    try {
+        const userData = TED_AUTH.getUser();
+        const trackedTraders = userData?.tracked_traders || [];
+        const isTracked = trackedTraders.includes(traderId);
+
+        if (isTracked) {
+            const result = await Swal.fire({
+                title: 'Stop Tracking',
+                text: `Stop tracking ${traderName}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            });
+            if (!result.isConfirmed) return;
+
+            TED_AUTH.showLoading('Removing from tracking...');
+            await TED_AUTH.apiCall(`/api/traders/untrack/${traderId}`, {
+                method: 'DELETE'
+            });
+        } else {
+            TED_AUTH.showLoading('Adding to tracking...');
+            await TED_AUTH.apiCall(`/api/traders/track/${traderId}`, {
+                method: 'POST'
+            });
+        }
+
+        await TED_AUTH.refreshUserData();
+        loadTraders(true);
+        TED_AUTH.showSuccess(isTracked ? 'Removed from tracking' : 'Added to tracking');
+    } catch (error) {
+        console.error('Error tracking trader:', error);
+        TED_AUTH.showError('Failed to update tracking');
+    }
+}
+
+/**
+ * Toggle trader strip expansion
+ */
+function toggleTraderStrip(traderId) {
+    const strip = document.querySelector(`.trader-strip[data-trader-id="${traderId}"]`);
+    const content = document.getElementById(`trader-content-${traderId}`);
+    const chevron = strip.querySelector('.trader-strip-chevron i');
+    
+    const isExpanded = content.classList.contains('expanded');
+    content.classList.toggle('expanded');
+    chevron.classList.toggle('fa-chevron-down');
+    chevron.classList.toggle('fa-chevron-up');
 }
 
 /**
@@ -1256,59 +1966,58 @@ function createPlanCard(plan) {
     // Add visual indicator for unaffordable plans
     if (!hasSufficientFunds) {
         card.style.opacity = '0.85';
-        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
     }
 
     // Calculate potential profit
     const potentialProfit = (plan.minimum_investment * plan.expected_return_percent / 100).toFixed(2);
 
     card.innerHTML = `
-        <h3 style="color: #D32F2F; margin-bottom: 10px;">${plan.name}</h3>
+        <h3 style="color: #D32F2F; margin-bottom: 8px;">${plan.name}</h3>
 
-        <div style="margin: 20px 0;">
-            <div style="font-size: 36px; font-weight: bold; color: #D32F2F;">$${plan.minimum_investment.toLocaleString()}</div>
-            <div style="font-size: 14px; color: #8b93a7;">Minimum Investment</div>
+        <div style="margin: 10px 0;">
+            <div class="plan-min-amount" style="font-size: 24px; font-weight: bold; color: #D32F2F;">$${plan.minimum_investment.toLocaleString()}</div>
+            <div style="font-size: 11px; color: #8b93a7;">Minimum Investment</div>
         </div>
 
-        <p style="color: #8b93a7; margin-bottom: 20px; line-height: 1.6;">${plan.description}</p>
+        <p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 12px;">${plan.description}</p>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(123, 182, 218, 0.05); border-radius: 8px;">
+        <div class="plan-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; padding: 10px; background: rgba(123, 182, 218, 0.05); border-radius: 6px;">
             <div>
-                <div style="font-size: 24px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
-                <div style="font-size: 12px; color: #8b93a7;">Expected Return</div>
+                <div style="font-size: 18px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
+                <div class="stat-label" style="font-size: 10px; color: #8b93a7;">Expected Return</div>
             </div>
             <div>
-                <div style="font-size: 24px; font-weight: bold; color: #D32F2F;">${plan.holding_period_months} mo</div>
-                <div style="font-size: 12px; color: #8b93a7;">Holding Period</div>
+                <div style="font-size: 18px; font-weight: bold; color: #D32F2F;">${plan.holding_period_months} mo</div>
+                <div class="stat-label" style="font-size: 10px; color: #8b93a7;">Holding Period</div>
             </div>
         </div>
 
-        <div style="padding: 12px; background: rgba(123, 182, 218, 0.05); border-radius: 8px; margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="color: #8b93a7; font-size: 14px;">Potential Profit:</span>
-                <span style="color: #4caf50; font-weight: 600; font-size: 14px;">$${parseFloat(potentialProfit).toLocaleString()}</span>
+        <div class="plan-info" style="padding: 8px; background: rgba(123, 182, 218, 0.05); border-radius: 6px; margin-bottom: 10px;">
+            <div class="plan-info-row" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="color: #8b93a7; font-size: 11px;">Profit:</span>
+                <span style="color: #4caf50; font-weight: 600; font-size: 11px;">$${parseFloat(potentialProfit).toLocaleString()}</span>
             </div>
-            <div style="display: flex; justify-content: space-between;">
-                <span style="color: #8b93a7; font-size: 14px;">Current Subscribers:</span>
-                <span style="color: #000; font-weight: 600; font-size: 14px;">${plan.current_subscribers.toLocaleString()}</span>
+            <div class="plan-info-row" style="display: flex; justify-content: space-between;">
+                <span style="color: #8b93a7; font-size: 11px;">Subscribers:</span>
+                <span style="color: #000; font-weight: 600; font-size: 11px;">${plan.current_subscribers.toLocaleString()}</span>
             </div>
         </div>
 
         ${!hasSufficientFunds ? `
-            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
-                <p style="color: #ff6b6b; font-size: 13px; margin: 0;">
-                    <i class="fa fa-exclamation-triangle"></i> Insufficient funds. You need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more.
+            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 6px; padding: 6px; margin-bottom: 8px;">
+                <p style="color: #ff6b6b; font-size: 11px; margin: 0;">
+                    <i class="fa fa-exclamation-triangle"></i> Need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more
                 </p>
             </div>
         ` : ''}
 
         <button
             class="btn-success-custom"
-            style="width: 100%; margin-top: 10px; ${buttonDisabled ? 'pointer-events: none;' : ''}"
+            style="width: 100%; margin-top: 6px; ${buttonDisabled ? 'pointer-events: none;' : ''}"
             ${buttonDisabled ? 'disabled' : ''}
             ${!buttonDisabled ? `onclick="investInPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"` : ''}
         >
-            ${hasSufficientFunds ? '<i class="fa fa-check-circle"></i> Invest Now' : '<i class="fa fa-lock"></i> Insufficient Funds'}
+            ${hasSufficientFunds ? '<i class="fa fa-check-circle"></i> Invest' : '<i class="fa fa-lock"></i> Insufficient'}
         </button>
     `;
 
@@ -1527,7 +2236,6 @@ function createETFPlanCard(plan) {
     // Add visual indicator for unaffordable plans
     if (!hasSufficientFunds) {
         card.style.opacity = '0.85';
-        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
     }
 
     // Plan type badge color
@@ -1541,39 +2249,39 @@ function createETFPlanCard(plan) {
     }
 
     card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="color: #D32F2F; margin: 0;">${plan.name}</h3>
-            <span style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="color: #D32F2F; margin: 0; font-size: 14px;">${plan.name}</h3>
+            <span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600;">
                 ${plan.plan_type}
             </span>
         </div>
 
-        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 20px; line-height: 1.6;">${plan.description}</p>` : ''}
+        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 11px;">${plan.description}</p>` : ''}
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(102, 126, 234, 0.08); border-radius: 8px;">
+        <div class="plan-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; padding: 10px; background: rgba(102, 126, 234, 0.08); border-radius: 6px;">
             <div>
-                <div style="font-size: 24px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
-                <div style="font-size: 12px; color: #8b93a7;">Expected Return</div>
+                <div style="font-size: 18px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
+                <div class="stat-label" style="font-size: 10px; color: #8b93a7;">Return</div>
             </div>
             <div>
-                <div style="font-size: 24px; font-weight: bold; color: #D32F2F;">${plan.duration_months} mo</div>
-                <div style="font-size: 12px; color: #8b93a7;">Duration</div>
+                <div style="font-size: 18px; font-weight: bold; color: #D32F2F;">${plan.duration_months} mo</div>
+                <div class="stat-label" style="font-size: 10px; color: #8b93a7;">Duration</div>
             </div>
         </div>
 
         ${plan.minimum_investment > 0 ? `
-            <div style="padding: 12px; background: rgba(102, 126, 234, 0.08); border-radius: 8px; margin-bottom: 15px;">
+            <div class="plan-info" style="padding: 8px; background: rgba(102, 126, 234, 0.08); border-radius: 6px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: #8b93a7; font-size: 14px;">Minimum Investment:</span>
-                    <span style="color: #D32F2F; font-weight: 700; font-size: 16px;">$${plan.minimum_investment.toLocaleString()}</span>
+                    <span style="color: #8b93a7; font-size: 11px;">Min:</span>
+                    <span style="color: #D32F2F; font-weight: 700; font-size: 14px;">$${plan.minimum_investment.toLocaleString()}</span>
                 </div>
             </div>
         ` : ''}
 
         ${!hasSufficientFunds && plan.minimum_investment > 0 ? `
-            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
-                <p style="color: #ff6b6b; font-size: 13px; margin: 0;">
-                    <i class="fa fa-exclamation-triangle"></i> Insufficient funds. You need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more.
+            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 6px; padding: 6px; margin-bottom: 8px;">
+                <p style="color: #ff6b6b; font-size: 10px; margin: 0;">
+                    <i class="fa fa-exclamation-triangle"></i> Need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more
                 </p>
             </div>
         ` : ''}
@@ -1582,9 +2290,9 @@ function createETFPlanCard(plan) {
             class="activate-plan-btn"
             onclick="activateETFPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"
             ${buttonDisabled ? 'disabled' : ''}
-            style="width: 100%; padding: 12px; background: ${buttonDisabled ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: ${buttonDisabled ? 'not-allowed' : 'pointer'}; transition: all 0.3s;"
+            style="width: 100%; padding: 8px; background: ${buttonDisabled ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: ${buttonDisabled ? 'not-allowed' : 'pointer'}; transition: all 0.3s;"
         >
-            <i class="fa fa-rocket"></i> Activate Plan
+            <i class="fa fa-rocket"></i> Activate
         </button>
     `;
 
@@ -1854,7 +2562,6 @@ function createDeFiPlanCard(plan) {
     // Add visual indicator for unaffordable plans
     if (!hasSufficientFunds) {
         card.style.opacity = '0.85';
-        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
     }
 
     // Portfolio type badge color
@@ -1870,39 +2577,39 @@ function createDeFiPlanCard(plan) {
     }
 
     card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="color: #D32F2F; margin: 0;">${plan.name}</h3>
-            <span style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="color: #D32F2F; margin: 0; font-size: 14px;">${plan.name}</h3>
+            <span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600;">
                 ${plan.portfolio_type}
             </span>
         </div>
 
-        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 20px; line-height: 1.6;">${plan.description}</p>` : ''}
+        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 11px;">${plan.description}</p>` : ''}
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(17, 153, 142, 0.08); border-radius: 8px;">
+        <div class="plan-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; padding: 10px; background: rgba(17, 153, 142, 0.08); border-radius: 6px;">
             <div>
-                <div style="font-size: 24px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
-                <div style="font-size: 12px; color: #8b93a7;">Expected Return</div>
+                <div style="font-size: 18px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
+                <div class="stat-label" style="font-size: 10px; color: #8b93a7;">Return</div>
             </div>
             <div>
-                <div style="font-size: 24px; font-weight: bold; color: #D32F2F;">${plan.duration_months} mo</div>
-                <div style="font-size: 12px; color: #8b93a7;">Duration</div>
+                <div style="font-size: 18px; font-weight: bold; color: #D32F2F;">${plan.duration_months} mo</div>
+                <div class="stat-label" style="font-size: 10px; color: #8b93a7;">Duration</div>
             </div>
         </div>
 
         ${plan.minimum_investment > 0 ? `
-            <div style="padding: 12px; background: rgba(17, 153, 142, 0.08); border-radius: 8px; margin-bottom: 15px;">
+            <div class="plan-info" style="padding: 8px; background: rgba(17, 153, 142, 0.08); border-radius: 6px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: #8b93a7; font-size: 14px;">Minimum Investment:</span>
-                    <span style="color: #D32F2F; font-weight: 700; font-size: 16px;">$${plan.minimum_investment.toLocaleString()}</span>
+                    <span style="color: #8b93a7; font-size: 11px;">Min:</span>
+                    <span style="color: #D32F2F; font-weight: 700; font-size: 14px;">$${plan.minimum_investment.toLocaleString()}</span>
                 </div>
             </div>
         ` : ''}
 
         ${!hasSufficientFunds && plan.minimum_investment > 0 ? `
-            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
-                <p style="color: #ff6b6b; font-size: 13px; margin: 0;">
-                    <i class="fa fa-exclamation-triangle"></i> Insufficient funds. You need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more.
+            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 6px; padding: 6px; margin-bottom: 8px;">
+                <p style="color: #ff6b6b; font-size: 10px; margin: 0;">
+                    <i class="fa fa-exclamation-triangle"></i> Need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more
                 </p>
             </div>
         ` : ''}
@@ -1911,9 +2618,9 @@ function createDeFiPlanCard(plan) {
             class="activate-plan-btn"
             onclick="activateDeFiPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"
             ${buttonDisabled ? 'disabled' : ''}
-            style="width: 100%; padding: 12px; background: ${buttonDisabled ? '#ccc' : 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'}; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: ${buttonDisabled ? 'not-allowed' : 'pointer'}; transition: all 0.3s;"
+            style="width: 100%; padding: 8px; background: ${buttonDisabled ? '#ccc' : 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'}; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: ${buttonDisabled ? 'not-allowed' : 'pointer'}; transition: all 0.3s;"
         >
-            <i class="fa fa-rocket"></i> Activate Plan
+            <i class="fa fa-rocket"></i> Activate
         </button>
     `;
 
@@ -2183,7 +2890,6 @@ function createOptionsPlanCard(plan) {
     // Add visual indicator for unaffordable plans
     if (!hasSufficientFunds) {
         card.style.opacity = '0.85';
-        card.style.border = '2px solid rgba(255, 107, 107, 0.3)';
     }
 
     // Plan type badge color
@@ -2199,39 +2905,39 @@ function createOptionsPlanCard(plan) {
     }
 
     card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="color: #D32F2F; margin: 0;">${plan.name}</h3>
-            <span style="background: ${badgeColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="color: #D32F2F; margin: 0; font-size: 14px;">${plan.name}</h3>
+            <span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600;">
                 ${plan.plan_type}
             </span>
         </div>
 
-        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 20px; line-height: 1.6;">${plan.description}</p>` : ''}
+        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 11px;">${plan.description}</p>` : ''}
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: rgba(102, 126, 234, 0.08); border-radius: 8px;">
+        <div class="plan-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; padding: 10px; background: rgba(102, 126, 234, 0.08); border-radius: 6px;">
             <div>
-                <div style="font-size: 24px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
-                <div style="font-size: 12px; color: #8b93a7;">Expected Return</div>
+                <div style="font-size: 18px; font-weight: bold; color: #4caf50;">${plan.expected_return_percent}%</div>
+                <div class="stat-label" style="font-size: 10px; color: #8b93a7;">Return</div>
             </div>
             <div>
-                <div style="font-size: 24px; font-weight: bold; color: #D32F2F;">${plan.duration_months > 0 ? plan.duration_months + ' mo' : 'Ongoing'}</div>
-                <div style="font-size: 12px; color: #8b93a7;">Duration</div>
+                <div style="font-size: 18px; font-weight: bold; color: #D32F2F;">${plan.duration_months > 0 ? plan.duration_months + ' mo' : 'Ongoing'}</div>
+                <div class="stat-label" style="font-size: 10px; color: #8b93a7;">Duration</div>
             </div>
         </div>
 
         ${plan.minimum_investment > 0 ? `
-            <div style="padding: 12px; background: rgba(102, 126, 234, 0.08); border-radius: 8px; margin-bottom: 15px;">
+            <div class="plan-info" style="padding: 8px; background: rgba(102, 126, 234, 0.08); border-radius: 6px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: #8b93a7; font-size: 14px;">Minimum Investment:</span>
-                    <span style="color: #D32F2F; font-weight: 700; font-size: 16px;">$${plan.minimum_investment.toLocaleString()}</span>
+                    <span style="color: #8b93a7; font-size: 11px;">Min:</span>
+                    <span style="color: #D32F2F; font-weight: 700; font-size: 14px;">$${plan.minimum_investment.toLocaleString()}</span>
                 </div>
             </div>
         ` : ''}
 
         ${!hasSufficientFunds && plan.minimum_investment > 0 ? `
-            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
-                <p style="color: #ff6b6b; font-size: 13px; margin: 0;">
-                    <i class="fa fa-exclamation-triangle"></i> Insufficient funds. You need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more.
+            <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.3); border-radius: 6px; padding: 6px; margin-bottom: 8px;">
+                <p style="color: #ff6b6b; font-size: 10px; margin: 0;">
+                    <i class="fa fa-exclamation-triangle"></i> Need $${(plan.minimum_investment - userWalletBalance).toLocaleString()} more
                 </p>
             </div>
         ` : ''}
@@ -2240,9 +2946,9 @@ function createOptionsPlanCard(plan) {
             class="activate-plan-btn"
             onclick="activateOptionsPlan('${plan.id}', '${plan.name}', ${plan.minimum_investment})"
             ${buttonDisabled ? 'disabled' : ''}
-            style="width: 100%; padding: 12px; background: ${buttonDisabled ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: ${buttonDisabled ? 'not-allowed' : 'pointer'}; transition: all 0.3s;"
+            style="width: 100%; padding: 8px; background: ${buttonDisabled ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: ${buttonDisabled ? 'not-allowed' : 'pointer'}; transition: all 0.3s;"
         >
-            <i class="fa fa-rocket"></i> Activate Plan
+            <i class="fa fa-rocket"></i> Activate
         </button>
     `;
 
@@ -4152,9 +4858,22 @@ function createInvestmentCard(investment) {
 
 // Add portfolio tab click listener
 document.addEventListener('DOMContentLoaded', function() {
-    const portfolioTab = document.querySelector('.menu-item[data-tab="portfolio"]');
-    if (portfolioTab) {
-        portfolioTab.addEventListener('click', () => loadPortfolioPerformance(true));
+    // Automated Calls tab
+    const automatedCallsTab = document.querySelector('.submenu-item[data-tab="automated-calls"]');
+    if (automatedCallsTab) {
+        automatedCallsTab.addEventListener('click', () => loadPortfolioPerformance(true));
+    }
+    
+    // Active Copies tab
+    const activeCopiesTab = document.querySelector('.submenu-item[data-tab="active-copies"]');
+    if (activeCopiesTab) {
+        activeCopiesTab.addEventListener('click', () => loadActiveCopies(true));
+    }
+    
+    // Performance tab
+    const performanceTab = document.querySelector('.submenu-item[data-tab="performance"]');
+    if (performanceTab) {
+        performanceTab.addEventListener('click', () => loadPerformance(true));
     }
 });
 
@@ -4285,20 +5004,347 @@ function createDashboardInvestmentCard(investment) {
 function viewFullPortfolio() {
     // Activate portfolio tab
     document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
-    const portfolioTab = document.querySelector('.menu-item[data-tab="portfolio"]');
-    if (portfolioTab) {
-        portfolioTab.classList.add('active');
+    document.querySelectorAll('.submenu-item').forEach(si => si.classList.remove('active'));
+    
+    // Find and activate the automated-calls submenu item
+    const automatedCallsTab = document.querySelector('.submenu-item[data-tab="automated-calls"]');
+    if (automatedCallsTab) {
+        automatedCallsTab.classList.add('active');
     }
 
     // Show portfolio tab content
     document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
-    const portfolioContent = document.getElementById('tab-portfolio');
+    const portfolioContent = document.getElementById('tab-automated-calls');
     if (portfolioContent) {
         portfolioContent.classList.add('active');
     }
 
     // Load portfolio data
     loadPortfolioPerformance(true);
+}
+
+let activeCopiesCache = null;
+
+async function loadActiveCopies(forceReload = false) {
+    console.log('[loadActiveCopies] Called, forceReload:', forceReload);
+    
+    if (activeCopiesCache && !forceReload) {
+        console.log('[loadActiveCopies] Using cache');
+        renderActiveCopies(activeCopiesCache);
+        return;
+    }
+    
+    const container = document.getElementById('active-copies-container');
+    if (!container) {
+        console.error('[loadActiveCopies] Container not found!');
+        return;
+    }
+    container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading active copies...</p>';
+    
+    try {
+        // Get user data to check copy_trading_allocation
+        const userResponse = await TED_AUTH.apiCall('/api/auth/me', { method: 'GET' });
+        let copyTradingAllocation = 0;
+        let walletBalance = 0;
+        if (userResponse.ok) {
+            const userData = await userResponse.json();
+            copyTradingAllocation = userData.copy_trading_allocation || 0;
+            walletBalance = userData.wallet_balance || 0;
+            // If no specific allocation, use wallet balance
+            if (copyTradingAllocation === 0) {
+                copyTradingAllocation = walletBalance;
+            }
+            console.log('[loadActiveCopies] Copy trading allocation:', copyTradingAllocation, 'Wallet balance:', walletBalance);
+        }
+        
+        // Get selected traders from the user
+        const response = await TED_AUTH.apiCall('/api/traders/selected/list', { method: 'GET' });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch active copies: ' + response.status);
+        }
+        
+        const data = await response.json();
+        console.log('[loadActiveCopies] Selected traders data:', data);
+        
+        const selectedTraders = data.selected_traders || [];
+        
+        // Calculate amount per trader (evenly split)
+        const amountPerTrader = selectedTraders.length > 0 ? copyTradingAllocation / selectedTraders.length : 0;
+        
+        // Transform selected traders into active copies format
+        console.log('[loadActiveCopies] Selected traders:', selectedTraders);
+        const activeCopies = selectedTraders.map(trader => {
+            const amount = amountPerTrader;
+            const ytdReturn = trader.ytd_return || 0;
+            // Calculate current value based on YTD return
+            const currentValue = amount > 0 ? amount * (1 + ytdReturn / 100) : 0;
+            
+            return {
+                trader_id: trader.id || trader._id,
+                trader_name: trader.full_name || 'Unknown Trader',
+                trader_photo: trader.profile_photo || '',
+                specialization: trader.specialization || 'General',
+                amount: amount,
+                current_value: currentValue,
+                ytd_return: ytdReturn,
+                win_rate: trader.win_rate || 0
+            };
+        });
+        
+        console.log('[loadActiveCopies] Transformed copies:', activeCopies);
+        
+        activeCopiesCache = activeCopies;
+        renderActiveCopies(activeCopies);
+        
+    } catch (error) {
+        console.error('[loadActiveCopies] Error:', error);
+        container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 0;">Failed to load active copies: ' + error.message + '</p>';
+    }
+}
+
+function renderActiveCopies(investments) {
+    const container = document.getElementById('active-copies-container');
+    const countEl = document.getElementById('active-copies-count');
+    const totalEl = document.getElementById('active-copies-total');
+    const pnlEl = document.getElementById('active-copies-pnl');
+    const roiEl = document.getElementById('active-copies-roi');
+    
+    if (!container) return;
+    
+    if (!investments || investments.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">You are not currently copying any traders.</p>';
+        if (countEl) countEl.textContent = '0';
+        if (totalEl) totalEl.textContent = '$0.00';
+        if (pnlEl) pnlEl.textContent = '$0.00';
+        if (roiEl) roiEl.textContent = '0%';
+        return;
+    }
+    
+    let totalCopied = 0;
+    let totalPnL = 0;
+    
+    const copiesHTML = investments.map(inv => {
+        const currentValue = inv.current_value || inv.amount || 0;
+        const amount = inv.amount || 0;
+        const pnl = currentValue - amount;
+        const roi = amount > 0 ? ((currentValue - amount) / amount) * 100 : 0;
+        
+        totalCopied += amount;
+        totalPnL += pnl;
+        
+        const pnlClass = pnl >= 0 ? 'positive' : 'negative';
+        const avatarHtml = (inv.trader_photo && inv.trader_photo.trim())
+            ? `<img src="${inv.trader_photo}" class="copy-avatar" onerror="this.outerHTML='<div class=\\'copy-avatar\\'><i class=\\'fa-solid fa-user\\'></i></div>'" />`
+            : `<div class="copy-avatar"><i class="fa-solid fa-user"></i></div>`;
+        
+        return `
+            <div class="copy-card">
+                <div class="copy-header">
+                    <div class="copy-trader">
+                        ${avatarHtml}
+                        <div class="copy-trader-info">
+                            <span class="copy-trader-name">${inv.trader_name || 'Unknown Trader'}</span>
+                            <span class="copy-trader-specialization">${inv.specialization || 'General'}</span>
+                        </div>
+                    </div>
+                    <span class="copy-status active">Active</span>
+                </div>
+                <div class="copy-stats">
+                    <div class="copy-stat">
+                        <span class="label">Invested</span>
+                        <span class="value">$${amount.toLocaleString()}</span>
+                    </div>
+                    <div class="copy-stat">
+                        <span class="label">Current Value</span>
+                        <span class="value">$${currentValue.toLocaleString()}</span>
+                    </div>
+                    <div class="copy-stat">
+                        <span class="label">P&L</span>
+                        <span class="value ${pnlClass}">${pnl >= 0 ? '+' : ''}$${pnl.toLocaleString()}</span>
+                    </div>
+                    <div class="copy-stat">
+                        <span class="label">ROI</span>
+                        <span class="value ${pnlClass}">${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = `<div class="copies-grid">${copiesHTML}</div>`;
+    
+    const avgROI = totalCopied > 0 ? (totalPnL / totalCopied) * 100 : 0;
+    
+    if (countEl) countEl.textContent = investments.length;
+    if (totalEl) totalEl.textContent = '$' + totalCopied.toLocaleString();
+    if (pnlEl) pnlEl.textContent = (totalPnL >= 0 ? '+' : '') + '$' + totalPnL.toLocaleString();
+    if (roiEl) roiEl.textContent = (avgROI >= 0 ? '+' : '') + avgROI.toFixed(2) + '%';
+}
+
+let performanceCache = null;
+
+async function loadPerformance(forceReload = false) {
+    console.log('[loadPerformance] Called, forceReload:', forceReload);
+    
+    if (performanceCache && !forceReload) {
+        console.log('[loadPerformance] Using cache');
+        renderPerformance(performanceCache);
+        return;
+    }
+    
+    const container = document.getElementById('performance-container');
+    if (!container) {
+        console.error('[loadPerformance] Container not found!');
+        return;
+    }
+    container.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading performance data...</p>';
+    
+    try {
+        // Get selected traders from the user
+        const response = await TED_AUTH.apiCall('/api/traders/selected/list', { method: 'GET' });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch performance: ' + response.status);
+        }
+        
+        const data = await response.json();
+        console.log('[loadPerformance] Selected traders data:', data);
+        
+        const selectedTraders = data.selected_traders || [];
+        
+        // Transform selected traders into performance format
+        const performanceData = {
+            total_invested: 0,
+            current_value: 0,
+            total_trades: selectedTraders.reduce((sum, t) => sum + (t.trades?.length || 0), 0),
+            win_rate: 0,
+            investments: selectedTraders.map(trader => ({
+                trader_id: trader.id || trader._id,
+                trader_name: trader.full_name || 'Unknown Trader',
+                trader_photo: trader.profile_photo || '',
+                specialization: trader.specialization || 'General',
+                amount: 0,
+                current_value: 0,
+                ytd_return: trader.ytd_return || 0,
+                win_rate: trader.win_rate || 0
+            }))
+        };
+        
+        // Calculate average win rate
+        if (selectedTraders.length > 0) {
+            const totalWinRate = selectedTraders.reduce((sum, t) => sum + (t.win_rate || 0), 0);
+            performanceData.win_rate = totalWinRate / selectedTraders.length;
+        }
+        
+        console.log('[loadPerformance] Performance data:', performanceData);
+        
+        performanceCache = performanceData;
+        renderPerformance(performanceData);
+        
+    } catch (error) {
+        console.error('[loadPerformance] Error:', error);
+        container.innerHTML = '<p style="text-align: center; color: #ff6b6b; padding: 40px 0;">Failed to load performance: ' + error.message + '</p>';
+    }
+}
+
+function renderPerformance(portfolio) {
+    const container = document.getElementById('performance-container');
+    const comparisonContainer = document.getElementById('performance-comparison-container');
+    const returnEl = document.getElementById('perf-total-return');
+    const returnRateEl = document.getElementById('perf-return-rate');
+    const winRateEl = document.getElementById('perf-win-rate');
+    const tradesEl = document.getElementById('perf-total-trades');
+    
+    if (!container) return;
+    
+    const totalInvested = portfolio.total_invested || 0;
+    const currentValue = portfolio.current_value || 0;
+    const totalReturn = currentValue - totalInvested;
+    const returnRate = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
+    const totalTrades = portfolio.total_trades || 0;
+    const winRate = portfolio.win_rate || 0;
+    const investments = portfolio.investments || [];
+    
+    // Performance breakdown
+    let profitableCount = 0;
+    let losingCount = 0;
+    investments.forEach(inv => {
+        const currentVal = inv.current_value || inv.amount || 0;
+        const amount = inv.amount || 0;
+        if (currentVal > amount) profitableCount++;
+        else if (currentVal < amount) losingCount++;
+    });
+    
+    container.innerHTML = `
+        <div class="performance-stats-grid">
+            <div class="performance-stat-card">
+                <span class="label">Total Invested</span>
+                <span class="value">$${totalInvested.toLocaleString()}</span>
+            </div>
+            <div class="performance-stat-card">
+                <span class="label">Current Value</span>
+                <span class="value">$${currentValue.toLocaleString()}</span>
+            </div>
+            <div class="performance-stat-card">
+                <span class="label">Total Return</span>
+                <span class="value ${totalReturn >= 0 ? 'positive' : 'negative'}">${totalReturn >= 0 ? '+' : ''}$${totalReturn.toLocaleString()}</span>
+            </div>
+            <div class="performance-stat-card">
+                <span class="label">Return Rate</span>
+                <span class="value ${returnRate >= 0 ? 'positive' : 'negative'}">${returnRate >= 0 ? '+' : ''}${returnRate.toFixed(2)}%</span>
+            </div>
+            <div class="performance-stat-card">
+                <span class="label">Winning Trades</span>
+                <span class="value positive">${profitableCount}</span>
+            </div>
+            <div class="performance-stat-card">
+                <span class="label">Losing Trades</span>
+                <span class="value negative">${losingCount}</span>
+            </div>
+        </div>
+    `;
+    
+    if (returnEl) returnEl.textContent = (totalReturn >= 0 ? '+' : '') + '$' + totalReturn.toLocaleString();
+    if (returnRateEl) returnRateEl.textContent = (returnRate >= 0 ? '+' : '') + returnRate.toFixed(2) + '%';
+    if (winRateEl) winRateEl.textContent = winRate.toFixed(2) + '%';
+    if (tradesEl) tradesEl.textContent = totalTrades;
+    
+    // Comparison with active copies
+    if (comparisonContainer) {
+        if (investments.length === 0) {
+            comparisonContainer.innerHTML = '<p style="text-align: center; color: #8b93a7; padding: 40px 0;">No active copies to compare.</p>';
+        } else {
+            let userTotalReturn = totalReturn;
+            let copyComparisonHTML = investments.map(inv => {
+                const currentVal = inv.current_value || inv.amount || 0;
+                const amount = inv.amount || 0;
+                const copyPnL = currentVal - amount;
+                const copyROI = amount > 0 ? ((currentVal - amount) / amount) * 100 : 0;
+                
+                return `
+                    <div class="comparison-row">
+                        <span class="trader-name">${inv.trader_name || 'Unknown'}</span>
+                        <span class="trader-roi ${copyROI >= 0 ? 'positive' : 'negative'}">${copyROI >= 0 ? '+' : ''}${copyROI.toFixed(2)}%</span>
+                        <span class="trader-pnl ${copyPnL >= 0 ? 'positive' : 'negative'}">${copyPnL >= 0 ? '+' : ''}$${copyPnL.toLocaleString()}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            comparisonContainer.innerHTML = `
+                <div class="comparison-header">
+                    <span>Trader</span>
+                    <span>ROI</span>
+                    <span>P&L</span>
+                </div>
+                ${copyComparisonHTML}
+                <div class="comparison-total">
+                    <span>Your Total</span>
+                    <span class="${userTotalReturn >= 0 ? 'positive' : 'negative'}">${userTotalReturn >= 0 ? '+' : ''}$${userTotalReturn.toLocaleString()}</span>
+                </div>
+            `;
+        }
+    }
 }
 
 /**
@@ -5666,3 +6712,10 @@ document.addEventListener('DOMContentLoaded', function() {
 window.disableSidebarMenus = disableSidebarMenus;
 window.showPendingApprovalBanner = showPendingApprovalBanner;
 window.checkAccessStatus = checkAccessStatus;
+
+// Export network functions
+window.loadRecentTrades = loadRecentTrades;
+window.loadPosts = loadPosts;
+window.likePost = likePost;
+window.dislikePost = dislikePost;
+window.viewAllTraderTrades = viewAllTraderTrades;

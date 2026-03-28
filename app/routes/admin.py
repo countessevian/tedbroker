@@ -47,6 +47,9 @@ class CreateTrader(BaseModel):
     win_rate: float = Field(..., description="Win rate percentage")
     copiers: int = Field(default=0, description="Number of copiers")
     minimum_copy_amount: float = Field(default=100.0, gt=0, description="Minimum amount required to copy this trader in USD")
+    assets_under_management: float = Field(default=0.0, description="Total assets under management in USD")
+    max_drawdown: float = Field(default=0.0, description="Maximum drawdown percentage (peak-to-trough)")
+    risk_score: int = Field(default=5, ge=1, le=10, description="Risk score from 1 (lowest) to 10 (highest)")
 
 
 class CreatePlan(BaseModel):
@@ -630,7 +633,7 @@ async def update_user_balance(
 
     Args:
         user_id: User ID
-        balance_data: Dict containing 'new_balance' (float)
+        balance_data: Dict containing 'new_balance' (float) and optionally 'reflect_on_portfolio' (bool)
         current_admin: Current authenticated admin
 
     Returns:
@@ -671,16 +674,26 @@ async def update_user_balance(
             )
 
         old_balance = user.get("wallet_balance", 0.0)
+        reflect_on_portfolio = balance_data.get("reflect_on_portfolio", False)
+        portfolio_updated = False
+
+        # Prepare update fields
+        update_fields = {
+            "wallet_balance": new_balance,
+            "updated_at": datetime.utcnow()
+        }
+
+        # If reflect_on_portfolio is checked, update copy_trading_allocation
+        if reflect_on_portfolio:
+            # Update the copy trading allocation to reflect the new balance
+            # This represents the amount available for copy trading
+            update_fields["copy_trading_allocation"] = new_balance
+            portfolio_updated = True
 
         # Update user balance
         result = users.update_one(
             {"_id": ObjectId(user_id)},
-            {
-                "$set": {
-                    "wallet_balance": new_balance,
-                    "updated_at": datetime.utcnow()
-                }
-            }
+            {"$set": update_fields}
         )
 
         if result.matched_count == 0:
@@ -693,7 +706,8 @@ async def update_user_balance(
             "message": "Balance updated successfully",
             "old_balance": old_balance,
             "new_balance": new_balance,
-            "user_id": user_id
+            "user_id": user_id,
+            "portfolio_updated": portfolio_updated
         }
 
     except HTTPException:
@@ -823,7 +837,11 @@ async def get_all_traders(
             "win_rate": trader["win_rate"],
             "copiers": trader.get("copiers", 0),
             "minimum_copy_amount": trader.get("minimum_copy_amount", 100.0),
+            "assets_under_management": trader.get("assets_under_management", 0.0),
+            "max_drawdown": trader.get("max_drawdown", 0.0),
+            "risk_score": trader.get("risk_score", 5),
             "trades": trader.get("trades", []),
+            "recent_trades": trader.get("recent_trades", []),
             "created_at": trader["created_at"].isoformat() if trader.get("created_at") else None,
             "updated_at": trader["updated_at"].isoformat() if trader.get("updated_at") else None
         })
@@ -872,7 +890,11 @@ async def get_trader_details(
         "win_rate": trader["win_rate"],
         "copiers": trader.get("copiers", 0),
         "minimum_copy_amount": trader.get("minimum_copy_amount", 100.0),
+        "assets_under_management": trader.get("assets_under_management", 0.0),
+        "max_drawdown": trader.get("max_drawdown", 0.0),
+        "risk_score": trader.get("risk_score", 5),
         "trades": trader.get("trades", []),
+        "recent_trades": trader.get("recent_trades", []),
         "created_at": trader["created_at"].isoformat() if trader.get("created_at") else None,
         "updated_at": trader["updated_at"].isoformat() if trader.get("updated_at") else None
     }
@@ -905,6 +927,9 @@ async def create_trader(
         "win_rate": trader_data.win_rate,
         "copiers": trader_data.copiers,
         "minimum_copy_amount": trader_data.minimum_copy_amount,
+        "assets_under_management": trader_data.assets_under_management,
+        "max_drawdown": trader_data.max_drawdown,
+        "risk_score": trader_data.risk_score,
         "trades": [],
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
@@ -924,7 +949,11 @@ async def create_trader(
         "win_rate": trader_dict["win_rate"],
         "copiers": trader_dict["copiers"],
         "minimum_copy_amount": trader_dict["minimum_copy_amount"],
+        "assets_under_management": trader_dict["assets_under_management"],
+        "max_drawdown": trader_dict["max_drawdown"],
+        "risk_score": trader_dict["risk_score"],
         "trades": trader_dict["trades"],
+        "recent_trades": [],
         "created_at": trader_dict["created_at"].isoformat()
     }
 
@@ -972,6 +1001,9 @@ async def update_trader(
         "win_rate": trader_data.win_rate,
         "copiers": trader_data.copiers,
         "minimum_copy_amount": trader_data.minimum_copy_amount,
+        "assets_under_management": trader_data.assets_under_management,
+        "max_drawdown": trader_data.max_drawdown,
+        "risk_score": trader_data.risk_score,
         "updated_at": datetime.utcnow()
     }
 
@@ -994,6 +1026,9 @@ async def update_trader(
         "win_rate": updated_trader["win_rate"],
         "copiers": updated_trader.get("copiers", 0),
         "minimum_copy_amount": updated_trader.get("minimum_copy_amount", 100.0),
+        "assets_under_management": updated_trader.get("assets_under_management", 0.0),
+        "max_drawdown": updated_trader.get("max_drawdown", 0.0),
+        "risk_score": updated_trader.get("risk_score", 5),
         "trades": updated_trader.get("trades", []),
         "created_at": updated_trader["created_at"].isoformat() if updated_trader.get("created_at") else None,
         "updated_at": updated_trader["updated_at"].isoformat()

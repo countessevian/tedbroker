@@ -22,8 +22,135 @@ def trader_helper(trader) -> dict:
         "win_rate": trader["win_rate"],
         "copiers": trader["copiers"],
         "minimum_copy_amount": trader.get("minimum_copy_amount", 100.0),
-        "trades": trader.get("trades", [])
+        "assets_under_management": trader.get("assets_under_management", 0.0),
+        "max_drawdown": trader.get("max_drawdown", 0.0),
+        "risk_score": trader.get("risk_score", 5),
+        "trades": trader.get("trades", []),
+        "recent_trades": trader.get("recent_trades", []),
+        "posts": trader.get("posts", [])
     }
+
+
+@router.get("/posts")
+async def get_all_posts(current_user: dict = Depends(get_current_user_token)):
+    """Get all posts from all traders - NO AUTH REQUIRED FOR TESTING"""
+    import sys
+    try:
+        traders_collection = get_collection(TRADERS_COLLECTION)
+        all_posts = []
+        
+        print(f"=== /api/traders/posts called ===", file=sys.stderr, flush=True)
+        
+        for trader in traders_collection.find():
+            posts = trader.get("posts", [])
+            if posts:
+                print(f"Trader '{trader.get('full_name')}' has {len(posts)} posts", file=sys.stderr, flush=True)
+            for post in posts:
+                all_posts.append({
+                    "id": post.get("id", ""),
+                    "trader_id": str(trader["_id"]),
+                    "trader_name": trader["full_name"],
+                    "trader_photo": trader.get("profile_photo", ""),
+                    "content": post.get("content", ""),
+                    "image_url": post.get("image_url"),
+                    "likes": post.get("likes", []),
+                    "like_count": len(post.get("likes", [])),
+                    "created_at": post.get("created_at").isoformat() if post.get("created_at") else None
+                })
+        
+        print(f"Total posts: {len(all_posts)}", file=sys.stderr, flush=True)
+        all_posts.sort(key=lambda x: x["created_at"] or "", reverse=True)
+        return all_posts
+    except Exception as e:
+        import traceback
+        print(f"ERROR: {traceback.format_exc()}", file=sys.stderr, flush=True)
+        raise HTTPException(status_code=500, detail=f"Error retrieving posts: {str(e)}")
+
+
+@router.post("/posts/{post_id}/like")
+async def like_post(post_id: str, current_user: dict = Depends(get_current_user_token)):
+    """Like or unlike a post"""
+    try:
+        traders_collection = get_collection(TRADERS_COLLECTION)
+        user_id = current_user["user_id"]
+        
+        found = False
+        for trader in traders_collection.find():
+            posts = trader.get("posts", [])
+            for i, post in enumerate(posts):
+                if post.get("id") == post_id:
+                    found = True
+                    likes = post.get("likes", [])
+                    
+                    if user_id in likes:
+                        likes.remove(user_id)
+                        action = "unliked"
+                    else:
+                        likes.append(user_id)
+                        action = "liked"
+                    
+                    traders_collection.update_one(
+                        {"_id": trader["_id"], "posts.id": post_id},
+                        {"$set": {"posts.$.likes": likes}}
+                    )
+                    
+                    return {
+                        "success": True,
+                        "action": action,
+                        "post_id": post_id,
+                        "like_count": len(likes)
+                    }
+        
+        if not found:
+            raise HTTPException(status_code=404, detail="Post not found")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error liking post: {str(e)}")
+
+
+@router.post("/posts/{post_id}/dislike")
+async def dislike_post(post_id: str, current_user: dict = Depends(get_current_user_token)):
+    """Dislike or undislike a post"""
+    try:
+        traders_collection = get_collection(TRADERS_COLLECTION)
+        user_id = current_user["user_id"]
+        
+        found = False
+        for trader in traders_collection.find():
+            posts = trader.get("posts", [])
+            for i, post in enumerate(posts):
+                if post.get("id") == post_id:
+                    found = True
+                    dislikes = post.get("dislikes", [])
+                    
+                    if user_id in dislikes:
+                        dislikes.remove(user_id)
+                        action = "undisliked"
+                    else:
+                        dislikes.append(user_id)
+                        action = "disliked"
+                    
+                    traders_collection.update_one(
+                        {"_id": trader["_id"], "posts.id": post_id},
+                        {"$set": {"posts.$.dislikes": dislikes}}
+                    )
+                    
+                    return {
+                        "success": True,
+                        "action": action,
+                        "post_id": post_id,
+                        "dislike_count": len(dislikes)
+                    }
+        
+        if not found:
+            raise HTTPException(status_code=404, detail="Post not found")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error disliking post: {str(e)}")
 
 
 @router.get("/", response_model=List[ExpertTraderResponse])

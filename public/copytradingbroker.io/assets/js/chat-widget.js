@@ -28,6 +28,16 @@ class ChatWidget {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             }
 
+            /* Desktop: halfway between center and bottom */
+            @media (min-width: 992px) {
+                .chat-widget-container {
+                    bottom: 25vh !important;
+                }
+                .chat-window {
+                    bottom: calc(25vh + 80px) !important;
+                }
+            }
+
             .chat-bubble {
                 width: 70px;
                 height: 70px;

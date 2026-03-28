@@ -19,6 +19,63 @@
 
     <link rel="shortcut icon" href="assets/images/logoIcon/tedbrokers-fav.ico" type="image/x-icon">
 
+    <style>
+    .image-frame-container {
+        position: relative;
+        overflow: hidden;
+    }
+    .image-frame {
+        position: relative;
+        border: 3px solid #dc2626;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .image-frame img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+    .slide-in-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: translateX(-100%);
+        opacity: 0;
+        transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.8s ease;
+    }
+    .slide-in-image.animate {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    .slide-in-image.from-left {
+        transform: translateX(-100%);
+    }
+    .slide-in-image.from-left.animate {
+        transform: translateX(0);
+    }
+    .slide-in-image.from-right {
+        transform: translateX(100%);
+    }
+    .slide-in-image.from-right.animate {
+        transform: translateX(0);
+    }
+    .slide-in-image.from-top {
+        transform: translateY(-100%);
+    }
+    .slide-in-image.from-top.animate {
+        transform: translateY(0);
+    }
+    .slide-in-image.from-bottom {
+        transform: translateY(100%);
+    }
+    .slide-in-image.from-bottom.animate {
+        transform: translateY(0);
+    }
+    </style>
+
     <!-- Apple Stuff -->
     <link rel="apple-touch-icon" href="assets/images/logoIcon/tedbrokers-fav.ico">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -754,6 +811,9 @@
 							vital role in democratizing financial markets. The global copy trading market is expected to surpass $5 billion by
 							2028, driven by increased retail investor participation and demand for passive income strategies.</p>
 					</div>
+					<div class="market-card-image" style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin-top: 15px;">
+						<img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=500&h=300&fit=crop&bg=white" alt="Rapid Market Growth" style="max-width: 100%; border-radius: 4px;">
+					</div>
 				</div>
 				<div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
 					<div class="market-card">
@@ -761,6 +821,9 @@
 						<p data-i18n="marketOverview.userCentric.text">TED Brokers capitalizes on a shift towards user-friendly, low-barrier investment models. Modern traders
 							increasingly favor intuitive platforms that allow them to mirror professional strategies with minimal effort,
 							making social and copy trading a preferred entry point for beginners in forex, crypto, and stock trading.</p>
+					</div>
+					<div class="market-card-image" style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin-top: 15px;">
+						<img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=300&fit=crop&bg=white" alt="User Centric Investment" style="max-width: 100%; border-radius: 4px;">
 					</div>
 				</div>
 				<div class="col-md-6" data-aos="fade-up" data-aos-delay="250">
@@ -770,6 +833,9 @@
 							technologies to optimize trade execution, signal accuracy, and risk management—ensuring clients benefit from
 							real-time market opportunities with greater efficiency and transparency.</p>
 					</div>
+					<div class="market-card-image" style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin-top: 15px;">
+						<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&h=300&fit=crop&bg=white" alt="Technology and Automation" style="max-width: 100%; border-radius: 4px;">
+					</div>
 				</div>
 				<div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
 					<div class="market-card">
@@ -777,6 +843,9 @@
 						<p data-i18n="marketOverview.globalAdoption.text">With increased internet penetration and mobile accessibility, TED Brokers is reaching new markets across
 							Asia, Africa, and South America. The global expansion of copy trading services is creating inclusive financial
 							ecosystems, especially for users without access to traditional investment tools.</p>
+					</div>
+					<div class="market-card-image" style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin-top: 15px;">
+						<img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500&h=300&fit=crop&bg=white" alt="Global Adoption" style="max-width: 100%; border-radius: 4px;">
 					</div>
 				</div>
 			</div>
@@ -875,6 +944,9 @@
 						<h4 class="text-primary" data-i18n="benefits.passiveIncome.title">Passive Income</h4>
 						<p data-i18n="benefits.passiveIncome.text">Earn passive income by copying successful traders without needing to actively manage your investments.</p>
 					</div>
+					<div class="benefit-card-image" style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin-top: 15px;">
+						<img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=500&h=300&fit=crop&bg=white" alt="Passive Income" style="max-width: 100%; border-radius: 4px;">
+					</div>
 				</div>
 				<div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
 					<div class="benefit-card">
@@ -882,17 +954,26 @@
 						<p data-i18n="benefits.diversePortfolio.text">Diversify your investment portfolio by following multiple traders across different markets and asset classes.
 						</p>
 					</div>
+					<div class="benefit-card-image" style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin-top: 15px;">
+						<img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&h=300&fit=crop&bg=white" alt="Diverse Portfolio" style="max-width: 100%; border-radius: 4px;">
+					</div>
 				</div>
 				<div class="col-md-6" data-aos="fade-up" data-aos-delay="250">
 					<div class="benefit-card">
 						<h4 class="text-primary" data-i18n="benefits.expertStrategies.title">Expert Strategies</h4>
 						<p data-i18n="benefits.expertStrategies.text">Access expert trading strategies and insights from top-performing traders in the industry.</p>
 					</div>
+					<div class="benefit-card-image" style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin-top: 15px;">
+						<img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=500&h=300&fit=crop&bg=white" alt="Expert Strategies" style="max-width: 100%; border-radius: 4px;">
+					</div>
 				</div>
 				<div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
 					<div class="benefit-card">
 						<h4 class="text-primary" data-i18n="benefits.riskManagement.title">Risk Management</h4>
 						<p data-i18n="benefits.riskManagement.text">Benefit from advanced risk management tools and techniques to protect your investments.</p>
+					</div>
+					<div class="benefit-card-image" style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin-top: 15px;">
+						<img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=500&h=300&fit=crop&bg=white" alt="Risk Management" style="max-width: 100%; border-radius: 4px;">
 					</div>
 				</div>
 			</div>
@@ -1011,47 +1092,47 @@
 					<div class="disclaimer-content small text-center" data-aos="fade-up" data-aos-delay="100">
 						<div class="alert alert-warning mb-3 text-center">
 							<h6 class="alert-heading mb-2"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="disclaimer.warningTitle">High-Risk Investment Warning</span></h6>
-							<p class="mb-0 small" data-i18n="disclaimer.warningText">Trading in financial instruments, including but not limited to forex, CFDs, stocks, cryptocurrencies, and derivatives, carries a high level of risk and may not be suitable for all investors. You should carefully consider your investment objectives, level of experience, and risk appetite before engaging in copy trading.</p>
+							<p class="mb-0 small" data-i18n="disclaimer.warningText">It is of paramount importance to comprehend that the engagement in the acquisition, sale, and exchange of financial instruments—including, but not exclusively limited to, foreign exchange currencies (forex), contracts for difference (CFDs), equity securities in publicly traded corporations, digital currencies utilizing blockchain technology, and derivative financial products possessing complex structural characteristics—entails a substantially elevated degree of probabilistic uncertainty and may demonstrably fail to align with the suitability parameters of a considerable segment of market participants. Prospective participants in these activities are implored to exercise judicious deliberation regarding their expressed investment aspirations, their accumulated practical proficiency in market-based transactions, and their individualized tolerance for adverse outcomes prior to initiating any form of participation in copy trading methodologies.</p>
 						</div>
 
 						<div class="mb-3">
 							<h6 class="text-dark mb-2"><strong data-i18n="disclaimer.noProfitTitle">No Guarantee of Profits</strong></h6>
-							<p class="text-muted mb-0 small" data-i18n="disclaimer.noProfitText">The content provided on this platform is intended solely for informational and educational purposes and does not constitute financial, investment, or trading advice. Copy trading involves the automatic replication of another trader's positions and does not guarantee profits or protection from losses. Past performance of any trader or trading strategy does not guarantee future results.</p>
+							<p class="text-muted mb-0 small" data-i18n="disclaimer.noProfitText">The totality of informational content disseminated across this technological platform has been conceptualized, constructed, and deployed with the exclusive intention of facilitating educational discourse and the propagation of general knowledge, and shall under no circumstances be interpreted, construed, or otherwise regarded as constituting personalized financial counsel, investment recommendations, or transactional advisory services. Copy trading, fundamentally understood as the algorithmic replication of position-keeping activities undertaken by alternative market participants, inherently cannot and does not purport to furnish any form of assurance relative to the acquisition of monetary gains or the provision of safeguarding mechanisms against the realization of fiscal deficits. Furthermore, it must be unequivocally stated that historical performance metrics pertaining to any specific trader or strategic methodology employed in market engagement shall in no manner whatsoever serve as an indicator, predictor, or otherwise suggest prospective future performance outcomes.</p>
 						</div>
 
 						<div class="mb-3">
 							<h6 class="text-dark mb-2"><strong data-i18n="disclaimer.leverageTitle">Leverage and Loss Potential</strong></h6>
-							<p class="text-muted mb-0 small" data-i18n="disclaimer.leverageText">Leverage can amplify both gains and losses. You could lose more than your initial investment. Only invest funds that you can afford to lose completely. Never invest borrowed money or funds needed for essential expenses.</p>
+							<p class="text-muted mb-0 small" data-i18n="disclaimer.leverageText">The utilization of leverage instruments within the context of financial market participation serves to proportionally magnify both favorable and unfavorable outcome scenarios. It is therefore critically essential to recognize that the aggregate magnitude of potential financial detriment may substantively exceed the initial monetary contribution rendered to initiate the position. Participants are consequently advised to exclusively deploy financial resources which they possess the capacity to absorb as a total loss without precipitating detrimental consequences to their overall economic stability. Furthermore, under no circumstances should borrowed capital or funds designated for fundamental living expenditures be allocated toward speculative market activities.</p>
 						</div>
 
 						<div class="mb-3">
 							<h6 class="text-dark mb-2"><strong data-i18n="disclaimer.volatilityTitle">Market Volatility</strong></h6>
-							<p class="text-muted mb-0 small" data-i18n="disclaimer.volatilityText">Financial markets are subject to sudden and unpredictable volatility. Prices can move rapidly against your position, resulting in substantial losses in a short period of time. Market conditions, economic events, and geopolitical factors can significantly impact trading outcomes.</p>
+							<p class="text-muted mb-0 small" data-i18n="disclaimer.volatilityText">The totality of global financial marketplaces, encompassing those wherein securities, commodities, currencies, and ancillary derivative instruments are actively exchanged, are demonstrably susceptible to abrupt, unanticipated, and fundamentally unpredictable fluctuations in valuation. The pricing mechanisms governing these instruments have the propensity to undergo rapid and substantial movement in directions contrary to established position holdings, thereby potentially precipitating considerable economic deficits within abbreviated temporal parameters. It should be further noted that prevailing market conditions, occurrences within the broader macroeconomic sphere, and geopolitical developments occurring across various international jurisdictions possess the capacity to exert profound and consequential influence upon the ultimate outcomes realized through trading activities.</p>
 						</div>
 
 						<div class="mb-3">
 							<h6 class="text-dark mb-2"><strong data-i18n="disclaimer.responsibilityTitle">Your Responsibility</strong></h6>
-							<p class="text-muted mb-0 small" data-i18n="disclaimer.responsibilityText">By using this platform, you acknowledge that all trading decisions are made at your own risk. You are solely responsible for evaluating the merits and risks associated with using copy trading services. We strongly recommend conducting your own research and seeking advice from a qualified financial advisor before engaging in any trading activities.</p>
+							<p class="text-muted mb-0 small" data-i18n="disclaimer.responsibilityText">By virtue of accessing and utilizing this technological platform, the user ipso facto acknowledges, affirms, and accepts that every determination pertaining to market engagement, position establishment, and capital allocation constitutes an action undertaken at the exclusive peril of said individual. The user bears unilateral accountability for the comprehensive assessment of the advantageous and disadvantageous aspects associated with the utilization of copy trading functionalities. It is consequently strongly suggested that each user undertake independent investigative endeavors, consult with credentialed professionals possessing demonstrable expertise in financial advisory services, and obtain individualized guidance from qualified practitioners prior to the execution of any trading activities.</p>
 						</div>
 
 						<div class="mb-3">
 							<h6 class="text-dark mb-2"><strong data-i18n="disclaimer.liabilityTitle">Platform Liability</strong></h6>
-							<p class="text-muted mb-0 small" data-i18n="disclaimer.liabilityText">The platform, its operators, affiliates, or associated third parties are not liable for any losses incurred, whether directly or indirectly, as a result of reliance on information available through this service or the actions of any copied traders. We do not provide personalized investment advice or recommendations.</p>
+							<p class="text-muted mb-0 small" data-i18n="disclaimer.liabilityText">This platform, inclusive of its operational administrators, associated corporate entities, affiliated organizations, and/or any third-party service providers with whom collaborative arrangements have been established, shall under absolutely no circumstances bear responsibility or legal accountability for any fiscal deficits sustained—whether such losses arise proximally, distally, or through any intermediate causal mechanism—as a consequence of reliance upon information accessible via this service or in any way connected to the transactional conduct of any trader whose positions have been subject to algorithmic replication. It must be explicitly acknowledged that this platform does not furnish individualized investment counsel nor does it proffer personalized recommendations relative to specific securities, instruments, or strategic approaches.</p>
 						</div>
 
 						<div class="mb-3">
 							<h6 class="text-dark mb-2"><strong data-i18n="disclaimer.performanceTitle">Trader Performance Disclaimer</strong></h6>
-							<p class="text-muted mb-0 small" data-i18n="disclaimer.performanceText">Historical trader performance is not indicative of future results. A trader's past success does not guarantee continued profitability. All trading involves risk, and even experienced traders can experience losses.</p>
+							<p class="text-muted mb-0 small" data-i18n="disclaimer.performanceText">The historical performance trajectory of any individual trader engaged in market activities shall not, cannot, and indeed should not be construed as a predictive indicator of prospective results. The antecedent success achieved by any given trader in navigating market conditions does not constitute, provide, or otherwise represent any form of assurance regarding the perpetuation of profitable outcomes in subsequent periods. It must be unambiguously stated that all forms of market participation inherently incorporate elements of probabilistic uncertainty, and even those individuals possessing substantial experience, sophisticated analytical capabilities, and established track records remain susceptible to the realization of financial losses.</p>
 						</div>
 
 						<div class="mb-3">
 							<h6 class="text-dark mb-2"><strong data-i18n="disclaimer.complianceTitle">Regulatory Compliance</strong></h6>
-							<p class="text-muted mb-0 small" data-i18n="disclaimer.complianceText">It is your responsibility to ensure that your use of our services complies with all applicable laws and regulations in your jurisdiction. Some jurisdictions may restrict or prohibit certain types of trading activities.</p>
+							<p class="text-muted mb-0 small" data-i18n="disclaimer.complianceText">The affirmative obligation rests with each individual user to ascertain, verify, and ensure that their utilization of services provided by this platform conforms to, complies with, and otherwise satisfies all relevant legislative mandates, regulatory directives, and supervisory requirements applicable within their particular geographic jurisdiction. It is incumbent upon users to recognize that certain territories, sovereign states, or administrative regions may have implemented restrictions, limitations, prohibitions, or other regulatory constraints that effectively preclude or substantially curtail specific categories of trading activities.</p>
 						</div>
 
 						<div class="alert alert-info mb-3 text-center">
 							<h6 class="alert-heading mb-2"><i class="fas fa-info-circle"></i> <span data-i18n="disclaimer.riskManagementTitle">Risk Management Recommendation</span></h6>
-							<p class="mb-0 small" data-i18n="disclaimer.riskManagementText">Always ensure you fully understand the risks and features of the financial instruments you intend to trade. Make use of risk management tools such as stop-loss orders where possible. Diversify your investment portfolio and never invest more than you can afford to lose. Consider starting with a demo account to familiarize yourself with the platform before committing real funds.</p>
+							<p class="mb-0 small" data-i18n="disclaimer.riskManagementText">It is fundamentally essential that each user exhaustively verifies their comprehensive understanding of the probabilistic characteristics, structural mechanisms, and operational functionalities inherent to the financial instruments they intend to acquire, hold, or subsequently dispose of. Participants are strongly encouraged to implement and utilize risk mitigation instruments including, but not necessarily limited to, automated stop-loss orders which serve to terminate positions upon the attainment of predetermined price thresholds. Furthermore, users should pursue diversification strategies across their aggregate investment holdings and under no circumstances allocate sums exceeding their capacity to absorb as total losses. Consideration should be given to the utilization of demonstration or simulated trading environments as a mechanism for acquiring familiarity with platform operations prior to the commitment of actual capital resources.</p>
 						</div>
 
 						<p class="text-center mt-4 text-muted"><small data-i18n="disclaimer.acknowledgment">By accessing and using TED Brokers platform, you acknowledge that you have read, understood, and agree to this disclaimer and all associated risks.</small></p>
@@ -1542,6 +1623,68 @@ document.addEventListener('DOMContentLoaded', function() {
 				});
 			}
 		});
+	</script>
+
+	<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const directions = ['from-left', 'from-right', 'from-top', 'from-bottom'];
+		
+		document.querySelectorAll('.market-card-image, .benefit-card-image').forEach(function(container) {
+			const img = container.querySelector('img');
+			if (!img) return;
+			
+			const src = img.src;
+			const alt = img.alt;
+			
+			container.innerHTML = '<div class="image-frame-container"><div class="image-frame"><img src="' + src + '" alt="' + alt + '"></div></div>';
+			
+			const frame = container.querySelector('.image-frame');
+			const frameImg = document.createElement('img');
+			frameImg.src = src;
+			frameImg.alt = alt;
+			frameImg.className = 'slide-in-image ' + directions[Math.floor(Math.random() * directions.length)];
+			frame.appendChild(frameImg);
+			
+			const observer = new IntersectionObserver(function(entries) {
+				entries.forEach(function(entry) {
+					if (entry.isIntersecting) {
+						setTimeout(function() {
+							frameImg.classList.add('animate');
+						}, Math.random() * 300);
+						observer.unobserve(entry.target);
+					}
+				});
+			}, { threshold: 0.2 });
+			
+			observer.observe(container);
+		});
+	});
+	</script>
+
+	<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const sections = document.querySelectorAll('section');
+		
+		sections.forEach(function(section) {
+			section.style.opacity = '0';
+			section.style.transform = 'translateY(30px)';
+			section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+		});
+		
+		const sectionObserver = new IntersectionObserver(function(entries) {
+			entries.forEach(function(entry) {
+				if (entry.isIntersecting) {
+					entry.target.style.opacity = '1';
+					entry.target.style.transform = 'translateY(0)';
+					sectionObserver.unobserve(entry.target);
+				}
+			});
+		}, { rootMargin: '-50px 0px -30% 0px', threshold: 0 });
+		
+		sections.forEach(function(section) {
+			sectionObserver.observe(section);
+		});
+	});
 	</script>
 
 </body>

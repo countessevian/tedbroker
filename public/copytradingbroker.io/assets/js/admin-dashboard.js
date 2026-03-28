@@ -621,18 +621,26 @@ async function submitBalanceUpdate(event) {
 
     const userId = document.getElementById('update-balance-user-id').value;
     const newBalance = parseFloat(document.getElementById('new-balance-input').value);
+    const reflectOnPortfolio = document.getElementById('reflect-on-portfolio').checked;
 
     try {
         const response = await adminFetch(`/api/admin/users/${userId}/update-balance`, {
             method: 'PUT',
-            body: JSON.stringify({ new_balance: newBalance })
+            body: JSON.stringify({ 
+                new_balance: newBalance,
+                reflect_on_portfolio: reflectOnPortfolio
+            })
         });
 
         if (response.ok) {
             const result = await response.json();
+            let message = `Balance updated from $${result.old_balance.toFixed(2)} to $${result.new_balance.toFixed(2)}`;
+            if (result.portfolio_updated) {
+                message += '\n\nPortfolio performance has been updated.';
+            }
             Swal.fire({
                 title: 'Success!',
-                text: `Balance updated from $${result.old_balance.toFixed(2)} to $${result.new_balance.toFixed(2)}`,
+                text: message,
                 icon: 'success'
             });
             closeUpdateBalanceModal();
@@ -836,6 +844,7 @@ async function loadTraders() {
                     <p><strong>YTD Return:</strong> ${trader.ytd_return}% | <strong>Win Rate:</strong> ${trader.win_rate}%</p>
                     <p><strong>Copiers:</strong> ${trader.copiers || 0}</p>
                     <p><strong>Minimum Copy Amount:</strong> $${(trader.minimum_copy_amount || 100).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                    <p><strong>Assets Under Management:</strong> $${(trader.assets_under_management || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} | <strong>Max Drawdown:</strong> ${trader.max_drawdown || 0}% | <strong>Risk Score:</strong> ${trader.risk_score || 5}/10</p>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
                         <button class="btn btn-primary" style="padding: 8px 16px;" onclick="showEditTraderModal('${trader.id}')">Edit</button>
                         <button class="btn btn-danger" style="padding: 8px 16px;" onclick="deleteTrader('${trader.id}')">Delete</button>
@@ -882,7 +891,10 @@ async function handleAddTraderSubmit(e) {
         ytd_return: parseFloat(document.getElementById('trader-ytd-return').value),
         win_rate: parseFloat(document.getElementById('trader-win-rate').value),
         copiers: parseInt(document.getElementById('trader-copiers').value) || 0,
-        minimum_copy_amount: parseFloat(document.getElementById('trader-minimum-amount').value) || 100
+        minimum_copy_amount: parseFloat(document.getElementById('trader-minimum-amount').value) || 100,
+        assets_under_management: parseFloat(document.getElementById('trader-aum').value) || 0,
+        max_drawdown: parseFloat(document.getElementById('trader-max-drawdown').value) || 0,
+        risk_score: parseInt(document.getElementById('trader-risk-score').value) || 5
     };
 
     try {
@@ -922,6 +934,9 @@ async function showEditTraderModal(traderId) {
         document.getElementById('edit-trader-win-rate').value = trader.win_rate;
         document.getElementById('edit-trader-copiers').value = trader.copiers || 0;
         document.getElementById('edit-trader-minimum-amount').value = trader.minimum_copy_amount || 100;
+        document.getElementById('edit-trader-aum').value = trader.assets_under_management || 0;
+        document.getElementById('edit-trader-max-drawdown').value = trader.max_drawdown || 0;
+        document.getElementById('edit-trader-risk-score').value = trader.risk_score || 5;
 
         // Show modal
         const modal = document.getElementById('edit-trader-modal');
@@ -956,7 +971,10 @@ async function submitEditedTrader(event) {
         ytd_return: parseFloat(document.getElementById('edit-trader-ytd-return').value),
         win_rate: parseFloat(document.getElementById('edit-trader-win-rate').value),
         copiers: parseInt(document.getElementById('edit-trader-copiers').value) || 0,
-        minimum_copy_amount: parseFloat(document.getElementById('edit-trader-minimum-amount').value) || 100
+        minimum_copy_amount: parseFloat(document.getElementById('edit-trader-minimum-amount').value) || 100,
+        assets_under_management: parseFloat(document.getElementById('edit-trader-aum').value) || 0,
+        max_drawdown: parseFloat(document.getElementById('edit-trader-max-drawdown').value) || 0,
+        risk_score: parseInt(document.getElementById('edit-trader-risk-score').value) || 5
     };
 
     try {

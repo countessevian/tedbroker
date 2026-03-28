@@ -345,6 +345,7 @@ async def get_current_user(current_user: dict = Depends(get_current_user_token))
         country=user.get("country"),
         account_types=user.get("account_types", []),
         wallet_balance=user.get("wallet_balance", 0.0),
+        copy_trading_allocation=user.get("copy_trading_allocation", 0.0),
         is_active=user.get("is_active", True),
         is_verified=user.get("is_verified", False),
         two_fa_enabled=user.get("two_fa_enabled", False),

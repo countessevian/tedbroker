@@ -247,7 +247,7 @@
         /* Performance optimization - use GPU acceleration */
         .stat-box,
         .dashboard-card,
-        .trader-card,
+        .trader-strip,
         .plan-card,
         .btn-primary-custom,
         .user-avatar,
@@ -690,30 +690,28 @@
 
         .dashboard-card {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            border: none;
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
-            box-shadow: 0 2px 8px var(--shadow),
-                        0 1px 4px var(--shadow);
+            box-shadow: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .dashboard-card:hover {
-            box-shadow: 0 8px 24px var(--shadow),
-                        0 4px 12px var(--shadow);
-            transform: translateY(-2px);
-            background: var(--card-hover);
+            box-shadow: none;
+            transform: none;
+            background: var(--bg-card);
         }
 
         /* Active Plan Progress Card Styles */
         .active-plan-card {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            border: none;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px var(--shadow);
+            box-shadow: none;
         }
 
         .active-plan-header {
@@ -893,8 +891,58 @@
 
         .subscription-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .plan-card {
+            background: var(--card-bg, #fff);
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: none;
+        }
+
+        .plan-card h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .plan-card .plan-min-amount {
+            font-size: 24px;
+        }
+
+        .plan-card .plan-stats {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 10px 0;
+            padding: 10px;
+        }
+
+        .plan-card .plan-stats > div:first-child {
+            font-size: 18px;
+        }
+
+        .plan-card .plan-stats > div:last-child {
+            font-size: 18px;
+        }
+
+        .plan-card .plan-stats .stat-label {
+            font-size: 10px;
+        }
+
+        .plan-card .plan-info {
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        .plan-card .plan-info-row {
+            font-size: 12px;
+        }
+
+        .plan-card .btn-primary-custom {
+            padding: 8px 12px;
+            font-size: 12px;
         }
 
         .account-info-grid {
@@ -918,12 +966,11 @@
 
         .stat-box {
             background: var(--stat-bg);
-            border: 1px solid var(--border-color);
+            border: none;
             border-radius: 12px;
             padding: 24px;
             text-align: center;
-            box-shadow: 0 4px 12px var(--shadow),
-                        0 2px 6px var(--shadow);
+            box-shadow: none;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
@@ -939,7 +986,7 @@
             background: linear-gradient(
                 90deg,
                 transparent,
-                rgba(255, 255, 255, 0.3),
+                rgba(255, 255, 255, 0.1),
                 transparent
             );
             transition: left 0.5s;
@@ -950,10 +997,9 @@
         }
 
         .stat-box:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12),
-                        0 6px 14px rgba(0, 0, 0, 0.08);
-            border-color: rgba(211, 47, 47, 0.3);
+            transform: none;
+            box-shadow: none;
+            border-color: transparent;
         }
 
         .stat-value {
@@ -1267,7 +1313,7 @@
         }
 
         .btn-primary-custom {
-            background: #D32F2F;
+            background: #2D3748;
             color: #fff;
             border: none;
             padding: 12px 24px;
@@ -1275,8 +1321,8 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3),
-                        0 2px 6px rgba(211, 47, 47, 0.2);
+            box-shadow: 0 4px 12px rgba(45, 55, 72, 0.3),
+                        0 2px 6px rgba(45, 55, 72, 0.2);
             position: relative;
             overflow: hidden;
         }
@@ -1300,10 +1346,10 @@
         }
 
         .btn-primary-custom:hover:not(:disabled) {
-            background: #5a9abf;
+            background: #4A5568;
             transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(90, 154, 191, 0.4),
-                        0 4px 10px rgba(90, 154, 191, 0.3);
+            box-shadow: 0 8px 20px rgba(74, 85, 104, 0.4),
+                        0 4px 10px rgba(74, 85, 104, 0.3);
         }
 
         .btn-primary-custom:active:not(:disabled) {
@@ -1382,81 +1428,665 @@
             box-shadow: none !important;
         }
 
-        .trader-card, .plan-card {
+        .trader-strip {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 3px 10px var(--shadow),
-                        0 1px 5px var(--shadow);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+            border: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            transition: all 0.2s ease;
         }
 
-        .trader-card:hover, .plan-card:hover {
-            border-color: rgba(211, 47, 47, 0.4);
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12),
-                        0 8px 16px rgba(0, 0, 0, 0.08);
+        .trader-strip:hover {
+            background: var(--bg-card);
         }
 
-        .trader-profile {
+        .trader-strip-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            gap: 16px;
+        }
+
+        .trader-strip-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .trader-strip-photo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #2D3748 0%, #1A202C 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .trader-strip-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .trader-strip-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trader-strip-spec {
+            font-size: 12px;
+            color: #8b93a7;
+        }
+
+        .trader-strip-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .trader-strip-return {
+            font-size: 14px;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .trader-strip-return,
+        .trader-strip-winrate,
+        .trader-strip-risk {
+            font-size: 12px;
+            color: #8b93a7;
+            min-width: 60px;
+        }
+
+        .trader-strip-chevron {
+            color: #8b93a7;
+            font-size: 12px;
+            width: 16px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .trader-strip-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .trader-strip-content.expanded {
+            max-height: 600px;
+        }
+
+        .trader-strip-details {
+            padding: 0 16px 16px;
+            border-top: none;
+            margin-top: 0;
+        }
+
+        .trader-strip-desc {
+            color: #8b93a7;
+            font-size: 13px;
+            margin: 12px 0;
+            line-height: 1.5;
+        }
+
+        .trader-strip-requirements {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(123, 182, 218, 0.08);
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .trader-strip-requirements .label {
+            color: #8b93a7;
+            font-size: 12px;
+        }
+
+        .trader-strip-requirements .amount {
+            color: #2D3748;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .trader-strip-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .trader-strip-stat-item {
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .trader-strip-stat-item .label {
+            display: block;
+            font-size: 10px;
+            color: #8b93a7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .trader-strip-stat-item .value {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .trader-strip-warning {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 6px;
+            margin-bottom: 12px;
+            color: #ff6b6b;
+            font-size: 12px;
+        }
+
+        .trader-strip-trades {
+            margin-bottom: 12px;
+        }
+
+        .trader-strip-trades-title {
+            font-size: 12px;
+            color: #8b93a7;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trader-strip-trades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 6px;
+        }
+
+        .trader-strip-trade-item {
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: 4px;
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .trader-strip-trade-item .trade-ticker {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .trader-strip-trade-item .trade-price {
+            color: #8b93a7;
+            flex: 1;
+        }
+
+        .trader-strip-trade-item .trade-position {
+            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .trader-strip-trade-item .trade-position.long {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+        }
+
+        .trader-strip-trade-item .trade-position.short {
+            background: rgba(244, 67, 54, 0.15);
+            color: #f44336;
+        }
+
+        .trader-strip-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .trader-strip-btn {
+            padding: 8px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+
+        .trader-strip-btn i {
+            font-size: 11px;
+        }
+
+        .trader-strip-btn.copy {
+            background: #2D3748;
+            border-color: #2D3748;
+            color: white;
+        }
+
+        .trader-strip-btn.copy:hover:not(:disabled) {
+            background: #4A5568;
+            border-color: #4A5568;
+            box-shadow: 0 4px 12px rgba(45, 55, 72, 0.4);
+        }
+
+        .trader-strip-btn.copy.active {
+            background: #2D3748;
+            border-color: #2D3748;
+        }
+
+        .trader-strip-btn.trades {
+            border-color: #1565c0;
+            color: #1565c0;
+        }
+
+        .trader-strip-btn.trades:hover {
+            background: #1565c0;
+            color: white;
+        }
+
+        .trader-strip-btn.profile {
+            border-color: #6a1b9a;
+            color: #6a1b9a;
+        }
+
+        .trader-strip-btn.profile:hover {
+            background: #6a1b9a;
+            color: white;
+        }
+
+        .trader-strip-btn.track {
+            border-color: #00897b;
+            color: #00897b;
+        }
+
+        .trader-strip-btn.track:hover {
+            background: #00897b;
+            color: white;
+        }
+
+        .trader-strip-btn.track.tracking {
+            background: #00897b;
+            border-color: #00897b;
+            color: white;
+        }
+
+        .trader-strip-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .trader-strip-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .trader-profile-modal {
+            text-align: left;
+        }
+
+        .trader-profile-header {
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
-        .trader-profile-photo {
+        .trader-profile-img {
             width: 60px;
             height: 60px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid #D32F2F;
-            box-shadow: 0 3px 10px rgba(211, 47, 47, 0.3),
-                        0 1px 5px rgba(211, 47, 47, 0.2);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid #2D3748;
         }
 
-        .trader-profile-photo:hover {
-            transform: scale(1.15) rotate(5deg);
-            box-shadow: 0 6px 20px rgba(211, 47, 47, 0.4),
-                        0 3px 10px rgba(211, 47, 47, 0.3);
-            border-width: 3px;
-        }
-
-        .trader-trades {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .trader-trades-title {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
+        .trader-profile-img-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2D3748 0%, #1A202C 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
             font-weight: 600;
         }
 
-        .trades-grid {
+        .trader-profile-info h3 {
+            margin: 0 0 5px 0;
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        .trader-profile-spec {
+            color: #8b93a7;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .trader-profile-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .trader-profile-stat {
+            text-align: center;
+            padding: 12px 8px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .trader-profile-stat .value {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .trader-profile-stat .label {
+            font-size: 11px;
+            color: #8b93a7;
+            text-transform: uppercase;
+        }
+
+        .trader-profile-actions {
+            margin: 15px 0;
+            display: flex;
             gap: 10px;
         }
 
-        .trade-item {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 2px 6px var(--shadow);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .trader-profile-actions .btn-primary-custom {
+            flex: 1;
+            padding: 10px 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .trade-item:hover {
-            background: var(--card-hover);
-            border-color: rgba(211, 47, 47, 0.3);
+        .trader-profile-desc {
+            margin-bottom: 20px;
+        }
+
+        .trader-profile-desc h4 {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin: 0 0 8px 0;
+        }
+
+        .trader-profile-desc p {
+            color: #8b93a7;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .trader-profile-trades h4 {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin: 0 0 10px 0;
+        }
+
+        .trader-profile-trades-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .trader-profile-trade-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            gap: 10px;
+        }
+
+        .trader-profile-trade-item .ticker {
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .trader-profile-trade-item .price {
+            color: #8b93a7;
+            font-size: 13px;
+        }
+
+        .trader-profile-trade-item .position {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .trader-profile-trade-item .position.long {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+        }
+
+        .trader-profile-trade-item .position.short {
+            background: rgba(244, 67, 54, 0.15);
+            color: #f44336;
+        }
+
+        .trader-profile-recent-trades {
+            margin-top: 20px;
+        }
+
+        .trader-profile-recent-trades h4 {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin: 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .recent-trades-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .recent-trades-header-row h4 {
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .view-all-trades-link {
+            color: #D32F2F;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .view-all-trades-link:hover {
+            text-decoration: underline;
+        }
+
+        .trader-profile-recent-trades-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .trader-profile-recent-trade-item {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .trade-main-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trade-symbol {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .trade-exchange {
+            font-size: 12px;
+            color: #8b93a7;
+            flex: 1;
+        }
+
+        .trade-side {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .trade-side.long {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+        }
+
+        .trade-side.short {
+            background: rgba(244, 67, 54, 0.15);
+            color: #f44336;
+        }
+
+        .trade-details-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .trade-order-type {
+            color: #1565c0;
+            font-weight: 500;
+            background: rgba(21, 101, 192, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .trade-entry, .trade-notional {
+            color: #8b93a7;
+        }
+
+        .trade-leverage {
+            color: #ff9800;
+            font-weight: 600;
+        }
+
+        .trade-timestamp {
+            font-size: 11px;
+            color: #8b93a7;
+            text-align: right;
+        }
+
+        .trader-profile-popup .swal2-html-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .trader-strip-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .trader-strip-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .trader-strip-header {
+                padding: 10px 12px;
+                gap: 10px;
+            }
+            .trader-strip-meta {
+                gap: 10px;
+            }
+            .trader-strip-return {
+                font-size: 13px;
+                min-width: 50px;
+            }
+            .trader-strip-winrate,
+            .trader-strip-risk {
+                display: none;
+            }
+            .trader-strip-stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .trader-strip-photo {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+            .trader-strip-name {
+                font-size: 13px;
+            }
+            .trader-strip-spec {
+                font-size: 11px;
+            }
+            .trader-strip-return {
+                font-size: 12px;
+                min-width: 45px;
+            }
+        }
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 6px 16px var(--shadow),
                         0 3px 8px var(--shadow);
@@ -1543,7 +2173,7 @@
 
         .news-article-card {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            border: none;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
@@ -1552,9 +2182,8 @@
         }
 
         .news-article-card:hover {
-            border-color: rgba(211, 47, 47, 0.3);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px var(--shadow);
+            transform: none;
+            box-shadow: none;
         }
 
         .news-article-image {
@@ -2031,7 +2660,7 @@
             }
 
             /* Investment and transaction cards responsive */
-            .trader-card, .plan-card, .news-article-card {
+            .plan-card, .news-article-card {
                 padding: 15px;
             }
 
@@ -2109,14 +2738,6 @@
 
             .news-category-btn {
                 padding: 6px 10px;
-                font-size: 12px;
-            }
-
-            .trader-card h3 {
-                font-size: 14px;
-            }
-
-            .trader-card p {
                 font-size: 12px;
             }
 
@@ -2219,6 +2840,604 @@
 
         .modal-content .btn-primary-custom {
             transition: all 0.3s ease;
+        }
+
+        /* Traders Filter Bar */
+        .traders-filter-bar {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .traders-filter-bar .search-wrapper {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .traders-filter-bar .search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8b93a7;
+        }
+
+        .traders-filter-bar .search-wrapper input {
+            width: 100%;
+            padding: 10px 10px 10px 36px;
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .traders-filter-bar select {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-primary, #fff);
+            color: var(--text-primary, #1f2937);
+            min-width: 150px;
+        }
+
+        /* Recent Trades Grid */
+        .recent-trades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .recent-trade-card {
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .recent-trade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color, #e5e7eb);
+        }
+
+        .recent-trade-trader {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recent-trade-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #D32F2F, #5a9abf);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            overflow: hidden;
+        }
+
+        .recent-trade-avatar i {
+            font-size: 14px;
+        }
+
+        .recent-trade-trader-name {
+            font-weight: 600;
+            color: var(--text-primary, #1f2937);
+            font-size: 14px;
+        }
+
+        .recent-trade-time {
+            color: var(--text-secondary, #6b7280);
+            font-size: 12px;
+        }
+
+        .recent-trade-main {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .recent-trade-symbol {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-primary, #1f2937);
+        }
+
+        .recent-trade-exchange {
+            color: var(--text-secondary, #6b7280);
+            font-size: 12px;
+            padding: 2px 8px;
+            background: var(--bg-secondary, #f3f4f6);
+            border-radius: 4px;
+        }
+
+        .recent-trade-side {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .recent-trade-side.long {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+        }
+
+        .recent-trade-side.short {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+        }
+
+        .recent-trade-details {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .recent-trade-detail {
+            text-align: center;
+        }
+
+        .recent-trade-detail .label {
+            display: block;
+            font-size: 10px;
+            color: var(--text-secondary, #6b7280);
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .recent-trade-detail .value {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-primary, #1f2937);
+        }
+
+        /* Recent Trades Filter Bar */
+        .recent-trades-filter-bar {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .recent-trades-filter-bar .search-wrapper {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .recent-trades-filter-bar .search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8b93a7;
+        }
+
+        .recent-trades-filter-bar input {
+            width: 100%;
+            padding: 10px 10px 10px 36px;
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .recent-trades-filter-bar select {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-primary, #fff);
+            color: var(--text-primary, #1f2937);
+            min-width: 140px;
+        }
+
+        /* Posts Filter Bar */
+        .posts-filter-bar {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .posts-filter-bar .search-wrapper {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .posts-filter-bar .search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8b93a7;
+        }
+
+        .posts-filter-bar input {
+            width: 100%;
+            padding: 10px 10px 10px 36px;
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .posts-filter-bar select {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-primary, #fff);
+            color: var(--text-primary, #1f2937);
+            cursor: pointer;
+            min-width: 140px;
+        }
+
+        /* Active Copies Grid */
+        .copies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .copy-card {
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .copy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color, #e5e7eb);
+        }
+
+        .copy-trader {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D32F2F, #5a9abf);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            overflow: hidden;
+        }
+
+        .copy-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .copy-trader-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .copy-trader-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary, #1f2937);
+        }
+
+        .copy-trader-specialization {
+            font-size: 12px;
+            color: var(--text-secondary, #6b7280);
+        }
+
+        .copy-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .copy-status.active {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+        }
+
+        .copy-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .copy-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .copy-stat .label {
+            font-size: 11px;
+            color: var(--text-secondary, #6b7280);
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .copy-stat .value {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary, #1f2937);
+        }
+
+        .copy-stat .value.positive {
+            color: #4caf50;
+        }
+
+        .copy-stat .value.negative {
+            color: #f44336;
+        }
+
+        /* Performance Stats */
+        .performance-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .performance-stat-card {
+            background: var(--bg-secondary, #f5f5f5);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .performance-stat-card .label {
+            font-size: 12px;
+            color: var(--text-secondary, #6b7280);
+        }
+
+        .performance-stat-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary, #1f2937);
+        }
+
+        .performance-stat-card .value.positive {
+            color: #4caf50;
+        }
+
+        .performance-stat-card .value.negative {
+            color: #f44336;
+        }
+
+        /* Performance Comparison */
+        .comparison-header, .comparison-row, .comparison-total {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 16px;
+            padding: 12px;
+            align-items: center;
+        }
+
+        .comparison-header {
+            background: var(--bg-secondary, #f5f5f5);
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary, #6b7280);
+        }
+
+        .comparison-row {
+            border-bottom: 1px solid var(--border-color, #e5e7eb);
+        }
+
+        .comparison-row .trader-name {
+            font-size: 14px;
+            color: var(--text-primary, #1f2937);
+        }
+
+        .comparison-row .trader-roi, .comparison-row .trader-pnl {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .comparison-row .positive, .comparison-total .positive {
+            color: #4caf50;
+        }
+
+        .comparison-row .negative, .comparison-total .negative {
+            color: #f44336;
+        }
+
+        .comparison-total {
+            background: var(--bg-secondary, #f5f5f5);
+            border-radius: 0 0 8px 8px;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-primary, #1f2937);
+        }
+
+        /* Posts Grid */
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .post-card {
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .post-trader {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .post-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #D32F2F, #5a9abf);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .post-trader-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-trader-name {
+            font-weight: 600;
+            color: var(--text-primary, #1f2937);
+            font-size: 15px;
+        }
+
+        .post-time {
+            color: var(--text-secondary, #6b7280);
+            font-size: 12px;
+        }
+
+        .post-content {
+            flex: 1;
+        }
+
+        .post-content p {
+            margin: 0;
+            color: var(--text-primary, #1f2937);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color, #e5e7eb);
+        }
+
+        .post-like-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary, #6b7280);
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        .post-like-btn:hover {
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .post-like-btn.liked {
+            color: #f44336;
+        }
+
+        .post-like-btn.liked .fa-thumbs-up {
+            animation: thumbPop 0.3s ease;
+        }
+
+        .post-dislike-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary, #6b7280);
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        .post-dislike-btn:hover {
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .post-dislike-btn.disliked {
+            color: #f44336;
+        }
+
+        .post-dislike-btn.disliked .fa-thumbs-down {
+            animation: thumbPop 0.3s ease;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        @keyframes thumbPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -2330,10 +3549,29 @@
                     <i class="fa-solid fa-wallet"></i>
                     <span data-i18n="dashboard.tab.wallet">Wallet</span>
                 </a>
-                <a class="menu-item" data-tab="portfolio">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <span data-i18n="nav.portfolio">Portfolio</span>
-                </a>
+
+                <!-- Portfolio Parent with Submenu -->
+                <div class="menu-item-parent">
+                    <a class="menu-item" id="portfolio-menu">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span data-i18n="nav.portfolio">Portfolio</span>
+                        <i class="fa-solid fa-chevron-right submenu-arrow"></i>
+                    </a>
+                    <div class="submenu" id="portfolio-submenu">
+                        <a class="submenu-item" data-tab="automated-calls">
+                            <i class="fa-solid fa-robot"></i>
+                            <span>Automated Calls</span>
+                        </a>
+                        <a class="submenu-item" data-tab="active-copies">
+                            <i class="fa-solid fa-copy"></i>
+                            <span>Active Copies</span>
+                        </a>
+                        <a class="submenu-item" data-tab="performance">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>Performance</span>
+                        </a>
+                    </div>
+                </div>
 
                 <!-- Explore Parent with Submenu -->
                 <div class="menu-item-parent">
@@ -2349,15 +3587,15 @@
                         </a>
                         <a class="submenu-item" data-tab="etf-plans">
                             <i class="fa-solid fa-chart-pie"></i>
-                            <span data-i18n="nav.etf">ETF Plans</span>
+                            <span data-i18n="nav.etf">ETF Automation</span>
                         </a>
                         <a class="submenu-item" data-tab="defi-earnings">
                             <i class="fa-solid fa-coins"></i>
-                            <span data-i18n="nav.defi">DeFi Earnings</span>
+                            <span data-i18n="nav.defi">DeFi Automation</span>
                         </a>
                         <a class="submenu-item" data-tab="options">
                             <i class="fa-solid fa-file-alt"></i>
-                            <span data-i18n="nav.options">Options Trading</span>
+                            <span data-i18n="nav.options">Options Automation</span>
                         </a>
                         <a class="submenu-item" data-tab="staking">
                             <i class="fa-solid fa-layer-group"></i>
@@ -2366,10 +3604,29 @@
                     </div>
                 </div>
 
-                <a class="menu-item" data-tab="traders">
-                    <i class="fa-solid fa-users-line"></i>
-                    <span data-i18n="nav.traders">Traders</span>
-                </a>
+                <!-- Network Parent with Submenu -->
+                <div class="menu-item-parent">
+                    <a class="menu-item" id="network-menu">
+                        <i class="fa-solid fa-network-wired"></i>
+                        <span>Network</span>
+                        <i class="fa-solid fa-chevron-right submenu-arrow"></i>
+                    </a>
+                    <div class="submenu" id="network-submenu">
+                        <a class="submenu-item" data-tab="traders">
+                            <i class="fa-solid fa-users-line"></i>
+                            <span data-i18n="nav.traders">Traders</span>
+                        </a>
+                        <a class="submenu-item" data-tab="recent-trades">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>Recent Trades</span>
+                        </a>
+                        <a class="submenu-item" data-tab="posts">
+                            <i class="fa-solid fa-newspaper"></i>
+                            <span>Posts</span>
+                        </a>
+                    </div>
+                </div>
+
                 <a class="menu-item" data-tab="referrals">
                     <i class="fa-solid fa-share-nodes"></i>
                     <span data-i18n="nav.referrals">Referrals</span>
@@ -2730,8 +3987,8 @@
                 </div>
             </div>
 
-            <!-- Portfolio Performance Tab -->
-            <div class="tab-content-wrapper" id="tab-portfolio">
+            <!-- Automated Calls Tab -->
+            <div class="tab-content-wrapper" id="tab-automated-calls">
                 <div class="content-header">
                     <h1 data-i18n="portfolio.title">Portfolio Performance</h1>
                     <p data-i18n="portfolio.performance">Track your investment performance and returns</p>
@@ -2762,6 +4019,81 @@
                     <h3 style="margin-bottom: 20px;" data-i18n="portfolio.yourInvestments">Your Investments</h3>
                     <div id="investments-container">
                         <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="status.loading">Loading your investments...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Copies Tab -->
+            <div class="tab-content-wrapper" id="tab-active-copies">
+                <div class="content-header">
+                    <h1>Active Copies</h1>
+                    <p>Traders you are currently copying</p>
+                </div>
+                
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="active-copies-count">0</div>
+                        <div class="stat-label">Active Traders</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="active-copies-total">$0.00</div>
+                        <div class="stat-label">Total Copied</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="active-copies-pnl">$0.00</div>
+                        <div class="stat-label">Total P&L</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="active-copies-roi">0%</div>
+                        <div class="stat-label">Average ROI</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3 style="margin-bottom: 20px;">Your Active Copies</h3>
+                    <div id="active-copies-container">
+                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading active copies...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div class="tab-content-wrapper" id="tab-performance">
+                <div class="content-header">
+                    <h1>Performance</h1>
+                    <p>Your copy trading performance overview</p>
+                </div>
+                
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="perf-total-return">$0.00</div>
+                        <div class="stat-label">Total Return</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="perf-return-rate">0%</div>
+                        <div class="stat-label">Return Rate</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="perf-win-rate">0%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="perf-total-trades">0</div>
+                        <div class="stat-label">Total Trades</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3 style="margin-bottom: 20px;">Performance Breakdown</h3>
+                    <div id="performance-container">
+                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading performance data...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3 style="margin-bottom: 20px;">Comparison with Active Copies</h3>
+                    <div id="performance-comparison-container">
+                        <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading comparison data...</p>
                     </div>
                 </div>
             </div>
@@ -2889,12 +4221,106 @@
             <!-- Traders Tab -->
             <div class="tab-content-wrapper" id="tab-traders">
                 <div class="content-header">
-                    <h1 data-i18n="explore.title">Available Traders</h1>
+                    <h1 data-i18n="explore.title">Top Traders</h1>
                     <p data-i18n="explore.subtitle">Browse and copy successful traders</p>
+                </div>
+
+                <div class="traders-filter-bar">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="traders-search" placeholder="Search traders..." oninput="filterTraders()">
+                    </div>
+                    <select id="traders-specialization-filter" onchange="filterTraders()">
+                        <option value="">All Specializations</option>
+                        <option value="Crypto">Crypto</option>
+                        <option value="Forex">Forex</option>
+                        <option value="Stocks">Stocks</option>
+                        <option value="Options">Options</option>
+                        <option value="Commodities">Commodities</option>
+                    </select>
+                    <select id="traders-risk-filter" onchange="filterTraders()">
+                        <option value="">All Risk Levels</option>
+                        <option value="1-3">Low (1-3)</option>
+                        <option value="4-6">Medium (4-6)</option>
+                        <option value="7-10">High (7-10)</option>
+                    </select>
+                    <select id="traders-winrate-filter" onchange="filterTraders()">
+                        <option value="">All Win Rates</option>
+                        <option value="70+">70%+</option>
+                        <option value="50-70">50-70%</option>
+                        <option value="<50">Under 50%</option>
+                    </select>
                 </div>
 
                 <div id="traders-container">
                     <p style="text-align: center; color: #8b93a7; padding: 40px 0;" data-i18n="status.loading">Loading traders...</p>
+                </div>
+            </div>
+
+            <!-- Recent Trades Tab -->
+            <div class="tab-content-wrapper" id="tab-recent-trades">
+                <div class="content-header">
+                    <h1>Recent Trades</h1>
+                    <p>Latest trades from all traders in the network</p>
+                </div>
+                
+                <div class="recent-trades-filter-bar">
+                    <input type="hidden" id="trades-trader-filter" value="">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="recent-trades-search" placeholder="Search by symbol or trader..." oninput="filterRecentTrades()">
+                    </div>
+                    <select id="trades-side-filter" onchange="filterRecentTrades()">
+                        <option value="">All Sides</option>
+                        <option value="long">Long</option>
+                        <option value="short">Short</option>
+                    </select>
+                    <select id="trades-exchange-filter" onchange="filterRecentTrades()">
+                        <option value="">All Exchanges</option>
+                        <option value="Binance">Binance</option>
+                        <option value="Coinbase">Coinbase</option>
+                        <option value="Kraken">Kraken</option>
+                        <option value="eToro">eToro</option>
+                        <option value="OANDA">OANDA</option>
+                    </select>
+                    <select id="trades-ordertype-filter" onchange="filterRecentTrades()">
+                        <option value="">All Order Types</option>
+                        <option value="market">Market</option>
+                        <option value="limit">Limit</option>
+                        <option value="stop_loss">Stop Loss</option>
+                        <option value="take_profit">Take Profit</option>
+                    </select>
+                </div>
+
+                <div id="recent-trades-container">
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading recent trades...</p>
+                </div>
+            </div>
+
+            <!-- Posts Tab -->
+            <div class="tab-content-wrapper" id="tab-posts">
+                <div class="content-header">
+                    <h1>Network Posts</h1>
+                    <p>Latest updates from traders in the network</p>
+                </div>
+                
+                <div class="posts-filter-bar">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="posts-search" placeholder="Search posts..." oninput="filterPosts()">
+                    </div>
+                    <select id="posts-trader-filter" onchange="filterPosts()">
+                        <option value="">All Traders</option>
+                    </select>
+                    <select id="posts-sort-filter" onchange="filterPosts()">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="most-liked">Most Liked</option>
+                    </select>
+                </div>
+
+                <div id="posts-container">
+                    <p style="text-align: center; color: #8b93a7; padding: 40px 0;">Loading posts...</p>
                 </div>
             </div>
 
@@ -3665,6 +5091,28 @@
             accountSubmenu.classList.toggle('expanded');
         });
 
+        // Network submenu dropdown toggle
+        const networkMenu = document.getElementById('network-menu');
+        const networkSubmenu = document.getElementById('network-submenu');
+        const networkParent = networkMenu.closest('.menu-item-parent');
+
+        networkMenu.addEventListener('click', function(e) {
+            e.preventDefault();
+            networkParent.classList.toggle('expanded');
+            networkSubmenu.classList.toggle('expanded');
+        });
+
+        // Portfolio submenu dropdown toggle
+        const portfolioMenu = document.getElementById('portfolio-menu');
+        const portfolioSubmenu = document.getElementById('portfolio-submenu');
+        const portfolioParent = portfolioMenu.closest('.menu-item-parent');
+
+        portfolioMenu.addEventListener('click', function(e) {
+            e.preventDefault();
+            portfolioParent.classList.toggle('expanded');
+            portfolioSubmenu.classList.toggle('expanded');
+        });
+
         // Tab switching functionality for regular menu items
         document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
             item.addEventListener('click', function() {
@@ -3704,10 +5152,22 @@
                 document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
 
                 // Show selected tab content
-                document.getElementById('tab-' + tabName).classList.add('active');
+                const tabContent = document.getElementById('tab-' + tabName);
+                if (tabContent) {
+                    tabContent.classList.add('active');
+                }
 
                 // Scroll to top of page
                 window.scrollTo(0, 0);
+
+                // Load data for specific tabs
+                if (tabName === 'traders') {
+                    loadExpertTraders(true);
+                } else if (tabName === 'recent-trades') {
+                    loadRecentTrades(true);
+                } else if (tabName === 'posts') {
+                    loadPosts(true);
+                }
 
                 // Close mobile sidebar if open
                 if (window.innerWidth <= 768) {

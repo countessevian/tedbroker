@@ -5,10 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+import asyncio
 
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routes import auth, traders, plans, etf_plans, defi_plans, options_plans, wallet, referrals, admin, deposits, investments, news, crypto_wallets, withdrawals, chat, onboarding, notifications, language
 from app.rate_limiter import limiter
+from app.trade_scheduler import update_all_traders_trades, initialize_traders_trades, run_trade_scheduler
 
 app = FastAPI(
     title="TED Broker API",
@@ -71,6 +73,10 @@ app.include_router(language.router)
 async def startup_db_client():
     """Initialize database connection on startup"""
     connect_to_mongo()
+    
+    await initialize_traders_trades()
+    
+    asyncio.create_task(run_trade_scheduler())
 
 
 @app.on_event("shutdown")

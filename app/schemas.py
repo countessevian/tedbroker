@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
+from bson import ObjectId
 import re
 
 
@@ -72,6 +73,7 @@ class UserResponse(BaseModel):
     country: Optional[str] = None
     account_types: Optional[List[str]] = None
     wallet_balance: float = 0.0
+    copy_trading_allocation: float = 0.0  # Amount allocated for copy trading
     is_active: bool = True
     is_verified: bool = False
     two_fa_enabled: bool = False
@@ -141,6 +143,45 @@ class Trade(BaseModel):
         return v
 
 
+class RecentTrade(BaseModel):
+    """Schema for a recent trade with full details"""
+    symbol: str = Field(..., description="Asset ticker symbol (e.g., AAPL, BTC, EUR/USD)")
+    exchange: str = Field(..., description="Exchange or platform (e.g., Binance, NASDAQ, Forex.com)")
+    side: str = Field(..., description="Trade side: 'long' or 'short'")
+    order_type: str = Field(..., description="Order type: 'market', 'limit', 'stop_loss', 'take_profit'")
+    entry_price: float = Field(..., description="Entry price of the trade")
+    notional_value: float = Field(..., description="Notional value (price x quantity)")
+    leverage: float = Field(default=1.0, ge=1, le=100, description="Leverage multiplier")
+    timestamp: Optional[str] = Field(None, description="Trade timestamp")
+
+    @field_validator('side')
+    @classmethod
+    def validate_side(cls, v):
+        if v not in ['long', 'short']:
+            raise ValueError('Side must be either "long" or "short"')
+        return v
+
+    @field_validator('order_type')
+    @classmethod
+    def validate_order_type(cls, v):
+        allowed = ['market', 'limit', 'stop_loss', 'take_profit']
+        if v not in allowed:
+            raise ValueError(f'Order type must be one of: {", ".join(allowed)}')
+        return v
+
+
+class TraderPost(BaseModel):
+    """Schema for a trader post"""
+    id: str = Field(default_factory=lambda: str(ObjectId()), description="Unique post ID")
+    trader_id: Optional[str] = Field(None, description="ID of the trader who created the post")
+    content: str = Field(..., description="Post content/text")
+    image_url: Optional[str] = Field(None, description="Optional post image URL")
+    likes: List[str] = Field(default=[], description="List of user IDs who liked this post")
+    dislikes: List[str] = Field(default=[], description="List of user IDs who disliked this post")
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="Post creation timestamp")
+    updated_at: Optional[datetime] = Field(None, description="Post update timestamp")
+
+
 class ExpertTrader(BaseModel):
     """Schema for an expert trader"""
     id: str
@@ -152,7 +193,12 @@ class ExpertTrader(BaseModel):
     win_rate: float = Field(..., description="Win rate percentage")
     copiers: int = Field(..., description="Number of copiers")
     minimum_copy_amount: float = Field(default=100.0, gt=0, description="Minimum amount required to copy this trader in USD")
+    assets_under_management: float = Field(default=0.0, description="Total assets under management in USD")
+    max_drawdown: float = Field(default=0.0, description="Maximum drawdown percentage (peak-to-trough)")
+    risk_score: int = Field(default=5, ge=1, le=10, description="Risk score from 1 (lowest) to 10 (highest)")
     trades: List[Trade] = Field(default=[], description="List of recent trades")
+    recent_trades: List[RecentTrade] = Field(default=[], description="List of 10 recent trades with full details")
+    posts: List[TraderPost] = Field(default=[], description="Trader's posts")
     created_at: datetime
     updated_at: datetime
 
@@ -171,7 +217,12 @@ class ExpertTraderResponse(BaseModel):
     win_rate: float
     copiers: int
     minimum_copy_amount: float
+    assets_under_management: float = 0.0
+    max_drawdown: float = 0.0
+    risk_score: int = 5
     trades: List[Trade]
+    recent_trades: List[RecentTrade] = []
+    posts: List[TraderPost] = []
 
     class Config:
         from_attributes = True
