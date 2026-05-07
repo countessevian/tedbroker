@@ -1,24 +1,26 @@
 """
-Email Service using SendGrid
+Email Service using Postmark
 Handles sending emails for 2FA verification codes
 """
 
 import os
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
+import json
 from typing import Optional
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 
 class EmailService:
-    """Service for sending emails via SendGrid"""
+    """Service for sending emails via Postmark"""
 
     def __init__(self):
-        self.api_key = os.getenv("SENDGRID_API_KEY")
-        self.from_email = os.getenv("SENDGRID_FROM_EMAIL", "noreply@tedbrokers.com")
-        self.from_name = os.getenv("SENDGRID_FROM_NAME", "TED Brokers")
+        self.api_key = os.getenv("POSTMARK_API_KEY")
+        self.from_email = os.getenv("POSTMARK_FROM_EMAIL", "noreply@tedbrokers.com")
+        self.from_name = os.getenv("POSTMARK_FROM_NAME", "TED Brokers")
+        self.api_url = "https://api.postmarkapp.com/email"
 
         if not self.api_key:
-            print("WARNING: SENDGRID_API_KEY not configured. Email sending will be disabled.")
+            print("WARNING: POSTMARK_API_KEY not configured. Email sending will be disabled.")
 
     def send_email(
         self,
@@ -28,7 +30,7 @@ class EmailService:
         plain_content: Optional[str] = None
     ) -> bool:
         """
-        Send an email via SendGrid
+        Send an email via Postmark
 
         Args:
             to_email: Recipient email address
@@ -40,32 +42,50 @@ class EmailService:
             bool: True if email sent successfully, False otherwise
         """
         if not self.api_key:
-            print(f"⚠️  SendGrid API key not configured!")
+            print(f"⚠️  Postmark API key not configured!")
             print(f"Email would have been sent to {to_email}: {subject}")
             return False
 
         try:
-            message = Mail(
-                from_email=Email(self.from_email, self.from_name),
-                to_emails=To(to_email),
-                subject=subject,
-                plain_text_content=Content("text/plain", plain_content or ""),
-                html_content=Content("text/html", html_content)
+            payload = {
+                "From": f"{self.from_name} <{self.from_email}>",
+                "To": to_email,
+                "Subject": subject,
+                "HtmlBody": html_content,
+                "TextBody": plain_content or "",
+                "TrackOpens": True
+            }
+
+            data = json.dumps(payload).encode("utf-8")
+            req = Request(
+                self.api_url,
+                data=data,
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-Postmark-Server-Token": self.api_key
+                },
+                method="POST"
             )
 
-            sg = SendGridAPIClient(self.api_key)
-            response = sg.send(message)
+            with urlopen(req) as response:
+                if response.status == 200:
+                    print(f"✓ Email sent successfully to {to_email}")
+                    print(f"  Subject: {subject}")
+                    print(f"  Status: {response.status}")
+                    return True
+                else:
+                    response_body = response.read().decode("utf-8")
+                    print(f"✗ Email sending failed to {to_email}")
+                    print(f"  Status: {response.status}")
+                    print(f"  Response: {response_body}")
+                    return False
 
-            if response.status_code in [200, 201, 202]:
-                print(f"✓ Email sent successfully to {to_email}")
-                print(f"  Subject: {subject}")
-                print(f"  Status: {response.status_code}")
-                return True
-            else:
-                print(f"✗ Email sending failed to {to_email}")
-                print(f"  Status: {response.status_code}")
-                print(f"  Response: {response.body}")
-                return False
+        except HTTPError as e:
+            error_body = e.read().decode("utf-8") if e.fp else str(e)
+            print(f"✗ Error sending email to {to_email}: {e.code} {e.reason}")
+            print(f"  Response: {error_body}")
+            return False
         except Exception as e:
             print(f"✗ Error sending email to {to_email}: {str(e)}")
             import traceback
@@ -454,7 +474,6 @@ class EmailService:
         login_time = datetime.utcnow().strftime("%B %d, %Y at %H:%M UTC")
         subject = "New Login to Your TED Brokers Account"
 
-        # Handle device_info if it's a dict
         if isinstance(device_info, dict):
             device_display = f"{device_info.get('browser', 'Unknown Browser')} on {device_info.get('os', 'Unknown OS')}"
             device_type = device_info.get('device', 'Unknown Device')
@@ -462,7 +481,6 @@ class EmailService:
             device_display = device_info
             device_type = "Unknown Device"
 
-        # Handle location if it's a dict
         if isinstance(location, dict):
             city = location.get('city', 'Unknown')
             country = location.get('country', 'Unknown')
@@ -499,7 +517,6 @@ class EmailService:
                     background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
                     padding: 40px 30px;
                     text-align: center;
-                    position: relative;
                 }}
                 .header-icon {{
                     font-size: 60px;
@@ -1014,8 +1031,8 @@ class EmailService:
         approval_time = datetime.utcnow().strftime("%B %d, %Y at %H:%M UTC")
         subject = "Withdrawal Processed - TED Brokers"
 
-        # Format account details based on withdrawal method
         account_info = ""
+        account_plain = ""
         if withdrawal_method == "bank":
             account_info = f"""
                         <div class="detail-row">
@@ -1185,7 +1202,7 @@ class EmailService:
                             <span class="detail-label">Method:</span>
                             <span class="detail-value">{withdrawal_method.title()}</span>
                         </div>
-{account_info}
+                        {account_info}
                         <div class="detail-row">
                             <span class="detail-label">Processed:</span>
                             <span class="detail-value">{approval_time}</span>
@@ -1237,5 +1254,4 @@ class EmailService:
         return self.send_email(to_email, subject, html_content, plain_content)
 
 
-# Create a singleton instance
 email_service = EmailService()
