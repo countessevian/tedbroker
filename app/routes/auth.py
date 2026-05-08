@@ -1033,13 +1033,18 @@ async def google_login():
 async def google_callback(code: str, request: Request):
     """Handle Google OAuth callback"""
     try:
+        # Build redirect URI dynamically from request
+        host = request.url.hostname
+        port = request.url.port or (443 if request.url.scheme == "https" else 80)
+        redirect_uri = f"{request.url.scheme}://{host}:{port}/api/auth/google/callback"
+        
         # Exchange code for tokens
         token_url = "https://oauth2.googleapis.com/token"
         token_data = {
             "code": code,
             "client_id": GOOGLE_CLIENT_ID,
             "client_secret": GOOGLE_CLIENT_SECRET,
-            "redirect_uri": GOOGLE_REDIRECT_URI,
+            "redirect_uri": redirect_uri,
             "grant_type": "authorization_code"
         }
 
