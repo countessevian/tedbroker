@@ -1015,12 +1015,17 @@ GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 
 
 @router.get("/google/login")
-async def google_login():
+async def google_login(request: Request):
     """Initiate Google OAuth flow"""
+    # Build redirect URI dynamically from request
+    host = request.url.hostname
+    port = request.url.port or (443 if request.url.scheme == "https" else 80)
+    redirect_uri = f"{request.url.scheme}://{host}:{port}/api/auth/google/callback"
+    
     google_auth_url = (
         f"https://accounts.google.com/o/oauth2/v2/auth?"
         f"client_id={GOOGLE_CLIENT_ID}&"
-        f"redirect_uri={GOOGLE_REDIRECT_URI}&"
+        f"redirect_uri={redirect_uri}&"
         f"response_type=code&"
         f"scope=openid%20email%20profile&"
         f"access_type=offline&"
