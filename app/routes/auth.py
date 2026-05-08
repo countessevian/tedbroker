@@ -133,7 +133,7 @@ async def register(request: Request, user_data: UserRegister):
     )
 
     if not email_sent:
-        # If Postmark is not configured, log the code for testing
+        # If SendGrid is not configured, log the code for testing
         print(f"2FA Code for {user_dict['email']}: {code}")
 
     # Return response indicating 2FA is required
@@ -283,7 +283,7 @@ async def login(request: Request, user_credentials: UserLogin):
     )
 
     if not email_sent:
-        # If Postmark is not configured, log the code for testing
+        # If SendGrid is not configured, log the code for testing
         print(f"2FA Code for {user['email']}: {code}")
 
     return {
@@ -1202,7 +1202,7 @@ async def google_callback(code: str, request: Request):
     except Exception as e:
         print(f"Google OAuth error: {e}")
         # Redirect to login page with error
-        redirect_url = "/login?error=oauth_failed"
+        redirect_url = "/copytradingbroker.io/login.html?error=oauth_failed"
         return RedirectResponse(url=redirect_url)
 
 
