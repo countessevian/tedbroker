@@ -1979,7 +1979,7 @@ function createPlanCard(plan) {
             <div style="font-size: 11px; color: #8b93a7;">Minimum Investment</div>
         </div>
 
-        <p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 12px;">${plan.description}</p>
+        <p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 12px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${plan.description}</p>
 
         <div class="plan-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; padding: 10px; background: rgba(123, 182, 218, 0.05); border-radius: 6px;">
             <div>
@@ -1994,12 +1994,12 @@ function createPlanCard(plan) {
 
         <div class="plan-info" style="padding: 8px; background: rgba(123, 182, 218, 0.05); border-radius: 6px; margin-bottom: 10px;">
             <div class="plan-info-row" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="color: #8b93a7; font-size: 11px;">Profit:</span>
-                <span style="color: #4caf50; font-weight: 600; font-size: 11px;">$${parseFloat(potentialProfit).toLocaleString()}</span>
+                <span style="color: #8b93a7; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">Profit:</span>
+                <span style="color: #4caf50; font-weight: 600; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">$${parseFloat(potentialProfit).toLocaleString()}</span>
             </div>
             <div class="plan-info-row" style="display: flex; justify-content: space-between;">
-                <span style="color: #8b93a7; font-size: 11px;">Subscribers:</span>
-                <span style="color: #000; font-weight: 600; font-size: 11px;">${plan.current_subscribers.toLocaleString()}</span>
+                <span style="color: #8b93a7; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">Subscribers:</span>
+                <span style="color: #000; font-weight: 600; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${plan.current_subscribers.toLocaleString()}</span>
             </div>
         </div>
 
@@ -2256,7 +2256,7 @@ function createETFPlanCard(plan) {
             </span>
         </div>
 
-        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 11px;">${plan.description}</p>` : ''}
+        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${plan.description}</p>` : ''}
 
         <div class="plan-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; padding: 10px; background: rgba(102, 126, 234, 0.08); border-radius: 6px;">
             <div>
@@ -2272,7 +2272,7 @@ function createETFPlanCard(plan) {
         ${plan.minimum_investment > 0 ? `
             <div class="plan-info" style="padding: 8px; background: rgba(102, 126, 234, 0.08); border-radius: 6px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: #8b93a7; font-size: 11px;">Min:</span>
+                    <span style="color: #8b93a7; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">Min:</span>
                     <span style="color: #D32F2F; font-weight: 700; font-size: 14px;">$${plan.minimum_investment.toLocaleString()}</span>
                 </div>
             </div>
@@ -2584,7 +2584,7 @@ function createDeFiPlanCard(plan) {
             </span>
         </div>
 
-        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 11px;">${plan.description}</p>` : ''}
+        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${plan.description}</p>` : ''}
 
         <div class="plan-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; padding: 10px; background: rgba(17, 153, 142, 0.08); border-radius: 6px;">
             <div>
@@ -2600,7 +2600,7 @@ function createDeFiPlanCard(plan) {
         ${plan.minimum_investment > 0 ? `
             <div class="plan-info" style="padding: 8px; background: rgba(17, 153, 142, 0.08); border-radius: 6px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: #8b93a7; font-size: 11px;">Min:</span>
+                    <span style="color: #8b93a7; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">Min:</span>
                     <span style="color: #D32F2F; font-weight: 700; font-size: 14px;">$${plan.minimum_investment.toLocaleString()}</span>
                 </div>
             </div>
@@ -2912,7 +2912,7 @@ function createOptionsPlanCard(plan) {
             </span>
         </div>
 
-        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 11px;">${plan.description}</p>` : ''}
+        ${plan.description ? `<p style="color: #8b93a7; margin-bottom: 10px; line-height: 1.4; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${plan.description}</p>` : ''}
 
         <div class="plan-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; padding: 10px; background: rgba(102, 126, 234, 0.08); border-radius: 6px;">
             <div>
@@ -2928,7 +2928,7 @@ function createOptionsPlanCard(plan) {
         ${plan.minimum_investment > 0 ? `
             <div class="plan-info" style="padding: 8px; background: rgba(102, 126, 234, 0.08); border-radius: 6px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: #8b93a7; font-size: 11px;">Min:</span>
+                    <span style="color: #8b93a7; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">Min:</span>
                     <span style="color: #D32F2F; font-weight: 700; font-size: 14px;">$${plan.minimum_investment.toLocaleString()}</span>
                 </div>
             </div>
@@ -4834,8 +4834,8 @@ function createInvestmentCard(investment) {
                 <div style="width: ${progressPercent}%; height: 100%; background: linear-gradient(90deg, #D32F2F, #5a9abf); border-radius: 4px;"></div>
             </div>
             <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                <span style="color: #8b93a7; font-size: 11px;">${investment.days_elapsed} days elapsed</span>
-                <span style="color: #8b93a7; font-size: 11px;">${investment.days_remaining} days remaining</span>
+                <span style="color: #8b93a7; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${investment.days_elapsed} days elapsed</span>
+                <span style="color: #8b93a7; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${investment.days_remaining} days remaining</span>
             </div>
         </div>
 
@@ -4955,7 +4955,7 @@ function createDashboardInvestmentCard(investment) {
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
             <div>
                 <h3 style="color: #D32F2F; margin: 0 0 5px 0; font-size: 18px;">${investment.plan_name}</h3>
-                <span class="badge-status badge-active" style="font-size: 11px;">Active</span>
+                <span class="badge-status badge-active" style="font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">Active</span>
             </div>
             <div style="text-align: right;">
                 <div style="font-size: 20px; font-weight: bold; color: #000;">$${investment.amount_invested.toLocaleString()}</div>
@@ -4980,7 +4980,7 @@ function createDashboardInvestmentCard(investment) {
 
         <div style="margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span style="color: #8b93a7; font-size: 11px;">Progress to Maturity</span>
+                <span style="color: #8b93a7; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">Progress to Maturity</span>
                 <span style="color: #000; font-size: 11px; font-weight: 600;">${progressPercent.toFixed(0)}%</span>
             </div>
             <div style="width: 100%; height: 6px; background: rgba(123, 182, 218, 0.2); border-radius: 3px; overflow: hidden;">
@@ -6555,13 +6555,13 @@ function showPendingApprovalBanner() {
                 <h3 style="margin: 0 0 4px 0; color: #856404; font-size: 12px; font-weight: 600;">
                     <i class="fas fa-lock" style="font-size: 10px;"></i> Dashboard Access Pending Approval
                 </h3>
-                <p style="margin: 0; color: #856404; line-height: 1.4; font-size: 11px;">
+                <p style="margin: 0; color: #856404; line-height: 1.4; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
                     Your account has been created and your onboarding information is under review.
                     Dashboard features will be unlocked once an admin approves your account.
                     This typically takes <strong>less than 24 hours</strong>.
                 </p>
                 <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
-                    <button onclick="checkAccessStatus()" class="btn btn-primary" style="padding: 4px 10px; font-size: 11px;">
+                    <button onclick="checkAccessStatus()" class="btn btn-primary" style="padding: 4px 10px; font-size: 11px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
                         <i class="fas fa-sync-alt" style="font-size: 10px;"></i> Check Status
                     </button>
                     <span style="color: #856404; font-size: 10px;">

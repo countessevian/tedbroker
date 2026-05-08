@@ -1202,7 +1202,7 @@ async def google_callback(code: str, request: Request):
     except Exception as e:
         print(f"Google OAuth error: {e}")
         # Redirect to login page with error
-        redirect_url = "/copytradingbroker.io/login.html?error=oauth_failed"
+        redirect_url = "/login?error=oauth_failed"
         return RedirectResponse(url=redirect_url)
 
 

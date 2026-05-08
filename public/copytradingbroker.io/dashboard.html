@@ -893,6 +893,7 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 16px;
+            align-items: stretch;
         }
 
         .plan-card {
@@ -901,11 +902,18 @@
             border-radius: 8px;
             padding: 12px;
             box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            min-height: 380px;
+            overflow: hidden;
         }
 
         .plan-card h3 {
             font-size: 14px;
             margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .plan-card .plan-min-amount {
