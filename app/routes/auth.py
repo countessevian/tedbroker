@@ -1017,10 +1017,15 @@ GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 @router.get("/google/login")
 async def google_login(request: Request):
     """Initiate Google OAuth flow"""
-    # Build redirect URI dynamically from request
+    # Build redirect URI dynamically from request - no port for production HTTPS
+    scheme = request.url.scheme
     host = request.url.hostname
-    port = request.url.port or (443 if request.url.scheme == "https" else 80)
-    redirect_uri = f"{request.url.scheme}://{host}:{port}/api/auth/google/callback"
+    # Only add port for HTTP (development), not HTTPS (production)
+    if scheme == "http":
+        port = request.url.port or 80
+        redirect_uri = f"{scheme}://{host}:{port}/api/auth/google/callback"
+    else:
+        redirect_uri = f"{scheme}://{host}/api/auth/google/callback"
     
     google_auth_url = (
         f"https://accounts.google.com/o/oauth2/v2/auth?"
@@ -1038,10 +1043,14 @@ async def google_login(request: Request):
 async def google_callback(code: str, request: Request):
     """Handle Google OAuth callback"""
     try:
-        # Build redirect URI dynamically from request
+        # Build redirect URI dynamically from request - no port for production HTTPS
+        scheme = request.url.scheme
         host = request.url.hostname
-        port = request.url.port or (443 if request.url.scheme == "https" else 80)
-        redirect_uri = f"{request.url.scheme}://{host}:{port}/api/auth/google/callback"
+        if scheme == "http":
+            port = request.url.port or 80
+            redirect_uri = f"{scheme}://{host}:{port}/api/auth/google/callback"
+        else:
+            redirect_uri = f"{scheme}://{host}/api/auth/google/callback"
         
         # Exchange code for tokens
         token_url = "https://oauth2.googleapis.com/token"
