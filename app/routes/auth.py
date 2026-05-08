@@ -1042,16 +1042,6 @@ async def google_callback(code: str, request: Request):
             "redirect_uri": GOOGLE_REDIRECT_URI,
             "grant_type": "authorization_code"
         }
-        
-        # Exchange code for tokens
-        token_url = "https://oauth2.googleapis.com/token"
-        token_data = {
-            "code": code,
-            "client_id": GOOGLE_CLIENT_ID,
-            "client_secret": GOOGLE_CLIENT_SECRET,
-            "redirect_uri": redirect_uri,
-            "grant_type": "authorization_code"
-        }
 
         token_response = requests.post(token_url, data=token_data)
         token_response.raise_for_status()
