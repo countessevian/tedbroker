@@ -26,6 +26,7 @@ from app.twofa_service import twofa_service
 from app.email_service import email_service
 from app.login_history import login_history_service
 from app.security_alerts import security_alerts_service
+from app.smartsupp_service import smartsupp_service
 from app.rate_limiter import limiter, get_rate_limit
 from app.referrals_service import referrals_service
 from pydantic import BaseModel, Field
@@ -226,6 +227,18 @@ async def login(request: Request, user_credentials: UserLogin):
             )
         except Exception as e:
             print(f"Failed to send login notification email: {e}")
+
+        # Send Smartsupp login alert
+        try:
+            smartsupp_service.send_login_alert(
+                email=user["email"],
+                username=username,
+                ip_address=ip_address,
+                device_info=device_info,
+                location=location
+            )
+        except Exception as e:
+            print(f"Failed to send Smartsupp login alert: {e}")
 
         # Create access token immediately
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -552,6 +565,18 @@ async def verify_2fa(request: Request, verification_data: TwoFAVerify):
         )
     except Exception as e:
         print(f"Failed to send login notification email: {e}")
+
+    # Send Smartsupp login alert
+    try:
+        smartsupp_service.send_login_alert(
+            email=user["email"],
+            username=username,
+            ip_address=ip_address,
+            device_info=device_info,
+            location=location
+        )
+    except Exception as e:
+        print(f"Failed to send Smartsupp login alert: {e}")
 
     # Clean up 2FA session
     twofa_service.delete_session(verification_data.email)

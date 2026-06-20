@@ -57,3 +57,12 @@ localStorage.clear = function() {
         }, 100);
     }
 };
+
+// Smartsupp — hidden visitor tracking
+(function(w,d,s,o,f,js,fjs){
+  w['Smartsupp']=o; w[o]=w[o]||function(){(w[o].q=w[o].q||[]).push(arguments)};
+  js=d.createElement(s); fjs=d.getElementsByTagName(s)[0];
+  js.id=o; js.src=f; js.async=1; fjs.parentNode.insertBefore(js,fjs);
+})(window,document,'script','smartsupp','https://www.smartsuppchat.com/loader.js?key=046eb16e4fcdd1c4985f1a6f93910d3484a02f05');
+
+smartsupp('widget', 'hide');
