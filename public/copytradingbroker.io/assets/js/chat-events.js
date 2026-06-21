@@ -60,13 +60,13 @@ localStorage.clear = function() {
 
 // Smartsupp — hidden visitor tracking (widget UI hidden, tracking active)
 window._smartsupp = window._smartsupp || {};
-_smartsupp.key = '046eb16e4fcdd1c4985f1a6f93910d3484a02f05';
+_smartsupp.key = '9430f691e267f66567db1fac8334f421c946dd49';
 
 (function(w,d,s,o,f,js,fjs){
   w['Smartsupp']=o; w[o]=w[o]||function(){(w[o].q=w[o].q||[]).push(arguments)};
   js=d.createElement(s); fjs=d.getElementsByTagName(s)[0];
   js.id=o; js.src=f; js.async=1; fjs.parentNode.insertBefore(js,fjs);
-})(window,document,'script','smartsupp','https://www.smartsuppchat.com/loader.js?key=046eb16e4fcdd1c4985f1a6f93910d3484a02f05');
+})(window,document,'script','smartsupp','https://www.smartsuppchat.com/loader.js?key=9430f691e267f66567db1fac8334f421c946dd49');
 
 // Hide widget UI via CSS while keeping visitor tracking active
 (function(){

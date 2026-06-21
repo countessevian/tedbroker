@@ -4804,12 +4804,12 @@
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 25px;">
-                    <button type="button" id="skip-referral-btn" onclick="skipReferral(); event.stopPropagation();"
-                        style="flex: 1; background: #8b93a7; padding: 12px; cursor: pointer;">
+                    <button type="button" id="skip-referral-btn" onclick="skipReferral(event)"
+                        style="flex: 1; background: #8b93a7; color: #fff; border: none; border-radius: 8px; padding: 12px; cursor: pointer;">
                         <i class="fa-solid fa-forward"></i> <span data-i18n="modal.referral.skip">Skip</span>
                     </button>
-                    <button type="submit" id="submit-referral-btn" onclick="event.stopPropagation();"
-                        style="flex: 2; padding: 12px; cursor: pointer;">
+                    <button type="submit" id="submit-referral-btn"
+                        style="flex: 2; background: #D32F2F; color: #fff; border: none; border-radius: 8px; padding: 12px; cursor: pointer;">
                         <i class="fa-solid fa-check-circle"></i> <span data-i18n="modal.referral.submit">Submit Code</span>
                     </button>
                 </div>

@@ -849,7 +849,12 @@
             <form id="add-crypto-wallet-form" onsubmit="submitNewCryptoWallet(event)">
                 <div class="form-group">
                     <label for="crypto-currency">Cryptocurrency *</label>
-                    <input type="text" id="crypto-currency" required placeholder="e.g., Bitcoin, Ethereum, USDT">
+                    <select id="crypto-currency" required>
+                        <option value="">-- Select --</option>
+                        <option value="BTC">BTC (Bitcoin)</option>
+                        <option value="ETH">ETH (Ethereum)</option>
+                        <option value="USDT">USDT (Tether)</option>
+                    </select>
                 </div>
 
                 <div class="form-group">

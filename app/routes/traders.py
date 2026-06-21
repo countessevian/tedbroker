@@ -6,6 +6,7 @@ from datetime import datetime
 from app.database import get_collection, TRADERS_COLLECTION, USERS_COLLECTION
 from app.schemas import ExpertTraderResponse, Trade
 from app.auth import get_current_user_token
+from app.post_generator import post_generator
 
 router = APIRouter(prefix="/api/traders", tags=["traders"])
 
@@ -33,33 +34,15 @@ def trader_helper(trader) -> dict:
 
 @router.get("/posts")
 async def get_all_posts(current_user: dict = Depends(get_current_user_token)):
-    """Get all posts from all traders - NO AUTH REQUIRED FOR TESTING"""
+    """Get dynamically generated posts from all traders with varied sentiments"""
     import sys
     try:
-        traders_collection = get_collection(TRADERS_COLLECTION)
-        all_posts = []
+        print(f"=== /api/traders/posts called - generating fresh posts ===", file=sys.stderr, flush=True)
         
-        print(f"=== /api/traders/posts called ===", file=sys.stderr, flush=True)
+        all_posts = post_generator.generate_all_posts()
         
-        for trader in traders_collection.find():
-            posts = trader.get("posts", [])
-            if posts:
-                print(f"Trader '{trader.get('full_name')}' has {len(posts)} posts", file=sys.stderr, flush=True)
-            for post in posts:
-                all_posts.append({
-                    "id": post.get("id", ""),
-                    "trader_id": str(trader["_id"]),
-                    "trader_name": trader["full_name"],
-                    "trader_photo": trader.get("profile_photo", ""),
-                    "content": post.get("content", ""),
-                    "image_url": post.get("image_url"),
-                    "likes": post.get("likes", []),
-                    "like_count": len(post.get("likes", [])),
-                    "created_at": post.get("created_at").isoformat() if post.get("created_at") else None
-                })
+        print(f"Generated {len(all_posts)} fresh posts", file=sys.stderr, flush=True)
         
-        print(f"Total posts: {len(all_posts)}", file=sys.stderr, flush=True)
-        all_posts.sort(key=lambda x: x["created_at"] or "", reverse=True)
         return all_posts
     except Exception as e:
         import traceback

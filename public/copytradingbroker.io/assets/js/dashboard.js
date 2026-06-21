@@ -707,6 +707,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (referralsTab) {
         referralsTab.addEventListener('click', loadReferralData);
     }
+
+    // Load posts when network posts sub-tab is clicked
+    const postsTab = document.querySelector('.submenu-item[data-tab="posts"]');
+    if (postsTab) {
+        postsTab.addEventListener('click', function() {
+            loadPosts(true);
+        });
+    }
 });
 
 /**
@@ -3812,51 +3820,27 @@ async function handleReferralSubmission(event) {
 /**
  * Skip referral (user doesn't have a code)
  */
-async function skipReferral() {
-    const result = await Swal.fire({
-        title: 'Skip Referral Code?',
-        text: 'Are you sure you want to skip? You won\'t be able to submit a referral code later.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, Skip',
-        cancelButtonText: 'No, Go Back'
-    });
-
-    if (result.isConfirmed) {
-        try {
-            // Mark that user has skipped referral in the backend
-            const response = await TED_AUTH.apiCall('/api/referrals/skip', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                // Also save in localStorage as a backup
-                localStorage.setItem('referralModalSkipped', 'true');
-
-                // Close modal
-                closeReferralModal();
-
-                // Show confirmation
-                Swal.fire({
-                    title: 'Skipped',
-                    text: 'You can always refer others using your own referral code!',
-                    icon: 'info',
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-            } else {
-                throw new Error('Failed to skip referral');
-            }
-        } catch (error) {
-            console.error('Error skipping referral:', error);
-            // Even if API fails, close the modal and save in localStorage
-            localStorage.setItem('referralModalSkipped', 'true');
-            closeReferralModal();
-        }
+function skipReferral(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
     }
+
+    // Mark as skipped in localStorage
+    localStorage.setItem('referralModalSkipped', 'true');
+
+    // Close the modal
+    closeReferralModal();
+
+    // Mark in backend (fire and forget)
+    TED_AUTH.apiCall('/api/referrals/skip', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).catch(function(error) {
+        console.error('Error skipping referral:', error);
+    });
 }
 
 /**
