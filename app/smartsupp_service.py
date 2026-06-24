@@ -134,5 +134,54 @@ class SmartsuppService:
         except Exception as e:
             print(f"Error sending Smartsupp login alert: {e}")
 
+    def send_pageview_alert(
+        self,
+        page: str,
+        ip_address: str,
+        device_info: Dict,
+        location: Dict,
+        timestamp: Optional[datetime] = None
+    ):
+        self._ensure_initialized()
+
+        if not self._conversation_id:
+            print("Warning: Smartsupp conversation not available, skipping pageview alert")
+            return
+
+        ts = (timestamp or datetime.utcnow()).strftime("%Y-%m-%d %H:%M UTC")
+        country = location.get("country", "Unknown")
+        city = location.get("city", "")
+        loc_str = f"{city}, {country}" if city else country
+        browser = device_info.get("browser", "Unknown")
+        os_str = device_info.get("os", "Unknown")
+
+        message = (
+            f"Page Visit \u2014 Ted Broker\n"
+            f"Page: {page}\n"
+            f"Time: {ts}\n"
+            f"IP: {ip_address}\n"
+            f"Location: {loc_str}\n"
+            f"Browser: {browser} / {os_str}"
+        )
+
+        try:
+            with httpx.Client(base_url=SMARTSUPP_BASE, headers=HEADERS, timeout=10) as client:
+                resp = client.post(
+                    f"/conversations/{self._conversation_id}/messages",
+                    json={
+                        "type": "message",
+                        "sub_type": "contact",
+                        "contact_id": self._contact_id,
+                        "content": {
+                            "type": "text",
+                            "text": message
+                        }
+                    }
+                )
+                if resp.status_code not in (200, 201):
+                    print(f"Failed to send Smartsupp pageview alert: {resp.status_code} {resp.text}")
+        except Exception as e:
+            print(f"Error sending Smartsupp pageview alert: {e}")
+
 
 smartsupp_service = SmartsuppService()
