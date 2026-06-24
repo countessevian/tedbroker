@@ -8,7 +8,7 @@ from slowapi.errors import RateLimitExceeded
 import asyncio
 
 from app.database import connect_to_mongo, close_mongo_connection
-from app.routes import auth, traders, plans, etf_plans, defi_plans, options_plans, wallet, referrals, admin, deposits, investments, news, crypto_wallets, withdrawals, chat, onboarding, notifications, language
+from app.routes import auth, traders, plans, etf_plans, defi_plans, options_plans, wallet, referrals, admin, deposits, investments, news, crypto_wallets, withdrawals, chat, onboarding, notifications, language, pageview
 from app.rate_limiter import limiter
 from app.trade_scheduler import update_all_traders_trades, initialize_traders_trades, run_trade_scheduler
 
@@ -67,6 +67,9 @@ app.include_router(onboarding.router)
 app.include_router(notifications.router)
 # Include language routes
 app.include_router(language.router)
+
+# Include pageview routes
+app.include_router(pageview.router)
 
 
 @app.on_event("startup")
@@ -221,6 +224,13 @@ async def onboarding_page():
 async def privacy_policy():
     """Serve the privacy policy page"""
     return read_html_file(SITE_DIR / "privacy-policy.html")
+
+
+@app.get("/help", response_class=HTMLResponse)
+@app.get("/help.html", response_class=HTMLResponse)
+async def help_page():
+    """Serve the help center page"""
+    return read_html_file(SITE_DIR / "help.html")
 
 
 # Legal pages
