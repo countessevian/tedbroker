@@ -44,6 +44,10 @@
             --shadow: rgba(0, 0, 0, 0.1);
             --stat-bg: #ffffff;
             --card-hover: #f7fafc;
+            --appbar-height: 60px;
+            --left-panel-width: 280px;
+            --left-panel-collapsed: 50px;
+            --right-panel-width: 260px;
         }
 
         [data-theme="dark"] {
@@ -260,61 +264,212 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            width: 260px;
-            background: #2D3748;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        /* Left Panel (formerly Sidebar) */
+        .left-panel {
+            width: var(--left-panel-width);
+            background: #2D3748 !important;
+            border-right: 1px solid rgba(255,255,255,0.1);
             position: fixed;
-            height: 100vh;
+            height: calc(100vh - var(--appbar-height));
             left: 0;
-            top: 0;
+            top: var(--appbar-height);
             overflow-y: hidden;
             z-index: 1000;
             transition: all 0.3s ease;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08),
-                        2px 0 10px rgba(0, 0, 0, 0.04);
             display: flex;
             flex-direction: column;
+            color: #fff;
         }
 
-        .sidebar.collapsed {
-            width: 70px;
+        .left-panel.collapsed {
+            width: var(--left-panel-collapsed);
         }
 
-        .sidebar.collapsed .sidebar-header img {
+        .left-panel.collapsed .left-panel-header span,
+        .left-panel.collapsed .chat-messages,
+        .left-panel.collapsed .chat-input-area,
+        .left-panel.collapsed .sidebar-user-profile .user-info {
             display: none;
         }
 
-        .sidebar.collapsed .menu-item span {
-            display: none;
-        }
-
-        .sidebar.collapsed .menu-item {
+        .left-panel.collapsed .sidebar-user-profile {
             justify-content: center;
-            padding: 14px;
         }
 
-        .sidebar.collapsed .menu-item i {
-            margin-right: 0;
+        .left-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 1;
+            background: #2D3748 !important;
+            flex-shrink: 0;
         }
 
-        .sidebar-header {
-            padding: 24px 20px;
-            background: var(--bg-primary);
-            border-bottom: 1px solid var(--border-color);
+        .left-panel .chat-welcome {
+            background: transparent !important;
+            color: #e2e8f0;
             text-align: center;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            padding: 20px 10px;
         }
 
-        .sidebar-header img {
-            max-width: 160px;
-            height: auto;
-            transition: border-radius 0.3s ease;
+        .left-panel .chat-welcome p {
+            color: #a0aec0;
+            margin: 0;
+            font-size: 12px;
+            font-style: italic;
         }
 
-        [data-theme="dark"] .sidebar-header img {
+        .left-panel-header i {
+            font-size: 20px;
+            color: #D32F2F;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #2D3748 !important;
+            min-height: 0;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #2D3748;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
             border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            animation: fadeInUp 0.2s ease;
+        }
+
+        .chat-message.user {
+            align-self: flex-end;
+            background: #D32F2F;
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.ai {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.1);
+            color: #e2e8f0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            background: #2D3748 !important;
+            flex-shrink: 0;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 8px 14px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .chat-input-area input:focus {
+            border-color: #D32F2F;
+        }
+
+        .chat-input-area input::placeholder {
+            color: #8b93a7;
+        }
+
+        .chat-input-area button {
+            background: #D32F2F;
+            border: none;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-input-area button:hover {
+            background: #b71c1c;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typing indicator animation */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px !important;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
         }
 
         .sidebar-menu {
@@ -368,17 +523,13 @@
             text-overflow: ellipsis;
         }
 
-        .sidebar.collapsed .sidebar-user-profile {
+        .left-panel.collapsed .sidebar-user-profile {
             flex-direction: column;
             gap: 0;
             padding: 12px 10px;
         }
 
-        .sidebar.collapsed .sidebar-user-profile .user-info {
-            display: none;
-        }
-
-        .sidebar.collapsed .sidebar-user-profile .user-avatar {
+        .left-panel.collapsed .sidebar-user-profile .user-avatar {
             width: 40px;
             height: 40px;
             font-size: 14px;
@@ -455,28 +606,28 @@
             position: relative;
         }
 
-        .menu-item-parent .submenu-arrow {
+        .left-panel .menu-item-parent .submenu-arrow {
             margin-left: auto;
             transition: transform 0.3s ease;
             font-size: 12px;
         }
 
-        .menu-item-parent.expanded .submenu-arrow {
+        .left-panel .menu-item-parent.expanded .submenu-arrow {
             transform: rotate(90deg);
         }
 
-        .submenu {
+        .left-panel .submenu {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
             background: rgba(0, 0, 0, 0.2);
         }
 
-        .submenu.expanded {
+        .left-panel .submenu.expanded {
             max-height: 200px;
         }
 
-        .submenu-item {
+        .left-panel .submenu-item {
             display: flex;
             align-items: center;
             padding: 12px 24px 12px 48px;
@@ -490,7 +641,7 @@
             font-weight: bold;
         }
 
-        .submenu-item::before {
+        .left-panel .submenu-item::before {
             content: '';
             position: absolute;
             left: 28px;
@@ -504,12 +655,12 @@
             transition: all 0.3s ease;
         }
 
-        .submenu-item:hover::before {
+        .left-panel .submenu-item:hover::before {
             opacity: 1;
             left: 32px;
         }
 
-        .submenu-item:hover {
+        .left-panel .submenu-item:hover {
             background: rgba(211, 47, 47, 0.1);
             color: #D32F2F;
             border-left-color: #D32F2F;
@@ -517,7 +668,7 @@
             box-shadow: inset 4px 0 6px rgba(211, 47, 47, 0.08);
         }
 
-        .submenu-item.active {
+        .left-panel .submenu-item.active {
             background: rgba(211, 47, 47, 0.15);
             color: #D32F2F;
             border-left-color: #D32F2F;
@@ -525,37 +676,37 @@
             box-shadow: inset 4px 0 8px rgba(211, 47, 47, 0.12);
         }
 
-        .submenu-item.active::before {
+        .left-panel .submenu-item.active::before {
             opacity: 1;
         }
 
-        .submenu-item i {
+        .left-panel .submenu-item i {
             font-size: 14px;
             margin-right: 12px;
             width: 20px;
         }
 
-        .sidebar.collapsed .submenu {
+        .left-panel.collapsed .submenu {
             display: none;
         }
 
-        .sidebar.collapsed .menu-item-parent .submenu-arrow {
+        .left-panel.collapsed .menu-item-parent .submenu-arrow {
             display: none;
         }
 
         /* Main Content */
         .main-content {
-            margin-left: 260px;
-            margin-top: 50px;
+            margin-left: var(--left-panel-width);
+            margin-right: var(--right-panel-width);
+            margin-top: calc(var(--appbar-height) + 50px);
             flex: 1;
             padding: 30px;
-            width: calc(100% - 260px);
+            width: auto;
             transition: all 0.3s ease;
         }
 
         .main-content.sidebar-collapsed {
-            margin-left: 70px;
-            width: calc(100% - 70px);
+            margin-left: var(--left-panel-collapsed);
         }
 
         .content-header {
@@ -617,6 +768,9 @@
         .tab-content-wrapper.active {
             display: block;
             animation: fadeIn 0.3s ease;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         @keyframes fadeIn {
@@ -1024,103 +1178,10 @@
             letter-spacing: 1px;
         }
 
-        /* Dark Mode Toggle Button */
-        .dark-mode-toggle {
-            position: fixed;
-            top: 70px;
-            right: 30px;
-            z-index: 9998;
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            border-radius: 50px;
-            padding: 8px 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px var(--shadow);
-            transition: all 0.3s ease;
-            opacity: 1;
-            visibility: visible;
-        }
 
-        /* Hide dark mode toggle when page is loading */
-        body:has(#page-loader:not(.loaded)) .dark-mode-toggle {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .dark-mode-toggle:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--shadow);
-            border-color: #D32F2F;
-        }
-
-        .dark-mode-toggle i {
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .dark-mode-toggle .sun-icon {
-            color: #FDB813;
-        }
-
-        .dark-mode-toggle .moon-icon {
-            color: #4A5568;
-        }
-
-        [data-theme="dark"] .dark-mode-toggle .sun-icon {
-            display: none;
-        }
-
-        [data-theme="light"] .dark-mode-toggle .moon-icon {
-            display: none;
-        }
-
-        .dark-mode-toggle-text {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        /* Language Selector Styles */
-        .language-selector {
-            position: fixed;
-            top: 70px;
-            right: 170px;
-            z-index: 9998;
-        }
-
-        .language-btn {
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            border-radius: 50px;
-            padding: 8px 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            height: 40px;
-            box-sizing: border-box;
-            box-shadow: 0 4px 12px var(--shadow);
-        }
-
-        .language-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--shadow);
-            border-color: #D32F2F;
-        }
 
         .flag-icon {
             font-size: 16px;
-            line-height: 1;
-        }
-
-        .language-text {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-primary);
             line-height: 1;
         }
 
@@ -2095,10 +2156,6 @@
                 min-width: 45px;
             }
         }
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 6px 16px var(--shadow),
-                        0 3px 8px var(--shadow);
-        }
 
         .trade-ticker {
             font-weight: 600;
@@ -2295,38 +2352,22 @@
             }
         }
 
-        /* Mobile App Bar */
-        .mobile-app-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            display: none;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 0 16px;
-            z-index: 1001;
-        }
-
         /* TradingView Ticker */
         .tradingview-ticker-container {
             position: fixed;
-            top: 0;
-            left: 260px;
-            right: 0;
+            top: var(--appbar-height);
+            left: var(--left-panel-width);
+            right: var(--right-panel-width);
             height: 50px;
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
-            z-index: 998;
+            z-index: 999;
             transition: left 0.3s ease, background-color 0.3s ease;
             overflow: hidden;
         }
 
         .tradingview-ticker-container.sidebar-collapsed {
-            left: 70px;
+            left: var(--left-panel-collapsed);
         }
 
         .tradingview-widget-container {
@@ -2349,14 +2390,59 @@
 
         /* Hamburger Menu */
         .hamburger-btn {
+            display: none;
             background: transparent;
             border: none;
             padding: 8px;
             cursor: pointer;
-            display: flex;
             flex-direction: column;
             gap: 4px;
             transition: all 0.3s ease;
+        }
+
+        /* App Bar User Profile */
+        .app-bar-user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .app-bar-user-profile:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .app-bar-user-profile .user-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 13px;
+            margin: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D32F2F, #5a9abf);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: none;
+        }
+        .app-bar-user-profile .user-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        .app-bar-user-profile .user-full-name {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .app-bar-user-profile .user-username {
+            color: #a0aec0;
+            font-size: 11px;
+            white-space: nowrap;
         }
 
         .hamburger-btn span {
@@ -2383,11 +2469,11 @@
         /* Desktop Toggle Button */
         .desktop-toggle-btn {
             position: fixed;
-            top: 20px;
+            top: calc(var(--appbar-height) + 10px);
             right: auto;
-            left: 242px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
+            left: calc(var(--left-panel-width) - 18px);
+            background: #2D3748;
+            border: 2px solid rgba(255,255,255,0.15);
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -2397,7 +2483,7 @@
             cursor: pointer;
             z-index: 1002;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(200, 200, 200, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .desktop-toggle-btn:hover {
@@ -2417,18 +2503,18 @@
             transition: all 0.3s ease;
         }
 
-        .sidebar.collapsed + * .desktop-toggle-btn,
-        .sidebar.collapsed .desktop-toggle-btn {
-            left: 52px;
+        .left-panel.collapsed + * .desktop-toggle-btn,
+        .left-panel.collapsed .desktop-toggle-btn {
+            left: calc(var(--left-panel-collapsed) - 18px);
         }
 
         /* Mobile Overlay */
         .sidebar-overlay {
             position: fixed;
-            top: 0;
+            top: var(--appbar-height);
             left: 0;
             width: 100%;
-            height: 100%;
+            height: calc(100% - var(--appbar-height));
             background: rgba(255, 255, 255, 0.5);
             z-index: 999;
             display: none;
@@ -2472,69 +2558,97 @@
 
         /* Mobile Styles */
         @media (max-width: 768px) {
-            .mobile-app-bar {
-                display: flex;
-            }
+            .hamburger-btn { display: flex; }
 
-            .tradingview-ticker-container {
-                top: 60px;
+            .app-bar-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
                 left: 0;
                 right: 0;
-            }
-
-            .dark-mode-toggle {
-                top: 15px;
-                right: 60px;
-                padding: 6px 12px;
-            }
-
-            .dark-mode-toggle-text {
-                display: none;
-            }
-
-            .language-selector {
-                top: 15px;
-                right: 120px;
-            }
-
-            .language-btn {
-                padding: 6px 12px;
-                height: 36px;
-            }
-
-            .language-text {
-                display: none;
-            }
-
-            .language-btn i {
-                display: none;
-            }
-
-            .sidebar {
-                transform: translateX(-100%);
-                top: 0;
-                height: 100vh;
-                z-index: 1002;
-            }
-
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-
-            .sidebar-overlay {
-                top: 0;
-                height: 100%;
+                background: var(--bg-card);
+                border: 1px solid var(--border-color);
+                flex-direction: column;
+                padding: 8px 0;
+                box-shadow: 0 8px 24px var(--shadow);
                 z-index: 1001;
+                max-height: calc(100vh - var(--appbar-height));
+                overflow-y: auto;
             }
+            .app-bar-menu.mobile-open { display: flex; }
+            .app-bar-menu .menu-item {
+                max-width: 100%;
+                padding: 12px 16px;
+                gap: 12px;
+                border-radius: 0;
+                flex-shrink: 0;
+            }
+            .app-bar-menu .menu-item:hover {
+                max-width: 100%;
+                gap: 12px;
+            }
+            .app-bar-menu .menu-item span {
+                max-width: 200px;
+                opacity: 1;
+                overflow: visible;
+                margin-left: 12px;
+            }
+            .app-bar-menu .menu-item-parent {
+                flex-direction: column;
+            }
+            .app-bar-menu .submenu {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+                background: rgba(0,0,0,0.2);
+            }
+            .app-bar-menu .submenu.expanded {
+                max-height: 300px;
+            }
+            .app-bar-menu .submenu-item {
+                padding: 10px 16px 10px 48px;
+            }
+            .app-bar-search input { width: 120px; }
+            .app-bar-search input:focus { width: 160px; }
+
+            .left-panel {
+                transform: translateX(-100%);
+                top: var(--appbar-height);
+                height: calc(100vh - var(--appbar-height));
+                width: var(--left-panel-width) !important;
+            }
+            .left-panel.mobile-open { transform: translateX(0); }
+
+            .right-panel { display: none; }
 
             .main-content {
                 margin-left: 0;
-                margin-top: 110px;
-                width: 100%;
-                padding: 20px 15px;
+                margin-right: 0;
+                margin-top: calc(var(--appbar-height) + 50px);
+                max-width: 100%;
+                padding: 16px;
+            }
+            .main-content.sidebar-collapsed {
+                margin-left: 0;
             }
 
-            .desktop-toggle-btn {
+            .tradingview-ticker-container {
+                left: 0;
+                right: 0;
+                top: var(--appbar-height);
+            }
+            .tradingview-ticker-container.sidebar-collapsed {
+                left: 0;
+            }
+
+            .left-panel .desktop-toggle-btn { display: none; }
+
+            .sidebar-overlay {
+                top: var(--appbar-height);
+                height: calc(100% - var(--appbar-height));
+            }
+
+            .dark-mode-toggle, .language-selector {
                 display: none;
             }
 
@@ -2766,12 +2880,6 @@
             .info-label,
             .info-value {
                 text-align: left;
-            }
-        }
-
-        @media (min-width: 769px) {
-            .mobile-app-bar {
-                display: none;
             }
         }
 
@@ -3447,6 +3555,504 @@
             50% { transform: scale(1.3); }
             100% { transform: scale(1); }
         }
+
+        /* App Bar */
+        .app-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--appbar-height);
+            background: #2D3748;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+
+        .app-bar-left {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-bar-left img {
+            max-width: 140px;
+            height: auto;
+        }
+
+        .app-bar-menu {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .app-bar-menu .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .app-bar-menu .menu-item i {
+            font-size: 20px;
+            width: 22px;
+            margin-right: 0;
+            text-align: center;
+            flex-shrink: 0;
+            transition: color 0.2s ease;
+        }
+
+        .app-bar-menu .menu-item span {
+            max-width: 0;
+            overflow: hidden;
+            transition: max-width 0.25s ease, opacity 0.2s ease, margin-left 0.25s ease;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+
+        .app-bar-menu .menu-item-parent {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .app-bar-menu .menu-item:hover {
+            background: rgba(255,255,255,0.08);
+            color: #e2e8f0;
+        }
+
+        .app-bar-menu .menu-item:hover span {
+            max-width: 150px;
+            opacity: 1;
+            margin-left: 8px;
+        }
+
+        .app-bar-menu .menu-item-parent .submenu {
+            display: none !important;
+            position: absolute;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .app-bar-menu .menu-item-parent .submenu.expanded {
+            display: none !important;
+        }
+
+        .app-bar-menu .menu-item-parent .submenu-item {
+            display: none !important;
+        }
+
+        .app-bar-menu .menu-item-parent .menu-item {
+            flex-shrink: 0;
+        }
+
+        .app-bar-menu .menu-item.active {
+            color: #D32F2F;
+            background: rgba(211,47,47,0.12);
+        }
+
+        .app-bar-menu .menu-item.active i {
+            color: #D32F2F;
+        }
+
+        .app-bar-menu .menu-item.logout-btn:hover {
+            background: rgba(211,47,47,0.15);
+            color: #ef4444;
+        }
+
+        .app-bar-menu .menu-item-parent .submenu-arrow {
+            display: none;
+        }
+
+        .menu-dropdown {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 200px;
+            box-shadow: 0 12px 40px var(--shadow), 0 4px 16px var(--shadow);
+            display: none;
+            z-index: 1100;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+            visibility: hidden;
+        }
+
+        .menu-dropdown.open {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .menu-dropdown .submenu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .menu-dropdown .submenu-item:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .menu-dropdown .submenu-item i {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .menu-dropdown .submenu-item:hover i {
+            color: var(--text-primary);
+        }
+
+        /* User Avatar Dropdown */
+        .user-dropdown {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 0;
+            min-width: 220px;
+            box-shadow: 0 12px 40px var(--shadow), 0 4px 16px var(--shadow);
+            display: none;
+            z-index: 1100;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+            visibility: hidden;
+        }
+
+        .user-dropdown.open {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .user-dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 4px;
+        }
+
+        .user-dropdown-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-dropdown-name {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-dropdown-username {
+            color: var(--text-muted);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-dropdown-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 4px 0;
+        }
+
+        .user-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .user-dropdown-item:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .user-dropdown-item.user-dropdown-logout {
+            color: #ef4444;
+        }
+
+        .user-dropdown-item.user-dropdown-logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .user-dropdown-item i {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .user-dropdown-item:hover i {
+            color: var(--text-primary);
+        }
+
+        .user-dropdown-item.user-dropdown-logout i {
+            color: #ef4444;
+        }
+
+        .user-dropdown-arrow {
+            margin-left: 8px;
+            font-size: 10px;
+            color: #a0aec0;
+            transition: transform 0.2s ease;
+        }
+
+        .user-dropdown-arrow.rotated {
+            transform: rotate(180deg);
+        }
+
+        /* App Bar Right Section */
+        .app-bar-right {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-bar-search {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .app-bar-search input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 6px 14px 6px 32px;
+            color: #fff;
+            font-size: 13px;
+            width: 180px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .app-bar-search input:focus {
+            width: 240px;
+            background: rgba(255,255,255,0.15);
+            border-color: #D32F2F;
+        }
+
+        .app-bar-search input::placeholder {
+            color: #8b93a7;
+        }
+
+        .app-bar-search > i {
+            position: absolute;
+            left: 10px;
+            color: #8b93a7;
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 4px;
+            background: #2D3748;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1002;
+        }
+
+        .search-dropdown.open {
+            display: block;
+        }
+
+        .search-result-category {
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #8b93a7;
+            letter-spacing: 0.5px;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #cbd5e0;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .search-result-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .search-result-item i {
+            width: 16px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .app-bar-lang-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 18px;
+            line-height: 1;
+            transition: background 0.2s;
+            color: #cbd5e0;
+        }
+
+        .app-bar-lang-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .app-bar-darkmode {
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+            font-size: 16px;
+            color: #cbd5e0;
+        }
+
+        .app-bar-darkmode:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .app-bar-darkmode .sun-icon { color: #FDB813; }
+        .app-bar-darkmode .moon-icon { color: #a0aec0; }
+        [data-theme="dark"] .app-bar-darkmode .sun-icon { display: none; }
+        [data-theme="light"] .app-bar-darkmode .moon-icon { display: none; }
+
+        /* Right Panel */
+        .right-panel {
+            width: var(--right-panel-width);
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            position: fixed;
+            height: calc(100vh - var(--appbar-height) - 50px);
+            right: 0;
+            top: calc(var(--appbar-height) + 50px);
+            overflow-y: auto;
+            z-index: 999;
+            transition: all 0.3s ease;
+            padding: 16px;
+        }
+
+        .right-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        .right-panel-header i {
+            color: #D32F2F;
+            font-size: 18px;
+        }
+
+        .help-section {
+            margin-bottom: 20px;
+        }
+
+        .help-category {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .help-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .help-link:hover {
+            color: #D32F2F;
+        }
+
+        .help-link i {
+            width: 16px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 
@@ -3457,98 +4063,17 @@
         <div class="loader-spinner"></div>
     </div>
 
-    <!-- Dark Mode Toggle Button -->
-    <div class="dark-mode-toggle" id="dark-mode-toggle" onclick="toggleDarkMode()">
-        <i class="fas fa-sun sun-icon"></i>
-        <i class="fas fa-moon moon-icon"></i>
-        <span class="dark-mode-toggle-text" data-i18n="settings.dark">Dark Mode</span>
-    </div>
-
-    <!-- Language Selector -->
-    <div class="language-selector" id="language-selector">
-        <button class="language-btn" id="language-btn" onclick="toggleLanguageDropdown()">
-            <span class="flag-icon" id="current-language-flag">🇺🇸</span>
-            <span class="language-text" id="current-language-text">EN</span>
-            <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
-        </button>
-        <div class="language-dropdown" id="language-dropdown">
-            <div class="language-option" onclick="changeLanguage('en')">
-                <span class="flag-icon">🇺🇸</span>
-                <span>English</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('zh')">
-                <span class="flag-icon">🇨🇳</span>
-                <span>中文 (Chinese)</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('hi')">
-                <span class="flag-icon">🇮🇳</span>
-                <span>हिन्दी (Hindi)</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('es')">
-                <span class="flag-icon">🇪🇸</span>
-                <span>Español (Spanish)</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('fr')">
-                <span class="flag-icon">🇫🇷</span>
-                <span>Français (French)</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('ar')">
-                <span class="flag-icon">🇸🇦</span>
-                <span>العربية (Arabic)</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('bn')">
-                <span class="flag-icon">🇧🇩</span>
-                <span>বাংলা (Bengali)</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('ru')">
-                <span class="flag-icon">🇷🇺</span>
-                <span>Русский (Russian)</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('pt')">
-                <span class="flag-icon">🇵🇹</span>
-                <span>Português (Portuguese)</span>
-            </div>
-            <div class="language-option" onclick="changeLanguage('de')">
-                <span class="flag-icon">🇩🇪</span>
-                <span>Deutsch (German)</span>
-            </div>
+    <!-- App Bar -->
+    <header class="app-bar" id="app-bar">
+        <div class="app-bar-left">
+            <button class="hamburger-btn" id="hamburger-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="/"><img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" /></a>
         </div>
-    </div>
-
-    <!-- Mobile App Bar -->
-    <header class="mobile-app-bar">
-        <button class="hamburger-btn" id="hamburger-btn">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-    </header>
-
-    <!-- TradingView Ticker -->
-    <div class="tradingview-ticker-container" id="tradingview-ticker">
-        <div class="tradingview-widget-container" id="tradingview-ticker-widget">
-            <div class="tradingview-widget-container__widget"></div>
-        </div>
-    </div>
-
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-    <div class="dashboard-wrapper">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <!-- Desktop Toggle Button -->
-            <div class="desktop-toggle-btn" id="desktop-toggle-btn">
-                <i class="fa-solid fa-chevron-left"></i>
-            </div>
-
-            <div class="sidebar-header">
-                <a href="/" style="display: inline-block; cursor: pointer;">
-                    <img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" style="max-width: 180px;" />
-                </a>
-            </div>
-
-            <nav class="sidebar-menu">
+        <nav class="app-bar-menu" id="app-bar-menu">
                 <a class="menu-item active" data-tab="dashboard">
                     <i class="fa-solid fa-gauge-high"></i>
                     <span data-i18n="nav.dashboard">Dashboard</span>
@@ -3563,21 +4088,11 @@
                     <a class="menu-item" id="portfolio-menu">
                         <i class="fa-solid fa-chart-line"></i>
                         <span data-i18n="nav.portfolio">Portfolio</span>
-                        <i class="fa-solid fa-chevron-right submenu-arrow"></i>
                     </a>
                     <div class="submenu" id="portfolio-submenu">
-                        <a class="submenu-item" data-tab="automated-calls">
-                            <i class="fa-solid fa-robot"></i>
-                            <span>Automated Calls</span>
-                        </a>
-                        <a class="submenu-item" data-tab="active-copies">
-                            <i class="fa-solid fa-copy"></i>
-                            <span>Active Copies</span>
-                        </a>
-                        <a class="submenu-item" data-tab="performance">
-                            <i class="fa-solid fa-chart-pie"></i>
-                            <span>Performance</span>
-                        </a>
+                        <a class="submenu-item" data-tab="automated-calls"><i class="fa-solid fa-robot"></i><span>Automated Calls</span></a>
+                        <a class="submenu-item" data-tab="active-copies"><i class="fa-solid fa-copy"></i><span>Active Copies</span></a>
+                        <a class="submenu-item" data-tab="performance"><i class="fa-solid fa-chart-pie"></i><span>Performance</span></a>
                     </div>
                 </div>
 
@@ -3586,29 +4101,13 @@
                     <a class="menu-item" id="explore-menu">
                         <i class="fa-solid fa-compass"></i>
                         <span data-i18n="dashboard.nav.explore">Explore</span>
-                        <i class="fa-solid fa-chevron-right submenu-arrow"></i>
                     </a>
                     <div class="submenu" id="explore-submenu">
-                        <a class="submenu-item" data-tab="subscription">
-                            <i class="fa-solid fa-robot"></i>
-                            <span data-i18n="nav.plans">Robo Advisor</span>
-                        </a>
-                        <a class="submenu-item" data-tab="etf-plans">
-                            <i class="fa-solid fa-chart-pie"></i>
-                            <span data-i18n="nav.etf">ETF Automation</span>
-                        </a>
-                        <a class="submenu-item" data-tab="defi-earnings">
-                            <i class="fa-solid fa-coins"></i>
-                            <span data-i18n="nav.defi">DeFi Automation</span>
-                        </a>
-                        <a class="submenu-item" data-tab="options">
-                            <i class="fa-solid fa-file-alt"></i>
-                            <span data-i18n="nav.options">Options Automation</span>
-                        </a>
-                        <a class="submenu-item" data-tab="staking">
-                            <i class="fa-solid fa-layer-group"></i>
-                            <span data-i18n="dashboard.nav.staking">Staking</span>
-                        </a>
+                        <a class="submenu-item" data-tab="subscription"><i class="fa-solid fa-robot"></i><span data-i18n="nav.plans">Robo Advisor</span></a>
+                        <a class="submenu-item" data-tab="etf-plans"><i class="fa-solid fa-chart-pie"></i><span data-i18n="nav.etf">ETF Automation</span></a>
+                        <a class="submenu-item" data-tab="defi-earnings"><i class="fa-solid fa-coins"></i><span data-i18n="nav.defi">DeFi Automation</span></a>
+                        <a class="submenu-item" data-tab="options"><i class="fa-solid fa-file-alt"></i><span data-i18n="nav.options">Options Automation</span></a>
+                        <a class="submenu-item" data-tab="staking"><i class="fa-solid fa-layer-group"></i><span data-i18n="dashboard.nav.staking">Staking</span></a>
                     </div>
                 </div>
 
@@ -3617,21 +4116,11 @@
                     <a class="menu-item" id="network-menu">
                         <i class="fa-solid fa-network-wired"></i>
                         <span>Network</span>
-                        <i class="fa-solid fa-chevron-right submenu-arrow"></i>
                     </a>
                     <div class="submenu" id="network-submenu">
-                        <a class="submenu-item" data-tab="traders">
-                            <i class="fa-solid fa-users-line"></i>
-                            <span data-i18n="nav.traders">Traders</span>
-                        </a>
-                        <a class="submenu-item" data-tab="recent-trades">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                            <span>Recent Trades</span>
-                        </a>
-                        <a class="submenu-item" data-tab="posts">
-                            <i class="fa-solid fa-newspaper"></i>
-                            <span>Posts</span>
-                        </a>
+                        <a class="submenu-item" data-tab="traders"><i class="fa-solid fa-users-line"></i><span data-i18n="nav.traders">Traders</span></a>
+                        <a class="submenu-item" data-tab="recent-trades"><i class="fa-solid fa-clock-rotate-left"></i><span>Recent Trades</span></a>
+                        <a class="submenu-item" data-tab="posts"><i class="fa-solid fa-newspaper"></i><span>Posts</span></a>
                     </div>
                 </div>
 
@@ -3643,38 +4132,77 @@
                     <i class="fa-solid fa-newspaper"></i>
                     <span data-i18n="dashboard.nav.news">News</span>
                 </a>
-
-                <!-- Account Parent with Submenu -->
-                <div class="menu-item-parent">
-                    <a class="menu-item" id="account-menu">
-                        <i class="fa-solid fa-user-circle"></i>
-                        <span data-i18n="nav.account">Account</span>
-                        <i class="fa-solid fa-chevron-right submenu-arrow"></i>
-                    </a>
-                    <div class="submenu" id="account-submenu">
-                        <a class="submenu-item" data-tab="account-personal">
-                            <i class="fa-solid fa-user"></i>
-                            <span data-i18n="profile.personalInfo">Personal Details</span>
-                        </a>
-                        <a class="submenu-item" data-tab="account-security">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span data-i18n="help.security">Security</span>
-                        </a>
-                    </div>
+        </nav>
+        <div class="app-bar-right">
+            <div class="app-bar-search" id="app-bar-search">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" placeholder="Search..." id="search-input" />
+                <div class="search-dropdown" id="search-dropdown"></div>
+            </div>
+            <div class="app-bar-lang" id="app-bar-lang">
+                <button class="app-bar-lang-btn" onclick="toggleLanguageDropdown()">
+                    <span class="flag-icon" id="current-language-flag">🇺🇸</span>
+                </button>
+            </div>
+            <div class="app-bar-darkmode" id="app-bar-darkmode" onclick="toggleDarkMode()">
+                <i class="fas fa-sun sun-icon"></i>
+                <i class="fas fa-moon moon-icon"></i>
+            </div>
+            <div class="app-bar-user-profile" id="app-bar-user-profile" onclick="toggleUserDropdown(event)">
+                <div class="user-avatar" id="app-bar-user-avatar"></div>
+                <div class="user-info">
+                    <div class="user-full-name" id="app-bar-user-full-name">User</div>
+                    <div class="user-username" id="app-bar-user-username">@username</div>
                 </div>
-                <a class="menu-item logout-btn" onclick="handleLogout()">
+                <i class="fa-solid fa-chevron-down user-dropdown-arrow" id="user-dropdown-arrow"></i>
+            </div>
+            <div class="user-dropdown" id="user-dropdown">
+                <div class="user-dropdown-divider"></div>
+                <a class="user-dropdown-item" data-tab="account-personal" onclick="closeUserDropdown()">
+                    <i class="fa-solid fa-user"></i>
+                    <span data-i18n="profile.personalInfo">Personal Details</span>
+                </a>
+                <a class="user-dropdown-item" data-tab="account-security" onclick="closeUserDropdown()">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span data-i18n="help.security">Security</span>
+                </a>
+                <div class="user-dropdown-divider"></div>
+                <a class="user-dropdown-item user-dropdown-logout" onclick="handleLogout(); closeUserDropdown()">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span data-i18n="nav.logout">Log Out</span>
                 </a>
-            </nav>
+            </div>
+        </div>
+    </header>
 
-            <!-- User Profile Section -->
-            <div class="sidebar-user-profile">
-                <div class="user-avatar" id="sidebar-user-avatar">U</div>
-                <div class="user-info">
-                    <div class="user-full-name" id="sidebar-user-full-name">User</div>
-                    <div class="user-username" id="sidebar-user-username">@username</div>
+    <!-- TradingView Ticker -->
+    <div class="tradingview-ticker-container" id="tradingview-ticker">
+        <div class="tradingview-widget-container" id="tradingview-ticker-widget">
+            <div class="tradingview-widget-container__widget"></div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="dashboard-wrapper">
+        <!-- Left Panel -->
+        <aside class="left-panel" id="left-panel" style="background: #2D3748 !important;">
+            <div class="desktop-toggle-btn" id="desktop-toggle-btn">
+                <i class="fa-solid fa-chevron-left"></i>
+            </div>
+            <div class="left-panel-header" style="background: #2D3748 !important;">
+                <i class="fa-solid fa-robot"></i>
+                <span><span style="color: #D32F2F;">TED</span> <span style="color: #ffffff;">AI</span></span>
+            </div>
+            <div class="chat-messages" id="chat-messages" style="background: #2D3748 !important;">
+                <div class="chat-welcome" style="background: transparent !important;">
+                    <p style="color: #a0aec0; font-size: 12px; font-style: italic;">Start your conversation with TED AI and get the most out of your TED Brokers experience</p>
                 </div>
+            </div>
+            <div class="chat-input-area" style="background: #2D3748 !important;">
+                <input type="text" id="chat-input" placeholder="Type a message..." />
+                <button id="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </aside>
 
@@ -4451,6 +4979,46 @@
                 </div>
             </div>
         </main>
+
+        <!-- Right Panel: Help Center -->
+        <aside class="right-panel" id="right-panel">
+            <div class="right-panel-header">
+                <i class="fa-solid fa-circle-question"></i>
+                <span>Help Center</span>
+            </div>
+            <div class="help-section">
+                <h4 class="help-category">Platform</h4>
+                <a class="help-link" href="help#section-dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+                <a class="help-link" href="help#section-ai-assistant"><i class="fa-solid fa-robot"></i> AI Assistant</a>
+                <a class="help-link" href="help#section-getting-started"><i class="fa-solid fa-rocket"></i> Getting Started</a>
+            </div>
+            <div class="help-section">
+                <h4 class="help-category">Account & Wallet</h4>
+                <a class="help-link" href="help#section-account"><i class="fa-solid fa-user-cog"></i> Account Management</a>
+                <a class="help-link" href="help#section-wallet"><i class="fa-solid fa-wallet"></i> Wallet & Deposits</a>
+                <a class="help-link" href="help#section-withdrawals"><i class="fa-solid fa-money-bill-transfer"></i> Withdrawals</a>
+                <a class="help-link" href="help#section-kyc"><i class="fa-solid fa-id-card"></i> KYC & Verification</a>
+            </div>
+            <div class="help-section">
+                <h4 class="help-category">Trading</h4>
+                <a class="help-link" href="help#section-trading"><i class="fa-solid fa-copy"></i> Copy Trading</a>
+                <a class="help-link" href="help#section-investments"><i class="fa-solid fa-chart-line"></i> Investment Plans</a>
+                <a class="help-link" href="help#section-portfolio-explore"><i class="fa-solid fa-compass"></i> Portfolio & Explore</a>
+                <a class="help-link" href="help#section-network"><i class="fa-solid fa-network-wired"></i> Network & Social</a>
+            </div>
+            <div class="help-section">
+                <h4 class="help-category">Support</h4>
+                <a class="help-link" href="help#section-referrals"><i class="fa-solid fa-share-nodes"></i> Referral Program</a>
+                <a class="help-link" href="help#section-support"><i class="fa-solid fa-headset"></i> Support & Chat</a>
+                <a class="help-link" href="help#section-security"><i class="fa-solid fa-shield-halved"></i> Security</a>
+            </div>
+            <div class="help-section">
+                <h4 class="help-category">More Help</h4>
+                <a class="help-link" href="help"><i class="fa-solid fa-book"></i> View All Help Topics</a>
+                <a class="help-link" href="faqs"><i class="fa-solid fa-question"></i> FAQs</a>
+                <a class="help-link" href="contact-us"><i class="fa-solid fa-envelope"></i> Contact Us</a>
+            </div>
+        </aside>
     </div>
 
     <!-- Deposit Modal -->
@@ -4926,7 +5494,7 @@
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.updateEmail.newEmail">New Email Address</label>
                     <input type="email" id="new-email" required
                         style="width: 100%; padding: 12px; background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); border-radius: 8px; color: #000; font-size: 14px;"
-                        data-i18n-placeholder="modal.updateEmail.newEmailPlaceholder" data-i18n-placeholder="modal.updateEmail.newEmailPlaceholder">
+                        data-i18n-placeholder="modal.updateEmail.newEmailPlaceholder">
                 </div>
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; color: #8b93a7; margin-bottom: 8px; font-size: 14px;" data-i18n="modal.updateEmail.confirmPassword">Confirm Password</label>
@@ -5078,114 +5646,353 @@
     <script src="assets/js/dashboard.js"></script>
 
     <script>
-        // Explore submenu dropdown toggle
-        const exploreMenu = document.getElementById('explore-menu');
-        const exploreSubmenu = document.getElementById('explore-submenu');
-        const exploreParent = exploreMenu.closest('.menu-item-parent');
+        /**
+         * Switch to a dashboard tab programmatically
+         */
+        function switchToTab(tabName) {
+            // Remove active from all menu/submenu items
+            document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+            document.querySelectorAll('.submenu-item').forEach(si => si.classList.remove('active'));
 
-        exploreMenu.addEventListener('click', function(e) {
-            e.preventDefault();
-            exploreParent.classList.toggle('expanded');
-            exploreSubmenu.classList.toggle('expanded');
-        });
+            // Activate the corresponding menu item
+            const menuItem = document.querySelector(`.menu-item[data-tab="${tabName}"]`);
+            if (menuItem) menuItem.classList.add('active');
 
-        // Account submenu dropdown toggle
-        const accountMenu = document.getElementById('account-menu');
-        const accountSubmenu = document.getElementById('account-submenu');
-        const accountParent = accountMenu.closest('.menu-item-parent');
+            const submenuItem = document.querySelector(`.submenu-item[data-tab="${tabName}"]`);
+            if (submenuItem) submenuItem.classList.add('active');
 
-        accountMenu.addEventListener('click', function(e) {
-            e.preventDefault();
-            accountParent.classList.toggle('expanded');
-            accountSubmenu.classList.toggle('expanded');
-        });
+            // Show tab content
+            document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
+            const tabContent = document.getElementById('tab-' + tabName);
+            if (tabContent) tabContent.classList.add('active');
 
-        // Network submenu dropdown toggle
-        const networkMenu = document.getElementById('network-menu');
-        const networkSubmenu = document.getElementById('network-submenu');
-        const networkParent = networkMenu.closest('.menu-item-parent');
+            // Close mobile nav
+            if (window.innerWidth <= 768) {
+                const appBarMenu = document.getElementById('app-bar-menu');
+                const hamburgerBtn = document.getElementById('hamburger-btn');
+                const sidebarOverlay = document.getElementById('sidebar-overlay');
+                if (appBarMenu) appBarMenu.classList.remove('mobile-open');
+                if (hamburgerBtn) hamburgerBtn.classList.remove('active');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+            }
 
-        networkMenu.addEventListener('click', function(e) {
-            e.preventDefault();
-            networkParent.classList.toggle('expanded');
-            networkSubmenu.classList.toggle('expanded');
-        });
+            window.scrollTo(0, 0);
+        }
 
-        // Portfolio submenu dropdown toggle
-        const portfolioMenu = document.getElementById('portfolio-menu');
-        const portfolioSubmenu = document.getElementById('portfolio-submenu');
-        const portfolioParent = portfolioMenu.closest('.menu-item-parent');
+        // Submenu dropdowns in the app bar (desktop only)
+        (function() {
+            if (window.innerWidth <= 768) return;
+            const menuItemsWithSubmenu = document.querySelectorAll('#app-bar-menu .menu-item-parent > .menu-item');
+            menuItemsWithSubmenu.forEach(item => {
+                const parent = item.closest('.menu-item-parent');
+                const submenu = parent.querySelector('.submenu');
+                if (!submenu) {
+                    console.log('No submenu found for', parent);
+                    return;
+                }
 
-        portfolioMenu.addEventListener('click', function(e) {
-            e.preventDefault();
-            portfolioParent.classList.toggle('expanded');
-            portfolioSubmenu.classList.toggle('expanded');
-        });
+                const dropdownId = (parent.id || 'menu-parent-') + '-dropdown';
 
-        // Tab switching functionality for regular menu items
+                // Create dropdown element
+                const dropdown = document.createElement('div');
+                dropdown.className = 'menu-dropdown';
+                dropdown.id = dropdownId;
+
+                // Clone submenu items into the dropdown
+                const subItems = submenu.querySelectorAll('.submenu-item');
+                console.log('Found submenu items:', subItems.length, 'for', parent.id);
+                subItems.forEach(subItem => {
+                    const clone = document.createElement('div');
+                    clone.className = 'submenu-item';
+                    clone.setAttribute('data-tab', subItem.getAttribute('data-tab') || '');
+                    clone.innerHTML = subItem.innerHTML;
+                    dropdown.appendChild(clone);
+                });
+
+                item.parentNode.appendChild(dropdown);
+                console.log('Dropdown created:', dropdownId, 'with', dropdown.children.length, 'items');
+
+                // Position the dropdown
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    console.log('Menu item clicked:', item, 'dropdown:', dropdownId);
+
+                    // Close other open dropdowns
+                    document.querySelectorAll('.menu-dropdown.open').forEach(d => {
+                        if (d.id !== dropdownId) d.classList.remove('open');
+                    });
+
+                    const isOpen = dropdown.classList.toggle('open');
+                    console.log('Dropdown toggled:', dropdownId, 'isOpen:', isOpen);
+                    
+                    // Position dropdown centered below the menu item
+                    if (isOpen) {
+                        // Show temporarily to measure dimensions
+                        dropdown.style.display = 'block';
+                        dropdown.style.visibility = 'hidden';
+                        dropdown.style.opacity = '0';
+                        dropdown.style.transform = 'translateY(-8px)';
+                        dropdown.offsetHeight; // force reflow
+                        
+                        const rect = item.getBoundingClientRect();
+                        console.log('Item rect:', rect);
+                        dropdown.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+                        dropdown.style.left = (rect.left + rect.width / 2 - dropdown.offsetWidth / 2) + 'px';
+                        dropdown.style.minWidth = Math.max(200, rect.width) + 'px';
+                        console.log('Dropdown positioned at:', dropdown.style.top, dropdown.style.left, 'width:', dropdown.offsetWidth);
+                        
+                        // Animate in
+                        requestAnimationFrame(() => {
+                            dropdown.style.visibility = 'visible';
+                            dropdown.style.opacity = '1';
+                            dropdown.style.transform = 'translateY(0)';
+                        });
+                    } else {
+                        dropdown.style.opacity = '0';
+                        dropdown.style.transform = 'translateY(-8px)';
+                        setTimeout(() => {
+                            if (!dropdown.classList.contains('open')) {
+                                dropdown.style.display = 'none';
+                            }
+                        }, 200);
+                    }
+                });
+
+                // Handle submenu item clicks
+                dropdown.querySelectorAll('.submenu-item').forEach(subItem => {
+                    subItem.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const tabName = this.getAttribute('data-tab');
+                        if (tabName) {
+                            switchToTab(tabName);
+                            dropdown.classList.remove('open');
+                        }
+                    });
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.menu-item-parent') && !e.target.closest('.menu-dropdown')) {
+                    document.querySelectorAll('.menu-dropdown.open').forEach(d => d.classList.remove('open'));
+                }
+            });
+        })();
+
+        // Tab switching for menu items
         document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
             item.addEventListener('click', function() {
                 const tabName = this.getAttribute('data-tab');
-
-                // Remove active class from all menu items and submenu items
-                document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
-                document.querySelectorAll('.submenu-item').forEach(si => si.classList.remove('active'));
-
-                // Add active class to clicked item
-                this.classList.add('active');
-
-                // Hide all tab contents
-                document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
-
-                // Show selected tab content
-                document.getElementById('tab-' + tabName).classList.add('active');
-
-                // Scroll to top of page
-                window.scrollTo(0, 0);
+                if (tabName) switchToTab(tabName);
             });
         });
 
-        // Tab switching functionality for submenu items
-        document.querySelectorAll('.submenu-item[data-tab]').forEach(item => {
+        // Tab switching for submenu items (in left panel, not in app bar dropdowns)
+        document.querySelectorAll('.left-panel .submenu-item[data-tab]').forEach(item => {
             item.addEventListener('click', function() {
                 const tabName = this.getAttribute('data-tab');
-
-                // Remove active class from all menu items and submenu items
-                document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
-                document.querySelectorAll('.submenu-item').forEach(si => si.classList.remove('active'));
-
-                // Add active class to clicked submenu item
-                this.classList.add('active');
-
-                // Hide all tab contents
-                document.querySelectorAll('.tab-content-wrapper').forEach(tc => tc.classList.remove('active'));
-
-                // Show selected tab content
-                const tabContent = document.getElementById('tab-' + tabName);
-                if (tabContent) {
-                    tabContent.classList.add('active');
-                }
-
-                // Scroll to top of page
-                window.scrollTo(0, 0);
-
-                // Load data for specific tabs
-                if (tabName === 'traders') {
-                    loadExpertTraders(true);
-                } else if (tabName === 'recent-trades') {
-                    loadRecentTrades(true);
-                } else if (tabName === 'posts') {
-                    loadPosts(true);
-                }
-
-                // Close mobile sidebar if open
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('mobile-open');
-                    hamburgerBtn.classList.remove('active');
-                    sidebarOverlay.classList.remove('active');
+                if (tabName) {
+                    switchToTab(tabName);
+                    // Load data for specific tabs
+                    if (tabName === 'traders') loadExpertTraders(true);
+                    else if (tabName === 'recent-trades') loadRecentTrades(true);
+                    else if (tabName === 'posts') loadPosts(true);
                 }
             });
         });
+
+        // Search functionality
+        const searchInput = document.getElementById('search-input');
+        const searchDropdown = document.getElementById('search-dropdown');
+
+        const SEARCH_ITEMS = [
+            { type: 'Tab', name: 'Dashboard', tab: 'dashboard', icon: 'fa-gauge-high' },
+            { type: 'Tab', name: 'Wallet', tab: 'wallet', icon: 'fa-wallet' },
+            { type: 'Tab', name: 'Automated Calls', tab: 'automated-calls', icon: 'fa-robot' },
+            { type: 'Tab', name: 'Active Copies', tab: 'active-copies', icon: 'fa-copy' },
+            { type: 'Tab', name: 'Performance', tab: 'performance', icon: 'fa-chart-pie' },
+            { type: 'Tab', name: 'Robo Advisor', tab: 'subscription', icon: 'fa-robot' },
+            { type: 'Tab', name: 'ETF Automation', tab: 'etf-plans', icon: 'fa-chart-pie' },
+            { type: 'Tab', name: 'DeFi Automation', tab: 'defi-earnings', icon: 'fa-coins' },
+            { type: 'Tab', name: 'Options', tab: 'options', icon: 'fa-file-alt' },
+            { type: 'Tab', name: 'Staking', tab: 'staking', icon: 'fa-layer-group' },
+            { type: 'Tab', name: 'Traders', tab: 'traders', icon: 'fa-users-line' },
+            { type: 'Tab', name: 'Recent Trades', tab: 'recent-trades', icon: 'fa-clock-rotate-left' },
+            { type: 'Tab', name: 'Posts', tab: 'posts', icon: 'fa-newspaper' },
+            { type: 'Tab', name: 'Referrals', tab: 'referrals', icon: 'fa-share-nodes' },
+            { type: 'Tab', name: 'News', tab: 'news', icon: 'fa-newspaper' },
+            { type: 'Tab', name: 'Personal Details', tab: 'account-personal', icon: 'fa-user' },
+            { type: 'Tab', name: 'Security', tab: 'account-security', icon: 'fa-shield-halved' },
+        ];
+
+        let searchTraderCache = [];
+
+        async function loadSearchTraders() {
+            try {
+                const resp = await TED_AUTH.apiCall('/api/traders');
+                const data = await resp.json();
+                if (data.traders) {
+                    searchTraderCache = data.traders.map(t => ({
+                        type: 'Trader',
+                        name: t.full_name || t.name || 'Unknown',
+                        tab: 'traders',
+                        icon: 'fa-user'
+                    }));
+                }
+            } catch(e) { /* silent */ }
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                if (query.length < 1) {
+                    searchDropdown.classList.remove('open');
+                    return;
+                }
+
+                const tabResults = SEARCH_ITEMS.filter(item =>
+                    item.name.toLowerCase().includes(query)
+                );
+
+                const traderResults = searchTraderCache.filter(item =>
+                    item.name.toLowerCase().includes(query)
+                );
+
+                let html = '';
+                if (tabResults.length) {
+                    html += '<div class="search-result-category">Tabs</div>';
+                    tabResults.forEach(item => {
+                        html += `<div class="search-result-item" data-tab="${item.tab}"><i class="fa-solid ${item.icon}"></i> ${item.name}</div>`;
+                    });
+                }
+                if (traderResults.length) {
+                    html += '<div class="search-result-category">Traders</div>';
+                    traderResults.forEach(item => {
+                        html += `<div class="search-result-item" data-tab="${item.tab}"><i class="fa-solid ${item.icon}"></i> ${item.name}</div>`;
+                    });
+                }
+
+                if (html) {
+                    searchDropdown.innerHTML = html;
+                    searchDropdown.classList.add('open');
+
+                    searchDropdown.querySelectorAll('.search-result-item').forEach(el => {
+                        el.addEventListener('click', function() {
+                            const tab = this.dataset.tab;
+                            switchToTab(tab);
+                            searchDropdown.classList.remove('open');
+                            searchInput.value = '';
+
+                            if (tab === 'traders') loadExpertTraders(true);
+                        });
+                    });
+                } else {
+                    searchDropdown.innerHTML = '<div class="search-result-item" style="color:#8b93a7;cursor:default;">No results found</div>';
+                    searchDropdown.classList.add('open');
+                }
+            });
+
+            searchInput.addEventListener('blur', function() {
+                setTimeout(() => searchDropdown.classList.remove('open'), 200);
+            });
+
+            loadSearchTraders();
+        }
+
+        // AI Chat with Conversation History
+        const chatInput = document.getElementById('chat-input');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        
+        // Store conversation history for context
+        let chatConversationHistory = [];
+
+        function addChatMessage(text, sender) {
+            if (!chatMessages) return;
+            const welcome = chatMessages.querySelector('.chat-welcome');
+            if (welcome) welcome.remove();
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message ' + sender;
+            
+            // Format text with line breaks
+            msgDiv.innerHTML = text.replace(/\n/g, '<br>');
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            if (!chatMessages) return;
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-message ai typing-indicator';
+            typingDiv.id = 'chat-loading';
+            typingDiv.innerHTML = '<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>';
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            document.getElementById('chat-loading')?.remove();
+        }
+
+        async function sendChatMessage(text) {
+            if (!text.trim()) return;
+            
+            addChatMessage(text, 'user');
+            chatInput.value = '';
+            
+            // Add user message to conversation history
+            chatConversationHistory.push({ role: 'user', content: text });
+            
+            // Keep only last 10 messages for context
+            if (chatConversationHistory.length > 10) {
+                chatConversationHistory = chatConversationHistory.slice(-10);
+            }
+
+            showTypingIndicator();
+
+            try {
+                const resp = await TED_AUTH.apiCall('/api/chat/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: text,
+                        conversation_history: chatConversationHistory
+                    })
+                });
+                const data = await resp.json();
+
+                removeTypingIndicator();
+                
+                const responseText = data.response || data.message || 'I received your message.';
+                addChatMessage(responseText, 'ai');
+                
+                // Add AI response to conversation history
+                chatConversationHistory.push({ role: 'assistant', content: responseText });
+                
+            } catch(e) {
+                removeTypingIndicator();
+                addChatMessage('Sorry, I had trouble responding. Please try again.', 'ai');
+            }
+        }
+
+        if (chatSendBtn && chatInput) {
+            chatSendBtn.addEventListener('click', function() {
+                const text = chatInput.value.trim();
+                if (text) sendChatMessage(text);
+            });
+
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const text = this.value.trim();
+                    if (text) sendChatMessage(text);
+                }
+            });
+        }
 
         // Copy referral link function
         function copyReferralLink() {
@@ -5203,43 +6010,71 @@
         }
 
         // Sidebar toggle functionality
-        const sidebar = document.getElementById('sidebar');
+        const leftPanel = document.getElementById('left-panel');
         const mainContent = document.querySelector('.main-content');
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const desktopToggleBtn = document.getElementById('desktop-toggle-btn');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         const desktopToggleIcon = desktopToggleBtn.querySelector('i');
 
-        // Mobile hamburger menu toggle
+        // Hamburger menu toggle: mobile opens nav, desktop collapses left panel
         hamburgerBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('mobile-open');
-            hamburgerBtn.classList.toggle('active');
-            sidebarOverlay.classList.toggle('active');
+            if (window.innerWidth <= 768) {
+                const appBarMenu = document.getElementById('app-bar-menu');
+                appBarMenu.classList.toggle('mobile-open');
+                hamburgerBtn.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+                leftPanel.classList.remove('mobile-open');
+            } else {
+                leftPanel.classList.toggle('collapsed');
+                mainContent.classList.toggle('sidebar-collapsed');
+                const tickerContainer = document.getElementById('tradingview-ticker');
+                if (tickerContainer) tickerContainer.classList.toggle('sidebar-collapsed');
+                if (leftPanel.classList.contains('collapsed')) {
+                    desktopToggleIcon.classList.remove('fa-chevron-left');
+                    desktopToggleIcon.classList.add('fa-chevron-right');
+                } else {
+                    desktopToggleIcon.classList.remove('fa-chevron-right');
+                    desktopToggleIcon.classList.add('fa-chevron-left');
+                }
+            }
         });
 
-        // Close sidebar when clicking overlay
+        // Close mobile nav when clicking overlay
         sidebarOverlay.addEventListener('click', function() {
-            sidebar.classList.remove('mobile-open');
+            closeMobileNav();
+        });
+
+        function closeMobileNav() {
+            const appBarMenu = document.getElementById('app-bar-menu');
+            appBarMenu.classList.remove('mobile-open');
             hamburgerBtn.classList.remove('active');
             sidebarOverlay.classList.remove('active');
+        }
+
+        // Close mobile nav when clicking a menu item that switches tabs
+        document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
+            item.addEventListener('click', function() {
+                if (window.innerWidth <= 768) closeMobileNav();
+            });
         });
 
-        // Close mobile sidebar when clicking menu item (but not dropdown parents)
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', function() {
-                // Only close sidebar on mobile if the menu item has a data-tab attribute
-                // (i.e., it's an actual tab, not a dropdown parent)
-                if (window.innerWidth <= 768 && this.hasAttribute('data-tab')) {
-                    sidebar.classList.remove('mobile-open');
-                    hamburgerBtn.classList.remove('active');
-                    sidebarOverlay.classList.remove('active');
+        // Mobile: expand submenus inline instead of dropdown
+        document.querySelectorAll('#app-bar-menu .menu-item-parent > .menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    const parent = this.closest('.menu-item-parent');
+                    const submenu = parent.querySelector('.submenu');
+                    parent.classList.toggle('expanded');
+                    if (submenu) submenu.classList.toggle('expanded');
                 }
             });
         });
 
         // Desktop sidebar collapse toggle
         desktopToggleBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
+            leftPanel.classList.toggle('collapsed');
             mainContent.classList.toggle('sidebar-collapsed');
 
             // Toggle ticker container position
@@ -5247,7 +6082,7 @@
             tickerContainer.classList.toggle('sidebar-collapsed');
 
             // Toggle icon direction
-            if (sidebar.classList.contains('collapsed')) {
+            if (leftPanel.classList.contains('collapsed')) {
                 desktopToggleIcon.classList.remove('fa-chevron-left');
                 desktopToggleIcon.classList.add('fa-chevron-right');
             } else {
@@ -5255,6 +6090,84 @@
                 desktopToggleIcon.classList.add('fa-chevron-left');
             }
         });
+
+        // User Avatar Dropdown
+        const userProfileBtn = document.getElementById('app-bar-user-profile');
+        const userDropdown = document.getElementById('user-dropdown');
+        const userDropdownArrow = document.getElementById('user-dropdown-arrow');
+        const userDropdownName = document.getElementById('user-dropdown-name');
+        const userDropdownUsername = document.getElementById('user-dropdown-username');
+
+        function toggleUserDropdown(e) {
+            e.stopPropagation();
+            const isOpen = userDropdown.classList.contains('open');
+            
+            // Close other dropdowns
+            document.querySelectorAll('.menu-dropdown.open').forEach(d => d.classList.remove('open'));
+            document.querySelectorAll('.search-dropdown.open').forEach(d => d.classList.remove('open'));
+            
+            if (isOpen) {
+                closeUserDropdown();
+            } else {
+                openUserDropdown();
+            }
+        }
+
+        function openUserDropdown() {
+            userDropdown.classList.add('open');
+            userDropdownArrow.classList.add('rotated');
+            positionUserDropdown();
+        }
+
+        function closeUserDropdown() {
+            userDropdown.classList.remove('open');
+            userDropdownArrow.classList.remove('rotated');
+        }
+
+        function positionUserDropdown() {
+            const profileRect = userProfileBtn.getBoundingClientRect();
+            userDropdown.style.top = (profileRect.bottom + window.scrollY + 8) + 'px';
+            userDropdown.style.left = (profileRect.right - userDropdown.offsetWidth) + 'px';
+        }
+
+        // Sync user info in dropdown with profile
+        function syncUserDropdownInfo() {
+            const fullName = document.getElementById('app-bar-user-full-name');
+            const username = document.getElementById('app-bar-user-username');
+            
+            if (fullName && userDropdownName) userDropdownName.textContent = fullName.textContent;
+            if (username && userDropdownUsername) userDropdownUsername.textContent = username.textContent;
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userProfileBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                closeUserDropdown();
+            }
+        });
+
+        // Close dropdown on window resize
+        window.addEventListener('resize', function() {
+            if (userDropdown.classList.contains('open')) {
+                positionUserDropdown();
+            }
+        });
+
+        // Handle dropdown item clicks (tab switching)
+        userDropdown.querySelectorAll('.user-dropdown-item[data-tab]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const tabName = this.getAttribute('data-tab');
+                if (tabName) {
+                    switchToTab(tabName);
+                    closeUserDropdown();
+                }
+            });
+        });
+
+        // Initial sync
+        syncUserDropdownInfo();
     </script>
 
     <!-- TradingView Chart Widget -->
