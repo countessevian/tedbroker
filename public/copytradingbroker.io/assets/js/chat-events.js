@@ -74,3 +74,25 @@ _smartsupp.key = '9430f691e267f66567db1fac8334f421c946dd49';
   s.textContent = '.smartsupp-chat-container, iframe[title="Smartsupp"], [class*="smartsupp"], [id*="smartsupp"] { display: none !important; }';
   document.head.appendChild(s);
 })();
+
+// Page View Tracking
+(function() {
+  function sendPageView() {
+    fetch('/api/pageview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        page: window.location.pathname,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent
+      })
+    }).catch(() => {}); // Silent failure - non-blocking
+  }
+  
+  // Send on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', sendPageView);
+  } else {
+    sendPageView();
+  }
+})();
