@@ -2653,7 +2653,7 @@
         @media (max-width: 768px) {
             .hamburger-btn { display: flex; }
 
-            /* Mobile .app-bar-menu overrides are AFTER base .app-bar-menu rules (line ~3828) */
+
 
             .app-bar-search input { width: 120px; }
             .app-bar-search input:focus { width: 160px; }
@@ -3940,91 +3940,7 @@
             background: rgba(239, 68, 68, 0.1) !important;
         }
 
-        /* Mobile submenu overrides — must come AFTER base .app-bar-menu rules */
-        @media (max-width: 768px) {
-            .app-bar-menu {
-                display: none !important;
-                position: absolute !important;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: var(--bg-card);
-                border: 1px solid var(--border-color);
-                flex: none !important;
-                flex-direction: column;
-                flex-wrap: nowrap;
-                align-items: stretch !important;
-                justify-content: flex-start !important;
-                gap: 0;
-                padding: 8px 0;
-                box-shadow: 0 8px 24px var(--shadow);
-                z-index: 1001;
-                max-height: calc(100vh - var(--appbar-height));
-                overflow-y: auto !important;
-                overflow-x: hidden !important;
-            }
-            .app-bar-menu.mobile-open { display: flex !important; }
-            .app-bar-menu .menu-item {
-                max-width: 100% !important;
-                padding: 12px 16px !important;
-                gap: 12px !important;
-                border-radius: 0 !important;
-                flex-shrink: 0;
-                justify-content: flex-start !important;
-                align-items: center !important;
-                color: inherit;
-                white-space: normal;
-                transition: all 0.2s ease;
-            }
-            .app-bar-menu .menu-item:hover {
-                max-width: 100%;
-                gap: 12px;
-                background: rgba(255,255,255,0.08);
-            }
-            .app-bar-menu .menu-item i {
-                margin-right: 0 !important;
-                width: 22px;
-                text-align: center;
-                font-size: 16px;
-            }
-            .app-bar-menu .menu-item span {
-                max-width: 200px !important;
-                opacity: 1 !important;
-                overflow: visible !important;
-                margin-left: 12px !important;
-            }
-            .app-bar-menu .menu-item-parent {
-                flex-direction: column;
-            }
-            .app-bar-menu .submenu {
-                display: none !important;
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.3s ease;
-                background: rgba(0,0,0,0.2);
-            }
-            .app-bar-menu .submenu.expanded {
-                display: block !important;
-                max-height: 300px;
-                position: static !important;
-                visibility: visible !important;
-                pointer-events: auto !important;
-            }
-            .app-bar-menu .menu-item-parent .submenu-item {
-                display: none !important;
-            }
-            .app-bar-menu .menu-item-parent .submenu.expanded .submenu-item {
-                display: block !important;
-            }
-            .app-bar-menu .submenu-item {
-                padding: 10px 16px 10px 48px;
-            }
-            .app-bar-menu .menu-item:hover span {
-                max-width: 0;
-                opacity: 0;
-                margin-left: 0;
-            }
-        }
+
 
         .menu-dropdown {
             position: fixed;
