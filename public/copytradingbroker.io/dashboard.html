@@ -6794,7 +6794,128 @@
             });
         });
 
-        // Mobile: expand submenus inline instead of dropdown
+// === MOBILE SLIDE-IN NAVIGATION ===
+(function() {
+    var mobileNav = document.getElementById('mobile-nav');
+    var mobileOverlay = document.getElementById('mobile-nav-overlay');
+    var mobileCloseBtn = document.getElementById('mobile-nav-close');
+    var hamburgerBtn = document.getElementById('hamburger-btn');
+
+    if (!mobileNav || !hamburgerBtn) return;
+
+    function openMobileNav() {
+        if (window.innerWidth > 768) return;
+        mobileNav.classList.add('active');
+        mobileOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileNav() {
+        mobileNav.classList.remove('active');
+        mobileOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Expose closeMobileNav globally for switchToTab to call
+    window.closeMobileNav = closeMobileNav;
+
+    hamburgerBtn.addEventListener('click', function() {
+        if (mobileNav.classList.contains('active')) {
+            closeMobileNav();
+        } else {
+            openMobileNav();
+        }
+    });
+
+    mobileCloseBtn.addEventListener('click', closeMobileNav);
+    mobileOverlay.addEventListener('click', closeMobileNav);
+
+    // Submenu accordion toggles
+    document.querySelectorAll('.mobile-nav-parent').forEach(function(parent) {
+        var item = parent.querySelector('.mobile-nav-item');
+        if (item) {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                parent.classList.toggle('expanded');
+            });
+        }
+    });
+
+    // Tab switching — reuse existing switchToTab()
+    document.querySelectorAll('.mobile-nav-item[data-tab], .mobile-nav-subitem[data-tab]').forEach(function(item) {
+        item.addEventListener('click', function() {
+            var tabName = this.getAttribute('data-tab');
+            if (tabName && typeof switchToTab === 'function') {
+                switchToTab(tabName);
+            }
+            closeMobileNav();
+            updateMobileNavActive(tabName);
+        });
+    });
+
+    // Footer items (Personal Details, Security)
+    document.querySelectorAll('.mobile-nav-footer .mobile-nav-item[data-tab]').forEach(function(item) {
+        item.addEventListener('click', function() {
+            var tabName = this.getAttribute('data-tab');
+            if (tabName && typeof switchToTab === 'function') {
+                switchToTab(tabName);
+            }
+            closeMobileNav();
+            updateMobileNavActive(tabName);
+        });
+    });
+
+    // Logout
+    var logoutBtn = document.getElementById('mobile-nav-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            closeMobileNav();
+            if (typeof handleLogout === 'function') handleLogout();
+        });
+    }
+
+    // Update active states in mobile nav
+    function updateMobileNavActive(tabName) {
+        document.querySelectorAll('.mobile-nav-item, .mobile-nav-subitem').forEach(function(el) {
+            el.classList.remove('active');
+        });
+        var targetItem = document.querySelector('.mobile-nav-item[data-tab="' + tabName + '"], .mobile-nav-subitem[data-tab="' + tabName + '"]');
+        if (targetItem) {
+            targetItem.classList.add('active');
+            var parent = targetItem.closest('.mobile-nav-parent');
+            if (parent) {
+                parent.querySelector('.mobile-nav-item').classList.add('active');
+                parent.classList.add('expanded');
+            }
+        }
+    }
+
+    // Close on resize to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            closeMobileNav();
+        }
+    });
+
+    // Populate user profile from existing DOM
+    function populateMobileProfile() {
+        var userName = document.getElementById('user-display-name');
+        var userEmail = document.getElementById('user-email');
+        var mobileName = document.getElementById('mobile-nav-user-name');
+        var mobileEmail = document.getElementById('mobile-nav-user-email');
+        var mobileAvatar = document.getElementById('mobile-nav-avatar');
+
+        if (userName && mobileName) mobileName.textContent = userName.textContent;
+        if (userEmail && mobileEmail) mobileEmail.textContent = userEmail.textContent;
+        if (userName && mobileAvatar) {
+            var initials = userName.textContent.trim().charAt(0).toUpperCase();
+            mobileAvatar.textContent = initials || 'U';
+        }
+    }
+    populateMobileProfile();
+})();
+// Mobile: expand submenus inline instead of dropdown
         document.querySelectorAll('#app-bar-menu .menu-item-parent > .menu-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 if (window.innerWidth <= 768) {
