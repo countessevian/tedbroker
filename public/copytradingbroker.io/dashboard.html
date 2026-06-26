@@ -6671,11 +6671,8 @@
         // Hamburger menu toggle: mobile opens nav, desktop collapses left panel
         hamburgerBtn.addEventListener('click', function() {
             if (window.innerWidth <= 768) {
-                const appBarMenu = document.getElementById('app-bar-menu');
-                appBarMenu.classList.toggle('mobile-open');
-                hamburgerBtn.classList.toggle('active');
-                sidebarOverlay.classList.toggle('active');
-                leftPanel.classList.remove('mobile-open');
+                // Mobile hamburger is handled by the mobile-nav IIFE
+                return;
             } else {
                 leftPanel.classList.toggle('collapsed');
                 mainContent.classList.toggle('sidebar-collapsed');
@@ -6831,18 +6828,7 @@
     }
     populateMobileProfile();
 })();
-// Mobile: expand submenus inline instead of dropdown
-        document.querySelectorAll('#app-bar-menu .menu-item-parent > .menu-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    const parent = this.closest('.menu-item-parent');
-                    const submenu = parent.querySelector('.submenu');
-                    parent.classList.toggle('expanded');
-                    if (submenu) submenu.classList.toggle('expanded');
-                }
-            });
-        });
+
 
         // Desktop sidebar collapse toggle
         desktopToggleBtn.addEventListener('click', function() {
