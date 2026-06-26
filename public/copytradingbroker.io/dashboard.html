@@ -20,7 +20,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
+    <style>
+
+    </style>
     <style>
         * {
             margin: 0;
@@ -283,9 +288,18 @@
 
         .left-panel.collapsed {
             width: var(--left-panel-collapsed);
+            background: #D32F2F !important;
+            border-right: none;
+        }
+
+        .left-panel.collapsed .left-panel-header {
+            background: #D32F2F !important;
+            border-bottom: none;
+            box-shadow: none;
         }
 
         .left-panel.collapsed .left-panel-header span,
+        .left-panel.collapsed .left-panel-header i,
         .left-panel.collapsed .chat-messages,
         .left-panel.collapsed .chat-input-area,
         .left-panel.collapsed .sidebar-user-profile .user-info {
@@ -376,6 +390,70 @@
             background: rgba(255,255,255,0.1);
             color: #e2e8f0;
             border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.ai h1, .chat-message.ai h2, .chat-message.ai h3, .chat-message.ai h4 {
+            color: #fff;
+            margin: 8px 0 4px 0;
+            line-height: 1.3;
+        }
+        .chat-message.ai h1 { font-size: 16px; }
+        .chat-message.ai h2 { font-size: 15px; }
+        .chat-message.ai h3 { font-size: 14px; }
+
+        .chat-message.ai p { margin: 4px 0; }
+        .chat-message.ai p:first-child { margin-top: 0; }
+        .chat-message.ai p:last-child { margin-bottom: 0; }
+
+        .chat-message.ai ul, .chat-message.ai ol {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+        .chat-message.ai li { margin: 2px 0; }
+
+        .chat-message.ai strong { color: #fff; font-weight: 600; }
+        .chat-message.ai em { color: #cbd5e0; }
+
+        .chat-message.ai code {
+            background: rgba(255,255,255,0.15);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .chat-message.ai pre {
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 6px 0;
+        }
+        .chat-message.ai pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .chat-message.ai blockquote {
+            border-left: 3px solid #D32F2F;
+            padding-left: 10px;
+            margin: 6px 0;
+            color: #a0aec0;
+        }
+
+        .streaming-cursor {
+            display: inline-block;
+            width: 6px;
+            height: 14px;
+            background: #D32F2F;
+            border-radius: 2px;
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            animation: cursorBlink 0.8s step-end infinite;
+        }
+
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
         }
 
         .chat-input-area {
@@ -844,16 +922,16 @@
 
         .dashboard-card {
             background: var(--bg-card);
-            border: none;
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
-            box-shadow: none;
+            box-shadow: 0 1px 3px var(--shadow);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .dashboard-card:hover {
-            box-shadow: none;
+            box-shadow: 0 2px 8px var(--shadow);
             transform: none;
             background: var(--bg-card);
         }
@@ -861,11 +939,11 @@
         /* Active Plan Progress Card Styles */
         .active-plan-card {
             background: var(--bg-card);
-            border: none;
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: none;
+            box-shadow: 0 1px 3px var(--shadow);
         }
 
         .active-plan-header {
@@ -1055,7 +1133,7 @@
             border: 1px solid var(--border-color, #e5e7eb);
             border-radius: 8px;
             padding: 12px;
-            box-shadow: none;
+            box-shadow: 0 1px 3px var(--shadow);
             display: flex;
             flex-direction: column;
             min-height: 380px;
@@ -1128,11 +1206,11 @@
 
         .stat-box {
             background: var(--stat-bg);
-            border: none;
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 24px;
             text-align: center;
-            box-shadow: none;
+            box-shadow: 0 1px 3px var(--shadow);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
@@ -1499,7 +1577,7 @@
 
         .trader-strip {
             background: var(--bg-card);
-            border: none;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             margin-bottom: 8px;
             overflow: hidden;
@@ -2506,6 +2584,21 @@
         .left-panel.collapsed + * .desktop-toggle-btn,
         .left-panel.collapsed .desktop-toggle-btn {
             left: calc(var(--left-panel-collapsed) - 18px);
+            background: #fff;
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .left-panel.collapsed .desktop-toggle-btn i {
+            color: #D32F2F;
+        }
+
+        .left-panel.collapsed .desktop-toggle-btn:hover {
+            background: #fff;
+            transform: scale(1.1);
+        }
+
+        .left-panel.collapsed .desktop-toggle-btn:hover i {
+            color: #b71c1c;
         }
 
         /* Mobile Overlay */
@@ -2560,54 +2653,8 @@
         @media (max-width: 768px) {
             .hamburger-btn { display: flex; }
 
-            .app-bar-menu {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: var(--bg-card);
-                border: 1px solid var(--border-color);
-                flex-direction: column;
-                padding: 8px 0;
-                box-shadow: 0 8px 24px var(--shadow);
-                z-index: 1001;
-                max-height: calc(100vh - var(--appbar-height));
-                overflow-y: auto;
-            }
-            .app-bar-menu.mobile-open { display: flex; }
-            .app-bar-menu .menu-item {
-                max-width: 100%;
-                padding: 12px 16px;
-                gap: 12px;
-                border-radius: 0;
-                flex-shrink: 0;
-            }
-            .app-bar-menu .menu-item:hover {
-                max-width: 100%;
-                gap: 12px;
-            }
-            .app-bar-menu .menu-item span {
-                max-width: 200px;
-                opacity: 1;
-                overflow: visible;
-                margin-left: 12px;
-            }
-            .app-bar-menu .menu-item-parent {
-                flex-direction: column;
-            }
-            .app-bar-menu .submenu {
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.3s ease;
-                background: rgba(0,0,0,0.2);
-            }
-            .app-bar-menu .submenu.expanded {
-                max-height: 300px;
-            }
-            .app-bar-menu .submenu-item {
-                padding: 10px 16px 10px 48px;
-            }
+            /* Mobile .app-bar-menu overrides are AFTER base .app-bar-menu rules (line ~3828) */
+
             .app-bar-search input { width: 120px; }
             .app-bar-search input:focus { width: 160px; }
 
@@ -3579,9 +3626,19 @@
             gap: 12px;
         }
 
+        .app-bar-left a {
+            display: inline-flex;
+            align-items: center;
+            background: #ffffff;
+            border-radius: 30px;
+            padding: 8px 16px;
+            text-decoration: none;
+        }
+
         .app-bar-left img {
-            max-width: 140px;
+            max-width: 120px;
             height: auto;
+            display: block;
         }
 
         .app-bar-menu {
@@ -3686,6 +3743,287 @@
 
         .app-bar-menu .menu-item-parent .submenu-arrow {
             display: none;
+        }
+
+        /* ======================== */
+        /* MOBILE SLIDE-IN NAV      */
+        /* ======================== */
+        .mobile-nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+            transition: opacity 0.3s ease;
+        }
+        .mobile-nav-overlay.active {
+            display: block;
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 85vw;
+            max-width: 320px;
+            height: 100vh;
+            height: 100dvh;
+            background: #1a202c;
+            z-index: 1060;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            flex-direction: column;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .mobile-nav.active {
+            display: flex;
+            transform: translateX(0);
+        }
+
+        .mobile-nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        .mobile-nav-logo {
+            height: 30px;
+            border-radius: 6px;
+        }
+        .mobile-nav-close {
+            background: none;
+            border: none;
+            color: #a0aec0;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .mobile-nav-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .mobile-nav-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        .mobile-nav-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D32F2F, #5a9abf);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .mobile-nav-user-name {
+            color: #fff;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .mobile-nav-user-email {
+            color: #a0aec0;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 200px;
+        }
+
+        .mobile-nav-items {
+            flex: 1;
+            padding: 8px 0;
+            overflow-y: auto;
+        }
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            color: #cbd5e0;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            font-size: 15px;
+            position: relative;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        .mobile-nav-item i:first-child {
+            width: 22px;
+            text-align: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .mobile-nav-item:hover,
+        .mobile-nav-item.active {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+        .mobile-nav-item.active {
+            border-left: 3px solid #D32F2F;
+            color: #D32F2F;
+        }
+
+        .mobile-nav-submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.15);
+        }
+        .mobile-nav-parent.expanded .mobile-nav-submenu {
+            max-height: 500px;
+        }
+        .mobile-nav-arrow {
+            margin-left: auto;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+        .mobile-nav-parent.expanded .mobile-nav-arrow {
+            transform: rotate(180deg);
+        }
+        .mobile-nav-subitem {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 20px 12px 56px;
+            color: #a0aec0;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            font-size: 14px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        .mobile-nav-subitem i:first-child {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .mobile-nav-subitem:hover,
+        .mobile-nav-subitem.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        .mobile-nav-subitem.active {
+            color: #D32F2F;
+        }
+
+        .mobile-nav-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 0;
+            flex-shrink: 0;
+        }
+        .mobile-nav-logout {
+            color: #ef4444 !important;
+        }
+        .mobile-nav-logout:hover {
+            background: rgba(239, 68, 68, 0.1) !important;
+        }
+
+        /* Mobile submenu overrides — must come AFTER base .app-bar-menu rules */
+        @media (max-width: 768px) {
+            .app-bar-menu {
+                display: none !important;
+                position: absolute !important;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--bg-card);
+                border: 1px solid var(--border-color);
+                flex: none !important;
+                flex-direction: column;
+                flex-wrap: nowrap;
+                align-items: stretch !important;
+                justify-content: flex-start !important;
+                gap: 0;
+                padding: 8px 0;
+                box-shadow: 0 8px 24px var(--shadow);
+                z-index: 1001;
+                max-height: calc(100vh - var(--appbar-height));
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+            }
+            .app-bar-menu.mobile-open { display: flex !important; }
+            .app-bar-menu .menu-item {
+                max-width: 100% !important;
+                padding: 12px 16px !important;
+                gap: 12px !important;
+                border-radius: 0 !important;
+                flex-shrink: 0;
+                justify-content: flex-start !important;
+                align-items: center !important;
+                color: inherit;
+                white-space: normal;
+                transition: all 0.2s ease;
+            }
+            .app-bar-menu .menu-item:hover {
+                max-width: 100%;
+                gap: 12px;
+                background: rgba(255,255,255,0.08);
+            }
+            .app-bar-menu .menu-item i {
+                margin-right: 0 !important;
+                width: 22px;
+                text-align: center;
+                font-size: 16px;
+            }
+            .app-bar-menu .menu-item span {
+                max-width: 200px !important;
+                opacity: 1 !important;
+                overflow: visible !important;
+                margin-left: 12px !important;
+            }
+            .app-bar-menu .menu-item-parent {
+                flex-direction: column;
+            }
+            .app-bar-menu .submenu {
+                display: none !important;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+                background: rgba(0,0,0,0.2);
+            }
+            .app-bar-menu .submenu.expanded {
+                display: block !important;
+                max-height: 300px;
+                position: static !important;
+                visibility: visible !important;
+                pointer-events: auto !important;
+            }
+            .app-bar-menu .menu-item-parent .submenu-item {
+                display: none !important;
+            }
+            .app-bar-menu .menu-item-parent .submenu.expanded .submenu-item {
+                display: block !important;
+            }
+            .app-bar-menu .submenu-item {
+                padding: 10px 16px 10px 48px;
+            }
+            .app-bar-menu .menu-item:hover span {
+                max-width: 0;
+                opacity: 0;
+                margin-left: 0;
+            }
         }
 
         .menu-dropdown {
@@ -3965,6 +4303,86 @@
             background: rgba(255,255,255,0.1);
         }
 
+        /* Language Selector Styles */
+        .app-bar-lang {
+            position: relative;
+        }
+        .language-selector {
+            position: relative;
+        }
+        .language-btn {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            height: 40px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .language-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow);
+            border-color: #D32F2F;
+        }
+        .flag-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+        .language-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            line-height: 1;
+        }
+        .language-btn i {
+            font-size: 10px;
+            line-height: 1;
+        }
+        .language-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: 8px;
+            min-width: 220px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .language-dropdown.show {
+            display: block;
+        }
+        .language-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .language-option:last-child {
+            border-bottom: none;
+        }
+        .language-option:hover {
+            background: var(--card-hover);
+        }
+        .language-option .flag-icon {
+            font-size: 20px;
+        }
+        .language-option span:last-child {
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
         .app-bar-darkmode {
             cursor: pointer;
             padding: 6px 10px;
@@ -4076,7 +4494,7 @@
         <nav class="app-bar-menu" id="app-bar-menu">
                 <a class="menu-item active" data-tab="dashboard">
                     <i class="fa-solid fa-gauge-high"></i>
-                    <span data-i18n="nav.dashboard">Dashboard</span>
+                    <span data-i18n="nav.dashboard">Overview</span>
                 </a>
                 <a class="menu-item" data-tab="wallet">
                     <i class="fa-solid fa-wallet"></i>
@@ -4084,7 +4502,7 @@
                 </a>
 
                 <!-- Portfolio Parent with Submenu -->
-                <div class="menu-item-parent">
+                <div class="menu-item-parent" id="portfolio-parent">
                     <a class="menu-item" id="portfolio-menu">
                         <i class="fa-solid fa-chart-line"></i>
                         <span data-i18n="nav.portfolio">Portfolio</span>
@@ -4097,7 +4515,7 @@
                 </div>
 
                 <!-- Explore Parent with Submenu -->
-                <div class="menu-item-parent">
+                <div class="menu-item-parent" id="explore-parent">
                     <a class="menu-item" id="explore-menu">
                         <i class="fa-solid fa-compass"></i>
                         <span data-i18n="dashboard.nav.explore">Explore</span>
@@ -4112,7 +4530,7 @@
                 </div>
 
                 <!-- Network Parent with Submenu -->
-                <div class="menu-item-parent">
+                <div class="menu-item-parent" id="network-parent">
                     <a class="menu-item" id="network-menu">
                         <i class="fa-solid fa-network-wired"></i>
                         <span>Network</span>
@@ -4140,9 +4558,55 @@
                 <div class="search-dropdown" id="search-dropdown"></div>
             </div>
             <div class="app-bar-lang" id="app-bar-lang">
-                <button class="app-bar-lang-btn" onclick="toggleLanguageDropdown()">
-                    <span class="flag-icon" id="current-language-flag">🇺🇸</span>
-                </button>
+                <div class="language-selector" id="language-selector">
+                    <button class="app-bar-lang-btn" onclick="toggleLanguageDropdown()">
+                        <span class="flag-icon" id="current-language-flag">🇺🇸</span>
+                        <span class="language-text" id="current-language-text">EN</span>
+                        <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
+                    </button>
+                    <div class="language-dropdown" id="language-dropdown">
+                        <div class="language-option" onclick="changeLanguage('en')">
+                            <span class="flag-icon">🇺🇸</span>
+                            <span>English</span>
+                        </div>
+                        <div class="language-option" onclick="changeLanguage('zh')">
+                            <span class="flag-icon">🇨🇳</span>
+                            <span>中文 (Chinese)</span>
+                        </div>
+                        <div class="language-option" onclick="changeLanguage('hi')">
+                            <span class="flag-icon">🇮🇳</span>
+                            <span>हिन्दी (Hindi)</span>
+                        </div>
+                        <div class="language-option" onclick="changeLanguage('es')">
+                            <span class="flag-icon">🇪🇸</span>
+                            <span>Español (Spanish)</span>
+                        </div>
+                        <div class="language-option" onclick="changeLanguage('fr')">
+                            <span class="flag-icon">🇫🇷</span>
+                            <span>Français (French)</span>
+                        </div>
+                        <div class="language-option" onclick="changeLanguage('ar')">
+                            <span class="flag-icon">🇸🇦</span>
+                            <span>العربية (Arabic)</span>
+                        </div>
+                        <div class="language-option" onclick="changeLanguage('bn')">
+                            <span class="flag-icon">🇧🇩</span>
+                            <span>বাংলা (Bengali)</span>
+                        </div>
+                        <div class="language-option" onclick="changeLanguage('ru')">
+                            <span class="flag-icon">🇷🇺</span>
+                            <span>Русский (Russian)</span>
+                        </div>
+                        <div class="language-option" onclick="changeLanguage('pt')">
+                            <span class="flag-icon">🇵🇹</span>
+                            <span>Português (Portuguese)</span>
+                        </div>
+                        <div class="language-option" onclick="changeLanguage('de')">
+                            <span class="flag-icon">🇩🇪</span>
+                            <span>Deutsch (German)</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="app-bar-darkmode" id="app-bar-darkmode" onclick="toggleDarkMode()">
                 <i class="fas fa-sun sun-icon"></i>
@@ -4193,7 +4657,7 @@
             </div>
             <div class="left-panel-header" style="background: #2D3748 !important;">
                 <i class="fa-solid fa-robot"></i>
-                <span><span style="color: #D32F2F;">TED</span> <span style="color: #ffffff;">AI</span></span>
+                <span><span style="color: #D32F2F; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-weight: 900;">TED</span> <span style="color: #ffffff;">AI</span></span>
             </div>
             <div class="chat-messages" id="chat-messages" style="background: #2D3748 !important;">
                 <div class="chat-welcome" style="background: transparent !important;">
@@ -5116,14 +5580,14 @@
                         </p>
 
                         <!-- QR Code -->
-                        <div id="crypto-qr-container" style="text-align: center; margin-bottom: 15px;">
+                        <div id="crypto-qr-container" style="text-align: center; margin-bottom: 15px; display: flex; justify-content: center;">
                             <img id="crypto-qr-code" src="" alt="QR Code" style="max-width: 200px; height: auto; border: 2px solid rgba(123, 182, 218, 0.2); border-radius: 8px; display: none;">
                         </div>
 
                         <!-- Wallet Address -->
                         <div style="margin-bottom: 12px;">
                             <label style="display: block; color: #8b93a7; font-size: 12px; margin-bottom: 6px; font-weight: 600;" data-i18n="modal.deposit.address">Wallet Address:</label>
-                            <div style="background: rgba(123, 182, 218, 0.05); padding: 12px; border-radius: 6px; word-break: break-all; font-family: monospace; font-size: 12px; color: #000; margin-bottom: 8px;">
+                            <div style="background: #ffffff; border: 1px solid rgba(123, 182, 218, 0.2); padding: 12px; border-radius: 6px; word-break: break-all; font-family: monospace; font-size: 12px; color: #1a202c; margin-bottom: 8px;">
                                 <span id="crypto-wallet-address">-</span>
                             </div>
                         </div>
@@ -5647,6 +6111,29 @@
 
     <script>
         /**
+         * Central function to load data for a given tab
+         * Called from all tab switch points (app bar menu, dropdowns, left panel)
+         */
+        function loadTabData(tabName) {
+            switch(tabName) {
+                case 'traders': loadExpertTraders(true); break;
+                case 'recent-trades': loadRecentTrades(true); break;
+                case 'posts': loadPosts(true); break;
+                case 'wallet': loadWalletData(); break;
+                case 'referrals': loadReferralData(); break;
+                case 'subscription': loadInvestmentPlans(true); break;
+                case 'etf-plans': loadETFPlans(true); break;
+                case 'defi-earnings': loadDeFiPlans(true); break;
+                case 'options': loadOptionsPlans(true); break;
+                case 'automated-calls': loadPortfolioPerformance(true); break;
+                case 'active-copies': loadActiveCopies(true); break;
+                case 'performance': loadPerformance(true); break;
+                case 'news': loadNewsArticles(); break;
+                case 'staking': loadActivePlans(); break;
+            }
+        }
+
+        /**
          * Switch to a dashboard tab programmatically
          */
         function switchToTab(tabName) {
@@ -5709,7 +6196,7 @@
                     dropdown.appendChild(clone);
                 });
 
-                item.parentNode.appendChild(dropdown);
+                document.body.appendChild(dropdown);
                 console.log('Dropdown created:', dropdownId, 'with', dropdown.children.length, 'items');
 
                 // Position the dropdown
@@ -5721,7 +6208,17 @@
 
                     // Close other open dropdowns
                     document.querySelectorAll('.menu-dropdown.open').forEach(d => {
-                        if (d.id !== dropdownId) d.classList.remove('open');
+                        if (d.id !== dropdownId) {
+                            d.classList.remove('open');
+                            d.style.opacity = '0';
+                            d.style.transform = 'translateY(-8px)';
+                            setTimeout(() => {
+                                if (!d.classList.contains('open')) {
+                                    d.style.display = 'none';
+                                    d.style.visibility = 'hidden';
+                                }
+                            }, 200);
+                        }
                     });
 
                     const isOpen = dropdown.classList.toggle('open');
@@ -5738,7 +6235,7 @@
                         
                         const rect = item.getBoundingClientRect();
                         console.log('Item rect:', rect);
-                        dropdown.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+                        dropdown.style.top = (rect.bottom + window.scrollY + 1) + 'px';
                         dropdown.style.left = (rect.left + rect.width / 2 - dropdown.offsetWidth / 2) + 'px';
                         dropdown.style.minWidth = Math.max(200, rect.width) + 'px';
                         console.log('Dropdown positioned at:', dropdown.style.top, dropdown.style.left, 'width:', dropdown.offsetWidth);
@@ -5750,15 +6247,30 @@
                             dropdown.style.transform = 'translateY(0)';
                         });
                     } else {
+                        // Close: animate out then hide
                         dropdown.style.opacity = '0';
                         dropdown.style.transform = 'translateY(-8px)';
                         setTimeout(() => {
                             if (!dropdown.classList.contains('open')) {
                                 dropdown.style.display = 'none';
+                                dropdown.style.visibility = 'hidden';
                             }
                         }, 200);
                     }
                 });
+
+                // Helper to close dropdown properly (handles inline styles)
+                function closeDropdown() {
+                    dropdown.classList.remove('open');
+                    dropdown.style.opacity = '0';
+                    dropdown.style.transform = 'translateY(-8px)';
+                    setTimeout(() => {
+                        if (!dropdown.classList.contains('open')) {
+                            dropdown.style.display = 'none';
+                            dropdown.style.visibility = 'hidden';
+                        }
+                    }, 200);
+                }
 
                 // Handle submenu item clicks
                 dropdown.querySelectorAll('.submenu-item').forEach(subItem => {
@@ -5767,16 +6279,50 @@
                         const tabName = this.getAttribute('data-tab');
                         if (tabName) {
                             switchToTab(tabName);
-                            dropdown.classList.remove('open');
+                            loadTabData(tabName);
+                            closeDropdown();
                         }
                     });
+                });
+
+                // Close dropdown when mouse leaves dropdown area
+                dropdown.addEventListener('mouseleave', function() {
+                    closeDropdown();
+                });
+
+                // Close dropdown when mouse leaves parent menu item (with delay to allow moving to dropdown)
+                let leaveTimeout;
+                parent.addEventListener('mouseleave', function(e) {
+                    // Don't close if moving to dropdown or its children
+                    if (e.relatedTarget && (e.relatedTarget === dropdown || dropdown.contains(e.relatedTarget))) return;
+                    leaveTimeout = setTimeout(closeDropdown, 200);
+                });
+
+                // Clear timeout if entering dropdown
+                dropdown.addEventListener('mouseenter', function() {
+                    clearTimeout(leaveTimeout);
+                });
+
+                // Also clear timeout if re-entering parent
+                parent.addEventListener('mouseenter', function() {
+                    clearTimeout(leaveTimeout);
                 });
             });
 
             // Close dropdowns when clicking outside
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.menu-item-parent') && !e.target.closest('.menu-dropdown')) {
-                    document.querySelectorAll('.menu-dropdown.open').forEach(d => d.classList.remove('open'));
+                    document.querySelectorAll('.menu-dropdown.open').forEach(d => {
+                        d.classList.remove('open');
+                        d.style.opacity = '0';
+                        d.style.transform = 'translateY(-8px)';
+                        setTimeout(() => {
+                            if (!d.classList.contains('open')) {
+                                d.style.display = 'none';
+                                d.style.visibility = 'hidden';
+                            }
+                        }, 200);
+                    });
                 }
             });
         })();
@@ -5785,7 +6331,10 @@
         document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
             item.addEventListener('click', function() {
                 const tabName = this.getAttribute('data-tab');
-                if (tabName) switchToTab(tabName);
+                if (tabName) {
+                    switchToTab(tabName);
+                    loadTabData(tabName);
+                }
             });
         });
 
@@ -5795,10 +6344,7 @@
                 const tabName = this.getAttribute('data-tab');
                 if (tabName) {
                     switchToTab(tabName);
-                    // Load data for specific tabs
-                    if (tabName === 'traders') loadExpertTraders(true);
-                    else if (tabName === 'recent-trades') loadRecentTrades(true);
-                    else if (tabName === 'posts') loadPosts(true);
+                    loadTabData(tabName);
                 }
             });
         });
@@ -5901,13 +6447,26 @@
             loadSearchTraders();
         }
 
-        // AI Chat with Conversation History
+        // AI Chat with Conversation History + Streaming
         const chatInput = document.getElementById('chat-input');
         const chatSendBtn = document.getElementById('chat-send-btn');
         const chatMessages = document.getElementById('chat-messages');
         
+        // Configure marked for safe markdown rendering
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({ breaks: true, gfm: true });
+        }
+
+        function renderMarkdown(text) {
+            if (typeof marked !== 'undefined') {
+                return marked.parse(text);
+            }
+            return text.replace(/\n/g, '<br>');
+        }
+
         // Store conversation history for context
         let chatConversationHistory = [];
+        let isStreaming = false;
 
         function addChatMessage(text, sender) {
             if (!chatMessages) return;
@@ -5917,11 +6476,40 @@
             const msgDiv = document.createElement('div');
             msgDiv.className = 'chat-message ' + sender;
             
-            // Format text with line breaks
-            msgDiv.innerHTML = text.replace(/\n/g, '<br>');
+            if (sender === 'ai') {
+                msgDiv.innerHTML = renderMarkdown(text);
+            } else {
+                msgDiv.textContent = text;
+            }
             
             chatMessages.appendChild(msgDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+            return msgDiv;
+        }
+
+        function createStreamingMessage() {
+            if (!chatMessages) return null;
+            const welcome = chatMessages.querySelector('.chat-welcome');
+            if (welcome) welcome.remove();
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message ai streaming';
+            msgDiv.innerHTML = '<span class="streaming-cursor"></span>';
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return msgDiv;
+        }
+
+        function updateStreamingMessage(msgDiv, rawText) {
+            if (!msgDiv) return;
+            msgDiv.innerHTML = renderMarkdown(rawText) + '<span class="streaming-cursor"></span>';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function finalizeStreamingMessage(msgDiv, rawText) {
+            if (!msgDiv) return;
+            msgDiv.innerHTML = renderMarkdown(rawText);
+            msgDiv.classList.remove('streaming');
         }
 
         function showTypingIndicator() {
@@ -5939,15 +6527,13 @@
         }
 
         async function sendChatMessage(text) {
-            if (!text.trim()) return;
+            if (!text.trim() || isStreaming) return;
+            isStreaming = true;
             
             addChatMessage(text, 'user');
             chatInput.value = '';
             
-            // Add user message to conversation history
             chatConversationHistory.push({ role: 'user', content: text });
-            
-            // Keep only last 10 messages for context
             if (chatConversationHistory.length > 10) {
                 chatConversationHistory = chatConversationHistory.slice(-10);
             }
@@ -5955,28 +6541,70 @@
             showTypingIndicator();
 
             try {
-                const resp = await TED_AUTH.apiCall('/api/chat/ai', {
+                const token = TED_AUTH.getToken();
+                const resp = await fetch('/api/chat/ai', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
                     body: JSON.stringify({ 
                         message: text,
                         conversation_history: chatConversationHistory
                     })
                 });
-                const data = await resp.json();
+
+                if (!resp.ok) {
+                    throw new Error('API returned ' + resp.status);
+                }
 
                 removeTypingIndicator();
-                
-                const responseText = data.response || data.message || 'I received your message.';
-                addChatMessage(responseText, 'ai');
-                
-                // Add AI response to conversation history
-                chatConversationHistory.push({ role: 'assistant', content: responseText });
+                const streamMsg = createStreamingMessage();
+                let fullText = '';
+
+                const reader = resp.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const data = JSON.parse(line);
+                            if (data.token) {
+                                fullText += data.token;
+                                await new Promise(r => requestAnimationFrame(r));
+                                updateStreamingMessage(streamMsg, fullText);
+                            }
+                            if (data.done) {
+                                finalizeStreamingMessage(streamMsg, fullText);
+                            }
+                        } catch (e) {
+                            // skip malformed lines
+                        }
+                    }
+                }
+
+                if (fullText) {
+                    finalizeStreamingMessage(streamMsg, fullText);
+                    chatConversationHistory.push({ role: 'assistant', content: fullText });
+                } else {
+                    finalizeStreamingMessage(streamMsg, 'I received your message. How can I help?');
+                }
                 
             } catch(e) {
                 removeTypingIndicator();
                 addChatMessage('Sorry, I had trouble responding. Please try again.', 'ai');
             }
+
+            isStreaming = false;
         }
 
         if (chatSendBtn && chatInput) {
