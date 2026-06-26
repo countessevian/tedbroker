@@ -4639,6 +4639,113 @@
         </div>
     </header>
 
+    <!-- Mobile Slide-In Navigation -->
+    <div id="mobile-nav-overlay" class="mobile-nav-overlay"></div>
+    <div id="mobile-nav" class="mobile-nav">
+        <div class="mobile-nav-header">
+            <img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" class="mobile-nav-logo" />
+            <button class="mobile-nav-close" id="mobile-nav-close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="mobile-nav-profile">
+            <div class="mobile-nav-avatar" id="mobile-nav-avatar">U</div>
+            <div class="mobile-nav-user-info">
+                <div class="mobile-nav-user-name" id="mobile-nav-user-name">User</div>
+                <div class="mobile-nav-user-email" id="mobile-nav-user-email">user@email.com</div>
+            </div>
+        </div>
+
+        <div class="mobile-nav-items">
+            <a class="mobile-nav-item active" data-tab="dashboard">
+                <i class="fa-solid fa-gauge-high"></i><span>Overview</span>
+            </a>
+            <a class="mobile-nav-item" data-tab="wallet">
+                <i class="fa-solid fa-wallet"></i><span>Wallet</span>
+            </a>
+
+            <div class="mobile-nav-parent" data-submenu="portfolio">
+                <a class="mobile-nav-item">
+                    <i class="fa-solid fa-chart-line"></i><span>Portfolio</span>
+                    <i class="fa-solid fa-chevron-down mobile-nav-arrow"></i>
+                </a>
+                <div class="mobile-nav-submenu">
+                    <a class="mobile-nav-subitem" data-tab="automated-calls">
+                        <i class="fa-solid fa-robot"></i><span>Automated Calls</span>
+                    </a>
+                    <a class="mobile-nav-subitem" data-tab="active-copies">
+                        <i class="fa-solid fa-copy"></i><span>Active Copies</span>
+                    </a>
+                    <a class="mobile-nav-subitem" data-tab="performance">
+                        <i class="fa-solid fa-chart-pie"></i><span>Performance</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mobile-nav-parent" data-submenu="explore">
+                <a class="mobile-nav-item">
+                    <i class="fa-solid fa-compass"></i><span>Explore</span>
+                    <i class="fa-solid fa-chevron-down mobile-nav-arrow"></i>
+                </a>
+                <div class="mobile-nav-submenu">
+                    <a class="mobile-nav-subitem" data-tab="subscription">
+                        <i class="fa-solid fa-robot"></i><span>Robo Advisor</span>
+                    </a>
+                    <a class="mobile-nav-subitem" data-tab="etf-plans">
+                        <i class="fa-solid fa-chart-pie"></i><span>ETF Automation</span>
+                    </a>
+                    <a class="mobile-nav-subitem" data-tab="defi-earnings">
+                        <i class="fa-solid fa-coins"></i><span>DeFi Automation</span>
+                    </a>
+                    <a class="mobile-nav-subitem" data-tab="options">
+                        <i class="fa-solid fa-file-alt"></i><span>Options Automation</span>
+                    </a>
+                    <a class="mobile-nav-subitem" data-tab="staking">
+                        <i class="fa-solid fa-layer-group"></i><span>Staking</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mobile-nav-parent" data-submenu="network">
+                <a class="mobile-nav-item">
+                    <i class="fa-solid fa-network-wired"></i><span>Network</span>
+                    <i class="fa-solid fa-chevron-down mobile-nav-arrow"></i>
+                </a>
+                <div class="mobile-nav-submenu">
+                    <a class="mobile-nav-subitem" data-tab="traders">
+                        <i class="fa-solid fa-users-line"></i><span>Traders</span>
+                    </a>
+                    <a class="mobile-nav-subitem" data-tab="recent-trades">
+                        <i class="fa-solid fa-clock-rotate-left"></i><span>Recent Trades</span>
+                    </a>
+                    <a class="mobile-nav-subitem" data-tab="posts">
+                        <i class="fa-solid fa-newspaper"></i><span>Posts</span>
+                    </a>
+                </div>
+            </div>
+
+            <a class="mobile-nav-item" data-tab="referrals">
+                <i class="fa-solid fa-share-nodes"></i><span>Referrals</span>
+            </a>
+            <a class="mobile-nav-item" data-tab="news">
+                <i class="fa-solid fa-newspaper"></i><span>News</span>
+            </a>
+        </div>
+
+        <div class="mobile-nav-footer">
+            <a class="mobile-nav-item" data-tab="account-personal">
+                <i class="fa-solid fa-user"></i><span>Personal Details</span>
+            </a>
+            <a class="mobile-nav-item" data-tab="account-security">
+                <i class="fa-solid fa-shield-halved"></i><span>Security</span>
+            </a>
+            <a class="mobile-nav-item mobile-nav-logout" id="mobile-nav-logout">
+                <i class="fa-solid fa-right-from-bracket"></i><span>Log Out</span>
+            </a>
+        </div>
+    </div>
+
     <!-- TradingView Ticker -->
     <div class="tradingview-ticker-container" id="tradingview-ticker">
         <div class="tradingview-widget-container" id="tradingview-ticker-widget">
