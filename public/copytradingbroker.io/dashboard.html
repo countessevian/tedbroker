@@ -3746,6 +3746,150 @@
         }
 
         /* ======================== */
+        /* MOBILE AI CHAT TAB       */
+        /* ======================== */
+        .mobile-chat-tab {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - var(--appbar-height));
+            background: #2D3748;
+        }
+        .mobile-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 20px;
+            background: #2D3748;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        .mobile-chat-header i {
+            font-size: 20px;
+            color: #cbd5e0;
+        }
+        .mobile-chat-header-text {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .mobile-chat-welcome {
+            padding: 20px;
+            text-align: center;
+        }
+        .mobile-chat-welcome p {
+            color: #a0aec0;
+            font-size: 13px;
+            font-style: italic;
+            line-height: 1.5;
+        }
+        .mobile-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .mobile-chat-messages .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .mobile-chat-messages .chat-message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #D32F2F, #b71c1c);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .mobile-chat-messages .chat-message.ai {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border-bottom-left-radius: 4px;
+        }
+        .mobile-chat-messages .chat-message.ai h1,
+        .mobile-chat-messages .chat-message.ai h2,
+        .mobile-chat-messages .chat-message.ai h3 {
+            color: #fff;
+            margin: 8px 0 4px 0;
+        }
+        .mobile-chat-messages .chat-message.ai p {
+            margin: 4px 0;
+        }
+        .mobile-chat-messages .chat-message.ai ul,
+        .mobile-chat-messages .chat-message.ai ol {
+            padding-left: 20px;
+            margin: 6px 0;
+        }
+        .mobile-chat-messages .chat-message.ai code {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .mobile-chat-messages .chat-message.ai pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .mobile-chat-messages .chat-message.ai blockquote {
+            border-left: 3px solid #D32F2F;
+            padding-left: 10px;
+            color: #a0aec0;
+        }
+        .mobile-chat-messages .streaming-cursor {
+            display: inline-block;
+            width: 6px;
+            height: 14px;
+            background: #D32F2F;
+            border-radius: 2px;
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            animation: cursorBlink 0.8s step-end infinite;
+        }
+        .mobile-chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #2D3748;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        .mobile-chat-input-area input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .mobile-chat-input-area input:focus {
+            border-color: #D32F2F;
+        }
+        .mobile-chat-input-area input::placeholder {
+            color: #718096;
+        }
+        .mobile-chat-input-area button {
+            background: #D32F2F;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 16px;
+        }
+        .mobile-chat-input-area button:hover {
+            background: #b71c1c;
+        }
+
+        /* ======================== */
         /* MOBILE SLIDE-IN NAV      */
         /* ======================== */
         .mobile-nav-overlay {
