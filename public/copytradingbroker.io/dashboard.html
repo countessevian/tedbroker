@@ -3869,6 +3869,9 @@
             display: flex;
             flex-direction: column;
             height: calc(100vh - var(--appbar-height));
+            background: #ffffff;
+        }
+        [data-theme="dark"] .mobile-chat-tab {
             background: #2D3748;
         }
         .mobile-chat-header {
@@ -3876,27 +3879,43 @@
             align-items: center;
             gap: 10px;
             padding: 16px 20px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        [data-theme="dark"] .mobile-chat-header {
             background: #2D3748;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            flex-shrink: 0;
         }
         .mobile-chat-header i {
             font-size: 20px;
+            color: #4a5568;
+        }
+        [data-theme="dark"] .mobile-chat-header i {
             color: #cbd5e0;
         }
         .mobile-chat-header-text {
             font-size: 18px;
             font-weight: 700;
         }
+        .mobile-chat-header-text .ai-label {
+            color: #2d3748;
+        }
+        [data-theme="dark"] .mobile-chat-header-text .ai-label {
+            color: #ffffff;
+        }
         .mobile-chat-welcome {
             padding: 20px;
             text-align: center;
         }
         .mobile-chat-welcome p {
-            color: #a0aec0;
+            color: #718096;
             font-size: 13px;
             font-style: italic;
             line-height: 1.5;
+        }
+        [data-theme="dark"] .mobile-chat-welcome p {
+            color: #a0aec0;
         }
         .mobile-chat-messages {
             flex: 1;
@@ -3922,15 +3941,26 @@
         }
         .mobile-chat-messages .chat-message.ai {
             align-self: flex-start;
+            background: #f7fafc;
+            color: #2d3748;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        [data-theme="dark"] .mobile-chat-messages .chat-message.ai {
             background: rgba(255, 255, 255, 0.1);
             color: #e2e8f0;
-            border-bottom-left-radius: 4px;
+            border: none;
         }
         .mobile-chat-messages .chat-message.ai h1,
         .mobile-chat-messages .chat-message.ai h2,
         .mobile-chat-messages .chat-message.ai h3 {
-            color: #fff;
+            color: #2d3748;
             margin: 8px 0 4px 0;
+        }
+        [data-theme="dark"] .mobile-chat-messages .chat-message.ai h1,
+        [data-theme="dark"] .mobile-chat-messages .chat-message.ai h2,
+        [data-theme="dark"] .mobile-chat-messages .chat-message.ai h3 {
+            color: #fff;
         }
         .mobile-chat-messages .chat-message.ai p {
             margin: 4px 0;
@@ -3941,20 +3971,29 @@
             margin: 6px 0;
         }
         .mobile-chat-messages .chat-message.ai code {
-            background: rgba(255, 255, 255, 0.15);
+            background: #edf2f7;
             padding: 1px 5px;
             border-radius: 3px;
             font-size: 12px;
         }
+        [data-theme="dark"] .mobile-chat-messages .chat-message.ai code {
+            background: rgba(255, 255, 255, 0.15);
+        }
         .mobile-chat-messages .chat-message.ai pre {
-            background: rgba(0, 0, 0, 0.3);
+            background: #f7fafc;
             padding: 8px;
             border-radius: 6px;
             overflow-x: auto;
         }
+        [data-theme="dark"] .mobile-chat-messages .chat-message.ai pre {
+            background: rgba(0, 0, 0, 0.3);
+        }
         .mobile-chat-messages .chat-message.ai blockquote {
             border-left: 3px solid #D32F2F;
             padding-left: 10px;
+            color: #718096;
+        }
+        [data-theme="dark"] .mobile-chat-messages .chat-message.ai blockquote {
             color: #a0aec0;
         }
         .mobile-chat-messages .streaming-cursor {
@@ -3971,26 +4010,35 @@
             display: flex;
             gap: 8px;
             padding: 12px 16px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        [data-theme="dark"] .mobile-chat-input-area {
             background: #2D3748;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            flex-shrink: 0;
         }
         .mobile-chat-input-area input {
             flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
             padding: 10px 14px;
-            color: #fff;
+            color: #2d3748;
             font-size: 14px;
             outline: none;
             transition: border-color 0.2s;
+        }
+        [data-theme="dark"] .mobile-chat-input-area input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
         }
         .mobile-chat-input-area input:focus {
             border-color: #D32F2F;
         }
         .mobile-chat-input-area input::placeholder {
-            color: #718096;
+            color: #a0aec0;
         }
         .mobile-chat-input-area button {
             background: #D32F2F;
@@ -5732,7 +5780,7 @@
                 <div class="mobile-chat-tab">
                     <div class="mobile-chat-header">
                         <i class="fa-solid fa-robot"></i>
-                        <span class="mobile-chat-header-text"><span style="color: #D32F2F; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-weight: 900;">TED</span> <span style="color: #ffffff;">AI</span></span>
+                        <span class="mobile-chat-header-text"><span style="color: #D32F2F; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-weight: 900;">TED</span> <span class="ai-label">AI</span></span>
                     </div>
                     <div class="mobile-chat-messages" id="mobile-chat-messages">
                         <div class="mobile-chat-welcome">
