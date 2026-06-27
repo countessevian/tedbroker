@@ -23,7 +23,10 @@ TED_BROKERS_CONTEXT = CONTEXT_FILE.read_text(encoding="utf-8") if CONTEXT_FILE.e
 # OpenRouter API configuration
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+
+
+def get_openrouter_api_key():
+    return os.environ.get("OPENROUTER_API_KEY", "")
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
 
@@ -425,7 +428,7 @@ async def stream_openrouter_api(messages: list):
                 OPENROUTER_API_URL,
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Authorization": f"Bearer {get_openrouter_api_key()}",
                     "HTTP-Referer": "https://tedbrokers.com",
                     "X-Title": "TED Brokers AI Assistant"
                 },
