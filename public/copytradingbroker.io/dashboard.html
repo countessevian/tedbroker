@@ -6995,6 +6995,170 @@
     populateMobileProfile();
 })();
 
+// === MOBILE AI CHAT TAB ===
+(function() {
+    var mobileChatInput = document.getElementById('mobile-chat-input');
+    var mobileChatSendBtn = document.getElementById('mobile-chat-send-btn');
+    var mobileChatMessages = document.getElementById('mobile-chat-messages');
+    var mobileChatConversationHistory = [];
+    var mobileIsStreaming = false;
+
+    if (!mobileChatInput || !mobileChatSendBtn || !mobileChatMessages) return;
+
+    function addMobileChatMessage(text, sender) {
+        if (!mobileChatMessages) return;
+        var welcome = mobileChatMessages.querySelector('.mobile-chat-welcome');
+        if (welcome) welcome.remove();
+
+        var msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message ' + sender;
+
+        if (sender === 'ai') {
+            msgDiv.innerHTML = renderMarkdown(text);
+        } else {
+            msgDiv.textContent = text;
+        }
+
+        mobileChatMessages.appendChild(msgDiv);
+        mobileChatMessages.scrollTop = mobileChatMessages.scrollHeight;
+        return msgDiv;
+    }
+
+    function createMobileStreamingMessage() {
+        if (!mobileChatMessages) return null;
+        var welcome = mobileChatMessages.querySelector('.mobile-chat-welcome');
+        if (welcome) welcome.remove();
+
+        var msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message ai streaming';
+        msgDiv.innerHTML = '<span class="streaming-cursor"></span>';
+        mobileChatMessages.appendChild(msgDiv);
+        mobileChatMessages.scrollTop = mobileChatMessages.scrollHeight;
+        return msgDiv;
+    }
+
+    function updateMobileStreamingMessage(msgDiv, rawText) {
+        if (!msgDiv) return;
+        msgDiv.innerHTML = renderMarkdown(rawText) + '<span class="streaming-cursor"></span>';
+        mobileChatMessages.scrollTop = mobileChatMessages.scrollHeight;
+    }
+
+    function finalizeMobileStreamingMessage(msgDiv, rawText) {
+        if (!msgDiv) return;
+        msgDiv.innerHTML = renderMarkdown(rawText);
+        msgDiv.classList.remove('streaming');
+    }
+
+    function showMobileTypingIndicator() {
+        if (!mobileChatMessages) return;
+        var typingDiv = document.createElement('div');
+        typingDiv.className = 'chat-message ai typing-indicator';
+        typingDiv.id = 'mobile-chat-loading';
+        typingDiv.innerHTML = '<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>';
+        mobileChatMessages.appendChild(typingDiv);
+        mobileChatMessages.scrollTop = mobileChatMessages.scrollHeight;
+    }
+
+    function removeMobileTypingIndicator() {
+        var el = document.getElementById('mobile-chat-loading');
+        if (el) el.remove();
+    }
+
+    async function sendMobileChatMessage(text) {
+        if (!text.trim() || mobileIsStreaming) return;
+        mobileIsStreaming = true;
+
+        addMobileChatMessage(text, 'user');
+        mobileChatInput.value = '';
+
+        mobileChatConversationHistory.push({ role: 'user', content: text });
+        if (mobileChatConversationHistory.length > 10) {
+            mobileChatConversationHistory = mobileChatConversationHistory.slice(-10);
+        }
+
+        showMobileTypingIndicator();
+
+        try {
+            var token = TED_AUTH.getToken();
+            var resp = await fetch('/api/chat/ai', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    message: text,
+                    conversation_history: mobileChatConversationHistory
+                })
+            });
+
+            if (!resp.ok) {
+                throw new Error('API returned ' + resp.status);
+            }
+
+            removeMobileTypingIndicator();
+            var streamMsg = createMobileStreamingMessage();
+            var fullText = '';
+
+            var reader = resp.body.getReader();
+            var decoder = new TextDecoder();
+            var buffer = '';
+
+            while (true) {
+                var result = await reader.read();
+                if (result.done) break;
+
+                buffer += decoder.decode(result.value, { stream: true });
+                var lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i];
+                    if (!line.trim()) continue;
+                    try {
+                        var data = JSON.parse(line);
+                        if (data.token) {
+                            fullText += data.token;
+                            await new Promise(function(r) { requestAnimationFrame(r); });
+                            updateMobileStreamingMessage(streamMsg, fullText);
+                        }
+                        if (data.done) {
+                            finalizeMobileStreamingMessage(streamMsg, fullText);
+                        }
+                    } catch (e) {
+                        // skip malformed lines
+                    }
+                }
+            }
+
+            if (fullText) {
+                finalizeMobileStreamingMessage(streamMsg, fullText);
+                mobileChatConversationHistory.push({ role: 'assistant', content: fullText });
+            } else {
+                finalizeMobileStreamingMessage(streamMsg, 'I received your message. How can I help?');
+            }
+
+        } catch (e) {
+            removeMobileTypingIndicator();
+            addMobileChatMessage('Sorry, I had trouble responding. Please try again.', 'ai');
+        }
+
+        mobileIsStreaming = false;
+    }
+
+    mobileChatSendBtn.addEventListener('click', function() {
+        var text = mobileChatInput.value.trim();
+        if (text) sendMobileChatMessage(text);
+    });
+
+    mobileChatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            var text = this.value.trim();
+            if (text) sendMobileChatMessage(text);
+        }
+    });
+})();
 
         // Desktop sidebar collapse toggle
         desktopToggleBtn.addEventListener('click', function() {
