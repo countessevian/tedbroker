@@ -6849,10 +6849,9 @@
                         el.addEventListener('click', function() {
                             const tab = this.dataset.tab;
                             switchToTab(tab);
+                            if (typeof loadTabData === 'function') loadTabData(tab);
                             searchDropdown.classList.remove('open');
                             searchInput.value = '';
-
-                            if (tab === 'traders') loadExpertTraders(true);
                         });
                     });
                 } else {
@@ -7175,6 +7174,7 @@
             var tabName = this.getAttribute('data-tab');
             if (tabName && typeof switchToTab === 'function') {
                 switchToTab(tabName);
+                if (typeof loadTabData === 'function') loadTabData(tabName);
             }
             closeMobileNav();
             updateMobileNavActive(tabName);
@@ -7187,6 +7187,7 @@
             var tabName = this.getAttribute('data-tab');
             if (tabName && typeof switchToTab === 'function') {
                 switchToTab(tabName);
+                if (typeof loadTabData === 'function') loadTabData(tabName);
             }
             closeMobileNav();
             updateMobileNavActive(tabName);
@@ -7536,6 +7537,7 @@
                 const tabName = this.getAttribute('data-tab');
                 if (tabName) {
                     switchToTab(tabName);
+                    if (typeof loadTabData === 'function') loadTabData(tabName);
                     closeUserDropdown();
                 }
             });

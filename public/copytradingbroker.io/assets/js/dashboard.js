@@ -653,8 +653,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Check if user is new and hasn't been referred yet
     checkAndShowReferralModal(userData);
 
-    // Tab-specific data loading is now handled by loadTabData() in dashboard.html
-    // which is called from all tab click handlers (app bar, dropdowns, left panel)
+    // Load default tab (traders) data on initial page load
+    if (typeof loadTabData === 'function') {
+        loadTabData('traders');
+    }
 });
 
 /**
