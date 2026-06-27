@@ -62,6 +62,56 @@
             max-width: 500px;
             margin: 0 auto;
         }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: btn-spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes btn-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .form-message {
+            padding: 10px 14px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .form-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .form-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .form-message.info {
+            display: block;
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
     </style>
 </head>
 
@@ -69,6 +119,12 @@
 
     <!-- Page -->
     <div class="page main-signin-wrapper">
+        <!-- Background Logo -->
+        <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1;">
+            <a href="index">
+                <img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" width="150" style="opacity: 0.15;" />
+            </a>
+        </div>
         <!-- Row -->
         <div class="row signpages text-center">
             <div class="col-md-12">
@@ -79,16 +135,12 @@
                                 <div class="row row-sm">
                                     <div class="card-body mt-2 mb-2">
                                         <div class="verification-container">
-                                            <div class="text-center mb-4">
-                                                <a href="index">
-                                                    <img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" width="200" style="" />
-                                                </a>
-                                            </div>
-
                                             <h2 class="text-center mb-3">Verify Your Email</h2>
                                             <p class="text-center text-muted mb-4">
                                                 We've sent a 6-digit verification code to <strong id="user-email"></strong>
                                             </p>
+
+                                            <div id="verify-message" class="form-message"></div>
 
                                             <form id="verify-2fa-form">
                                                 <div class="form-group mb-4">
@@ -110,7 +162,7 @@
                                                     Code expires in: <span id="timer">10:00</span>
                                                 </div>
 
-                                                <button type="submit" class="btn btn-primary btn-block w-100 mb-3">
+                                                <button type="submit" id="verify-btn" class="btn btn-primary btn-block w-100 mb-3">
                                                     Verify Code
                                                 </button>
                                             </form>
@@ -193,11 +245,12 @@
             const code = document.getElementById('verification-code').value;
 
             if (code.length !== 6) {
-                TED_AUTH.showError('Please enter a 6-digit code');
+                TED_AUTH.showFormMessage('verify-message', 'Please enter a 6-digit code', 'error');
                 return;
             }
 
-            TED_AUTH.showLoading('Verifying code...');
+            TED_AUTH.clearFormMessage('verify-message');
+            TED_AUTH.setButtonLoading('verify-btn', 'Verify Code');
 
             try {
                 const response = await TED_AUTH.apiCall('/api/auth/verify-2fa', {
@@ -210,7 +263,6 @@
                 });
 
                 const data = await response.json();
-                TED_AUTH.closeLoading();
 
                 if (!response.ok) {
                     throw new Error(data.detail || 'Verification failed');
@@ -231,28 +283,26 @@
                     const onboardingData = await onboardingResponse.json();
 
                     if (onboardingData.is_onboarding_complete) {
-                        // Onboarding complete, go to dashboard
-                        TED_AUTH.showSuccess('Verification successful! Redirecting to dashboard...');
+                        TED_AUTH.showFormMessage('verify-message', 'Verification successful! Redirecting to dashboard...', 'success');
                         setTimeout(() => {
                             window.location.href = '/dashboard';
                         }, 1500);
                     } else {
-                        // Onboarding not complete, go to onboarding wizard
-                        TED_AUTH.showSuccess('Verification successful! Please complete your profile...');
+                        TED_AUTH.showFormMessage('verify-message', 'Verification successful! Please complete your profile...', 'success');
                         setTimeout(() => {
                             window.location.href = '/onboarding';
                         }, 1500);
                     }
                 } catch (error) {
-                    // If there's an error checking onboarding status, default to dashboard
-                    TED_AUTH.showSuccess('Verification successful! Redirecting...');
+                    TED_AUTH.showFormMessage('verify-message', 'Verification successful! Redirecting...', 'success');
                     setTimeout(() => {
                         window.location.href = '/dashboard';
                     }, 1500);
                 }
 
             } catch (error) {
-                TED_AUTH.showError(error.message);
+                TED_AUTH.resetButton('verify-btn', 'Verify Code');
+                TED_AUTH.showFormMessage('verify-message', error.message, 'error');
                 document.getElementById('verification-code').value = '';
                 document.getElementById('verification-code').focus();
             }
@@ -262,7 +312,7 @@
         document.getElementById('resend-code').addEventListener('click', async function(e) {
             e.preventDefault();
 
-            TED_AUTH.showLoading('Sending new code...');
+            TED_AUTH.clearFormMessage('verify-message');
 
             try {
                 const response = await TED_AUTH.apiCall('/api/auth/resend-2fa', {
@@ -272,7 +322,6 @@
                 });
 
                 const data = await response.json();
-                TED_AUTH.closeLoading();
 
                 if (!response.ok) {
                     throw new Error(data.detail || 'Failed to resend code');
@@ -285,10 +334,10 @@
                 document.getElementById('verification-code').focus();
                 updateTimer();
 
-                TED_AUTH.showSuccess('New verification code sent to your email');
+                TED_AUTH.showFormMessage('verify-message', 'New verification code sent to your email', 'success');
 
             } catch (error) {
-                TED_AUTH.showError(error.message);
+                TED_AUTH.showFormMessage('verify-message', error.message, 'error');
             }
         });
     </script>

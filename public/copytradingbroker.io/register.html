@@ -93,6 +93,57 @@
     box-shadow: 0 4px 10px rgba(240, 185, 11, 0.3);
     transform: translateY(-2px); /* Slight lift effect */
 }
+
+.btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+@keyframes btn-spin {
+    to { transform: rotate(360deg); }
+}
+
+.form-message {
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    display: none;
+}
+
+.form-message.success {
+    display: block;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.form-message.error {
+    display: block;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.form-message.info {
+    display: block;
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
     </style>
 
     <script type="text/javascript">
@@ -112,6 +163,12 @@
 
     <!-- Page -->
     <div class="page main-signin-wrapper">
+        <!-- Background Logo -->
+        <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1;">
+            <a href="index">
+                <img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" width="150" style="opacity: 0.15;" />
+            </a>
+        </div>
 
 
 
@@ -130,16 +187,11 @@
 						<div class="container-fluid">
 							<div class="row row-sm ">
 								<div class="col-md-12 col-lg-12 px-lg-12 px-xl-12 d-flex flex-column py-6">
-									
-									<div class="text-center mt-4">
-										<a href="index">
-											<img src="assets/images/logoIcon/tedbrokers-logo.jpg" alt="TED Brokers" width="200" style="" />
-										</a>
-									</div>
 									<div class="card-body mt-2 mb-2">
 										<h2 class="text-start mb-2" data-i18n="register.title">Sign Up for Free</h2>
 										<p class="mb-4 text-muted tx-13 ms-0 text-start" data-i18n="register.subtitle">It's Free to Sign up and only
 											takes a minute.</p>
+										<div id="register-message" class="form-message"></div>
 
 										<center>
 
@@ -520,7 +572,7 @@
 													</div>
 
 
-													<button type="submit" name="submit" class="btn btn-primary btn-block" data-i18n="register.btnRegister">Register</button>
+													<button type="submit" name="submit" id="register-btn" class="btn btn-primary btn-block" data-i18n="register.btnRegister">Register</button>
 
 													<!-- Divider -->
 													<div class="text-center my-3">
