@@ -456,6 +456,41 @@
             50% { opacity: 0; }
         }
 
+        .chat-message.error {
+            align-self: flex-start;
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+            border-bottom-left-radius: 4px;
+        }
+        [data-theme="dark"] .chat-message.error {
+            background: rgba(252, 129, 129, 0.2);
+            color: #feb2b2;
+            border-color: #fc8181;
+        }
+        .chat-message.error .error-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .chat-message.error .error-text {
+            font-size: 13px;
+        }
+        .chat-message.error .retry-btn {
+            background: #D32F2F;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            align-self: flex-start;
+            transition: background 0.2s;
+        }
+        .chat-message.error .retry-btn:hover {
+            background: #b71c1c;
+        }
+
         .chat-input-area {
             display: flex;
             gap: 8px;
@@ -4008,6 +4043,40 @@
             vertical-align: text-bottom;
             animation: cursorBlink 0.8s step-end infinite;
         }
+        .mobile-chat-messages .chat-message.error {
+            align-self: flex-start;
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+            border-bottom-left-radius: 4px;
+        }
+        [data-theme="dark"] .mobile-chat-messages .chat-message.error {
+            background: rgba(252, 129, 129, 0.2);
+            color: #feb2b2;
+            border-color: #fc8181;
+        }
+        .mobile-chat-messages .chat-message.error .error-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .mobile-chat-messages .chat-message.error .error-text {
+            font-size: 13px;
+        }
+        .mobile-chat-messages .chat-message.error .retry-btn {
+            background: #D32F2F;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            align-self: flex-start;
+            transition: background 0.2s;
+        }
+        .mobile-chat-messages .chat-message.error .retry-btn:hover {
+            background: #b71c1c;
+        }
         .mobile-chat-input-area {
             display: flex;
             gap: 8px;
@@ -6878,6 +6947,28 @@
             document.getElementById('chat-loading')?.remove();
         }
 
+        function addChatErrorMessage(errorText, retryFn) {
+            if (!chatMessages) return;
+            const welcome = chatMessages.querySelector('.chat-welcome');
+            if (welcome) welcome.remove();
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message error';
+            msgDiv.innerHTML = `
+                <div class="error-content">
+                    <span class="error-text">${errorText}</span>
+                    <button class="retry-btn">Try Again</button>
+                </div>
+            `;
+            msgDiv.querySelector('.retry-btn').addEventListener('click', function() {
+                msgDiv.remove();
+                retryFn();
+            });
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return msgDiv;
+        }
+
         async function sendChatMessage(text) {
             if (!text.trim() || isStreaming) return;
             isStreaming = true;
@@ -6886,8 +6977,8 @@
             chatInput.value = '';
             
             chatConversationHistory.push({ role: 'user', content: text });
-            if (chatConversationHistory.length > 10) {
-                chatConversationHistory = chatConversationHistory.slice(-10);
+            if (chatConversationHistory.length > 20) {
+                chatConversationHistory = chatConversationHistory.slice(-20);
             }
 
             showTypingIndicator();
@@ -6913,6 +7004,7 @@
                 removeTypingIndicator();
                 const streamMsg = createStreamingMessage();
                 let fullText = '';
+                let errorMsg = null;
 
                 const reader = resp.body.getReader();
                 const decoder = new TextDecoder();
@@ -6930,6 +7022,9 @@
                         if (!line.trim()) continue;
                         try {
                             const data = JSON.parse(line);
+                            if (data.error) {
+                                errorMsg = data.error;
+                            }
                             if (data.token) {
                                 fullText += data.token;
                                 await new Promise(r => requestAnimationFrame(r));
@@ -6944,16 +7039,23 @@
                     }
                 }
 
-                if (fullText) {
+                if (errorMsg && !fullText) {
+                    streamMsg.remove();
+                    addChatErrorMessage(errorMsg, function() {
+                        chatConversationHistory.pop();
+                        sendChatMessage(text);
+                    });
+                } else if (fullText) {
                     finalizeStreamingMessage(streamMsg, fullText);
                     chatConversationHistory.push({ role: 'assistant', content: fullText });
-                } else {
-                    finalizeStreamingMessage(streamMsg, 'I received your message. How can I help?');
                 }
                 
             } catch(e) {
                 removeTypingIndicator();
-                addChatMessage('Sorry, I had trouble responding. Please try again.', 'ai');
+                addChatErrorMessage('Failed to get a response. Please check your connection and try again.', function() {
+                    chatConversationHistory.pop();
+                    sendChatMessage(text);
+                });
             }
 
             isStreaming = false;
@@ -7221,6 +7323,23 @@
         if (el) el.remove();
     }
 
+    function addMobileChatErrorMessage(errorText, retryFn) {
+        if (!mobileChatMessages) return;
+        var welcome = mobileChatMessages.querySelector('.mobile-chat-welcome');
+        if (welcome) welcome.remove();
+
+        var msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message error';
+        msgDiv.innerHTML = '<div class="error-content"><span class="error-text">' + errorText + '</span><button class="retry-btn">Try Again</button></div>';
+        msgDiv.querySelector('.retry-btn').addEventListener('click', function() {
+            msgDiv.remove();
+            retryFn();
+        });
+        mobileChatMessages.appendChild(msgDiv);
+        mobileChatMessages.scrollTop = mobileChatMessages.scrollHeight;
+        return msgDiv;
+    }
+
     async function sendMobileChatMessage(text) {
         if (!text.trim() || mobileIsStreaming) return;
         mobileIsStreaming = true;
@@ -7229,8 +7348,8 @@
         mobileChatInput.value = '';
 
         mobileChatConversationHistory.push({ role: 'user', content: text });
-        if (mobileChatConversationHistory.length > 10) {
-            mobileChatConversationHistory = mobileChatConversationHistory.slice(-10);
+        if (mobileChatConversationHistory.length > 20) {
+            mobileChatConversationHistory = mobileChatConversationHistory.slice(-20);
         }
 
         showMobileTypingIndicator();
@@ -7256,6 +7375,7 @@
             removeMobileTypingIndicator();
             var streamMsg = createMobileStreamingMessage();
             var fullText = '';
+            var errorMsg = null;
 
             var reader = resp.body.getReader();
             var decoder = new TextDecoder();
@@ -7274,6 +7394,9 @@
                     if (!line.trim()) continue;
                     try {
                         var data = JSON.parse(line);
+                        if (data.error) {
+                            errorMsg = data.error;
+                        }
                         if (data.token) {
                             fullText += data.token;
                             await new Promise(function(r) { requestAnimationFrame(r); });
@@ -7288,16 +7411,23 @@
                 }
             }
 
-            if (fullText) {
+            if (errorMsg && !fullText) {
+                streamMsg.remove();
+                addMobileChatErrorMessage(errorMsg, function() {
+                    mobileChatConversationHistory.pop();
+                    sendMobileChatMessage(text);
+                });
+            } else if (fullText) {
                 finalizeMobileStreamingMessage(streamMsg, fullText);
                 mobileChatConversationHistory.push({ role: 'assistant', content: fullText });
-            } else {
-                finalizeMobileStreamingMessage(streamMsg, 'I received your message. How can I help?');
             }
 
         } catch (e) {
             removeMobileTypingIndicator();
-            addMobileChatMessage('Sorry, I had trouble responding. Please try again.', 'ai');
+            addMobileChatErrorMessage('Failed to get a response. Please check your connection and try again.', function() {
+                mobileChatConversationHistory.pop();
+                sendMobileChatMessage(text);
+            });
         }
 
         mobileIsStreaming = false;

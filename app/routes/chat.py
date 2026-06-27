@@ -1,8 +1,13 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.responses import StreamingResponse
 from datetime import datetime
 from bson import ObjectId
 from typing import List, Optional
 import random
+import httpx
+import json
+import os
+from pathlib import Path
 
 from app.schemas import ChatMessageCreate, ChatMessageResponse, ChatConversationResponse, ChatConversationDetail
 from app.auth import get_current_user_token
@@ -10,6 +15,15 @@ from app.database import (
     get_collection, USERS_COLLECTION, CHAT_CONVERSATIONS_COLLECTION,
     CHAT_MESSAGES_COLLECTION
 )
+
+# Load TED Brokers context file
+CONTEXT_FILE = Path(__file__).parent.parent / "ted_brokers_context.md"
+TED_BROKERS_CONTEXT = CONTEXT_FILE.read_text(encoding="utf-8") if CONTEXT_FILE.exists() else ""
+
+# OpenRouter API configuration
+OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
 
@@ -331,3 +345,152 @@ async def close_conversation(current_user: dict = Depends(get_current_user_token
         )
 
     return {"message": "Conversation closed successfully"}
+
+
+from pydantic import BaseModel
+
+
+class AIChatRequest(BaseModel):
+    message: str
+    conversation_history: Optional[List[dict]] = None
+
+
+class AIChatResponse(BaseModel):
+    response: str
+
+
+def filter_user_input(message: str) -> str:
+    """
+    Filter user input to ensure it's appropriate and redirect negative queries.
+    Returns the filtered message ready for the AI model.
+    """
+    message_lower = message.lower().strip()
+    
+    # Filter out potentially harmful or off-topic content
+    prohibited_patterns = [
+        "hack", "exploit", "scam", "fraud", "steal", "cheat",
+        "competitor", "alternative platform", "other broker",
+        "illegal", "unethical", "money laundering"
+    ]
+    
+    for pattern in prohibited_patterns:
+        if pattern in message_lower:
+            return f"I'd love to help you with TED Brokers! How can I assist you with our platform features today?"
+    
+    return message
+
+
+def build_system_prompt() -> str:
+    """
+    Build the system prompt with TED Brokers context for the AI model.
+    """
+    system_prompt = f"""You are a helpful, friendly, and enthusiastic AI assistant for TED Brokers, a leading copy trading platform.
+
+IMPORTANT INSTRUCTIONS:
+1. Always respond positively about TED Brokers
+2. Be helpful, supportive, and encouraging
+3. Focus on platform benefits and features
+4. Never discuss negative aspects
+5. Always guide users toward successful outcomes
+6. Use professional, friendly tone
+7. End responses with helpful suggestions
+
+TED BROKERS PLATFORM CONTEXT:
+{TED_BROKERS_CONTEXT}
+
+RESPONSE GUIDELINES:
+- Be enthusiastic about the platform
+- Highlight benefits and features
+- Guide users to explore platform capabilities
+- For technical issues, offer helpful solutions
+- Always maintain a positive, supportive tone
+- Never guarantee financial returns - use "potential" language
+- Always encourage platform exploration
+- End with a helpful next step or suggestion
+
+Remember: You are TED Brokers' friendly AI assistant. Be helpful, positive, and guide users toward success!"""
+    
+    return system_prompt
+
+
+async def stream_openrouter_api(messages: list):
+    """
+    Stream OpenRouter API response as SSE chunks.
+    Yields JSON lines with 'token' or 'done' or 'error' keys.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            async with client.stream(
+                "POST",
+                OPENROUTER_API_URL,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "HTTP-Referer": "https://tedbrokers.com",
+                    "X-Title": "TED Brokers AI Assistant"
+                },
+                json={
+                    "model": OPENROUTER_MODEL,
+                    "messages": messages,
+                    "max_tokens": 1000,
+                    "temperature": 0.7,
+                    "stream": True
+                }
+            ) as response:
+                if response.status_code != 200:
+                    error_body = await response.aread()
+                    yield json.dumps({"error": "I'm having trouble connecting to my knowledge base. Please try again in a moment."}) + "\n"
+                    yield json.dumps({"done": True}) + "\n"
+                    return
+
+                async for line in response.aiter_lines():
+                    if not line.startswith("data: "):
+                        continue
+                    payload = line[6:]
+                    if payload.strip() == "[DONE]":
+                        yield json.dumps({"done": True}) + "\n"
+                        return
+                    try:
+                        chunk = json.loads(payload)
+                        delta = chunk.get("choices", [{}])[0].get("delta", {})
+                        content = delta.get("content", "")
+                        if content:
+                            yield json.dumps({"token": content}) + "\n"
+                    except json.JSONDecodeError:
+                        continue
+
+                yield json.dumps({"done": True}) + "\n"
+
+    except Exception:
+        yield json.dumps({"error": "I'm experiencing a technical issue. Please try again."}) + "\n"
+        yield json.dumps({"done": True}) + "\n"
+
+
+@router.post("/ai")
+async def ai_chat(
+    chat_request: AIChatRequest,
+    current_user: dict = Depends(get_current_user_token)
+):
+    """
+    AI assistant chat endpoint.
+    Streams response via SSE for typewriter effect.
+    """
+    filtered_message = filter_user_input(chat_request.message)
+    system_prompt = build_system_prompt()
+
+    messages = [{"role": "system", "content": system_prompt}]
+
+    if chat_request.conversation_history:
+        for msg in chat_request.conversation_history[-10:]:
+            messages.append(msg)
+
+    messages.append({"role": "user", "content": filtered_message})
+
+    return StreamingResponse(
+        stream_openrouter_api(messages),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
