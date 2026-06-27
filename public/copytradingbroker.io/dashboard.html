@@ -2651,28 +2651,39 @@
 
         /* Mobile Styles */
         @media (max-width: 768px) {
-            .hamburger-btn { display: flex; }
+            .hamburger-btn {
+                display: flex;
+                padding: 6px;
+                gap: 3px;
+            }
+
+            .hamburger-btn span {
+                width: 18px;
+                height: 2px;
+            }
 
             .app-bar {
-                padding: 0 12px;
-                gap: 8px;
+                padding: 0 8px;
+                gap: 6px;
+                height: 48px;
             }
 
             .app-bar-left {
-                gap: 8px;
+                gap: 6px;
                 flex-shrink: 0;
             }
 
             .app-bar-left a {
-                padding: 6px 12px;
+                padding: 4px 8px;
+                border-radius: 20px;
             }
 
             .app-bar-left img {
-                max-width: 100px;
+                max-width: 80px;
             }
 
             .app-bar-right {
-                gap: 6px;
+                gap: 4px;
                 margin-left: auto;
             }
 
@@ -2681,29 +2692,37 @@
             }
 
             .app-bar-lang-btn {
-                padding: 6px 10px;
-                gap: 4px;
-                height: 34px;
+                padding: 4px 8px;
+                gap: 3px;
+                height: 30px;
+                border-radius: 20px;
+                font-size: 12px;
             }
 
             .app-bar-lang-btn .language-text {
                 display: none;
             }
 
+            .app-bar-lang-btn .fa-chevron-down {
+                font-size: 8px !important;
+            }
+
             .app-bar-darkmode {
-                padding: 6px 8px;
-                font-size: 14px;
+                padding: 4px 6px;
+                font-size: 13px;
+                border-radius: 6px;
             }
 
             .app-bar-user-profile {
-                padding: 4px 6px;
-                gap: 6px;
+                padding: 3px 5px;
+                gap: 0;
+                border-radius: 50%;
             }
 
             .app-bar-user-profile .user-avatar {
-                width: 28px;
-                height: 28px;
-                font-size: 11px;
+                width: 26px;
+                height: 26px;
+                font-size: 10px;
             }
 
             .app-bar-user-profile .user-info {
