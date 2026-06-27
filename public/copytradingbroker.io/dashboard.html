@@ -2653,10 +2653,62 @@
         @media (max-width: 768px) {
             .hamburger-btn { display: flex; }
 
+            .app-bar {
+                padding: 0 12px;
+                gap: 8px;
+            }
 
+            .app-bar-left {
+                gap: 8px;
+                flex-shrink: 0;
+            }
 
-            .app-bar-search input { width: 120px; }
-            .app-bar-search input:focus { width: 160px; }
+            .app-bar-left a {
+                padding: 6px 12px;
+            }
+
+            .app-bar-left img {
+                max-width: 100px;
+            }
+
+            .app-bar-right {
+                gap: 6px;
+                margin-left: auto;
+            }
+
+            .app-bar-search {
+                display: none;
+            }
+
+            .app-bar-lang-btn {
+                padding: 6px 10px;
+                gap: 4px;
+                height: 34px;
+            }
+
+            .app-bar-lang-btn .language-text {
+                display: none;
+            }
+
+            .app-bar-darkmode {
+                padding: 6px 8px;
+                font-size: 14px;
+            }
+
+            .app-bar-user-profile {
+                padding: 4px 6px;
+                gap: 6px;
+            }
+
+            .app-bar-user-profile .user-avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 11px;
+            }
+
+            .app-bar-user-profile .user-info {
+                display: none;
+            }
 
             .left-panel {
                 transform: translateX(-100%);
