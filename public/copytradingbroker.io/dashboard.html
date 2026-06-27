@@ -2601,25 +2601,6 @@
             color: #b71c1c;
         }
 
-        /* Mobile Overlay */
-        .sidebar-overlay {
-            position: fixed;
-            top: var(--appbar-height);
-            left: 0;
-            width: 100%;
-            height: calc(100% - var(--appbar-height));
-            background: rgba(255, 255, 255, 0.5);
-            z-index: 999;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .sidebar-overlay.active {
-            display: block;
-            opacity: 1;
-        }
-
         /* Tablet Styles */
         @media (max-width: 1024px) and (min-width: 769px) {
             .stat-grid {
@@ -2802,7 +2783,6 @@
                 height: calc(100vh - var(--appbar-height));
                 width: var(--left-panel-width) !important;
             }
-            .left-panel.mobile-open { transform: translateX(0); }
 
             .right-panel { display: none; }
 
@@ -2827,11 +2807,6 @@
             }
 
             .left-panel .desktop-toggle-btn { display: none; }
-
-            .sidebar-overlay {
-                top: var(--appbar-height);
-                height: calc(100% - var(--appbar-height));
-            }
 
             .dark-mode-toggle, .language-selector {
                 display: none;
@@ -4954,9 +4929,6 @@
         </div>
     </div>
 
-    <!-- Sidebar Overlay (Mobile) -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
     <div class="dashboard-wrapper">
         <!-- Left Panel -->
         <aside class="left-panel" id="left-panel" style="background: #2D3748 !important;">
@@ -6481,13 +6453,8 @@
             if (tabContent) tabContent.classList.add('active');
 
             // Close mobile nav
-            if (window.innerWidth <= 768) {
-                const appBarMenu = document.getElementById('app-bar-menu');
-                const hamburgerBtn = document.getElementById('hamburger-btn');
-                const sidebarOverlay = document.getElementById('sidebar-overlay');
-                if (appBarMenu) appBarMenu.classList.remove('mobile-open');
-                if (hamburgerBtn) hamburgerBtn.classList.remove('active');
-                if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+            if (window.innerWidth <= 768 && window.closeMobileNav) {
+                window.closeMobileNav();
             }
 
             window.scrollTo(0, 0);
@@ -6969,7 +6936,6 @@
         const mainContent = document.querySelector('.main-content');
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const desktopToggleBtn = document.getElementById('desktop-toggle-btn');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
         const desktopToggleIcon = desktopToggleBtn.querySelector('i');
 
         // Hamburger menu toggle: mobile opens nav, desktop collapses left panel
@@ -6992,24 +6958,7 @@
             }
         });
 
-        // Close mobile nav when clicking overlay
-        sidebarOverlay.addEventListener('click', function() {
-            closeMobileNav();
-        });
 
-        function closeMobileNav() {
-            const appBarMenu = document.getElementById('app-bar-menu');
-            appBarMenu.classList.remove('mobile-open');
-            hamburgerBtn.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
-        }
-
-        // Close mobile nav when clicking a menu item that switches tabs
-        document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
-            item.addEventListener('click', function() {
-                if (window.innerWidth <= 768) closeMobileNav();
-            });
-        });
 
 // === MOBILE SLIDE-IN NAVIGATION ===
 (function() {
