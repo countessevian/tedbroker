@@ -16,7 +16,7 @@ async function handleOAuthRedirect() {
 
     if (error) {
         if (error === 'oauth_failed') {
-            TED_AUTH.showError('Google sign-in failed. Please try again.');
+            TED_AUTH.showFormMessage('login-message', 'Google sign-in failed. Please try again.', 'error');
         }
         // Remove error from URL
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -37,13 +37,13 @@ async function handleOAuthRedirect() {
 
             if (onboardingData.is_onboarding_complete) {
                 // Onboarding complete, go to dashboard
-                TED_AUTH.showSuccess('Login successful! Redirecting to dashboard...');
+                TED_AUTH.showFormMessage('login-message', 'Login successful! Redirecting to dashboard...', 'success');
                 setTimeout(() => {
                     window.location.href = '/dashboard';
                 }, 1000);
             } else {
                 // Onboarding not complete, go to onboarding wizard
-                TED_AUTH.showSuccess('Login successful! Please complete your profile...');
+                TED_AUTH.showFormMessage('login-message', 'Login successful! Please complete your profile...', 'success');
                 setTimeout(() => {
                     window.location.href = '/onboarding';
                 }, 1000);
@@ -51,7 +51,7 @@ async function handleOAuthRedirect() {
         } catch (error) {
             // If there's an error checking onboarding status, default to dashboard
             console.error('Error checking onboarding status:', error);
-            TED_AUTH.showSuccess('Login successful! Redirecting...');
+            TED_AUTH.showFormMessage('login-message', 'Login successful! Redirecting...', 'success');
             setTimeout(() => {
                 window.location.href = '/dashboard';
             }, 1000);
@@ -85,26 +85,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Validate inputs
         if (!email || !password) {
-            TED_AUTH.showError('Please enter both email and password');
+            TED_AUTH.showFormMessage('login-message', 'Please enter both email and password', 'error');
             return;
         }
 
-        // Show loading
-        TED_AUTH.showLoading('Signing in...');
+        // Clear previous messages
+        TED_AUTH.clearFormMessage('login-message');
+
+        // Set button to loading state
+        TED_AUTH.setButtonLoading('login-btn', 'Sign In');
 
         // Call login API
         const result = await TED_AUTH.login(email, password);
 
-        // Close loading
-        TED_AUTH.closeLoading();
+        // Reset button
+        TED_AUTH.resetButton('login-btn', 'Sign In');
 
         if (result.success) {
             if (result.data.requires_2fa) {
                 // Redirect to 2FA verification page
-                TED_AUTH.showSuccess('Verification code sent! Redirecting...');
+                TED_AUTH.showFormMessage('login-message', 'Verification code sent! Redirecting...', 'info');
                 setTimeout(() => {
                     window.location.href = `/verify-2fa?email=${encodeURIComponent(result.data.email)}`;
-                }, 1000);
+                }, 1500);
             } else {
                 // No 2FA required - check onboarding status before redirecting
                 try {
@@ -113,13 +116,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (onboardingData.is_onboarding_complete) {
                         // Onboarding complete, go to dashboard
-                        TED_AUTH.showSuccess('Login successful! Redirecting to dashboard...');
+                        TED_AUTH.showFormMessage('login-message', 'Login successful! Redirecting to dashboard...', 'success');
                         setTimeout(() => {
                             window.location.href = '/dashboard';
                         }, 1000);
                     } else {
                         // Onboarding not complete, go to onboarding wizard
-                        TED_AUTH.showSuccess('Login successful! Please complete your profile...');
+                        TED_AUTH.showFormMessage('login-message', 'Login successful! Please complete your profile...', 'success');
                         setTimeout(() => {
                             window.location.href = '/onboarding';
                         }, 1000);
@@ -127,14 +130,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 } catch (error) {
                     // If there's an error checking onboarding status, default to dashboard
                     console.error('Error checking onboarding status:', error);
-                    TED_AUTH.showSuccess('Login successful! Redirecting...');
+                    TED_AUTH.showFormMessage('login-message', 'Login successful! Redirecting...', 'success');
                     setTimeout(() => {
                         window.location.href = '/dashboard';
                     }, 1000);
                 }
             }
         } else {
-            TED_AUTH.showError(result.error);
+            TED_AUTH.showFormMessage('login-message', result.error, 'error');
         }
     });
 });

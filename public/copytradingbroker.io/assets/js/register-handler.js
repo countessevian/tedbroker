@@ -16,7 +16,7 @@ async function handleOAuthRedirect() {
 
     if (error) {
         if (error === 'oauth_failed') {
-            TED_AUTH.showError('Google sign-up failed. Please try again.');
+            TED_AUTH.showFormMessage('register-message', 'Google sign-up failed. Please try again.', 'error');
         }
         // Remove error from URL
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -31,7 +31,7 @@ async function handleOAuthRedirect() {
         window.history.replaceState({}, document.title, window.location.pathname);
 
         // Show success and redirect to dashboard
-        TED_AUTH.showSuccess('Registration successful! Redirecting...');
+        TED_AUTH.showFormMessage('register-message', 'Registration successful! Redirecting...', 'success');
         setTimeout(() => {
             window.location.href = '/dashboard';
         }, 1000);
@@ -74,34 +74,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Validate inputs
         if (!email || !username || !password) {
-            TED_AUTH.showError('Please fill in all required fields');
+            TED_AUTH.showFormMessage('register-message', 'Please fill in all required fields', 'error');
             return;
         }
 
         // Validate password match
         if (password !== passwordConfirmation) {
-            TED_AUTH.showError('Passwords do not match');
+            TED_AUTH.showFormMessage('register-message', 'Passwords do not match', 'error');
             return;
         }
 
         // Validate password strength
         if (password.length < 8) {
-            TED_AUTH.showError('Password must be at least 8 characters long');
+            TED_AUTH.showFormMessage('register-message', 'Password must be at least 8 characters long', 'error');
             return;
         }
 
         if (!/[A-Z]/.test(password)) {
-            TED_AUTH.showError('Password must contain at least one uppercase letter');
+            TED_AUTH.showFormMessage('register-message', 'Password must contain at least one uppercase letter', 'error');
             return;
         }
 
         if (!/[a-z]/.test(password)) {
-            TED_AUTH.showError('Password must contain at least one lowercase letter');
+            TED_AUTH.showFormMessage('register-message', 'Password must contain at least one lowercase letter', 'error');
             return;
         }
 
         if (!/[0-9]/.test(password)) {
-            TED_AUTH.showError('Password must contain at least one number');
+            TED_AUTH.showFormMessage('register-message', 'Password must contain at least one number', 'error');
             return;
         }
 
@@ -117,35 +117,33 @@ document.addEventListener('DOMContentLoaded', function() {
             account_types: accountTypes.length > 0 ? accountTypes : null
         };
 
-        console.log('Submitting registration with data:', userData);
+        // Clear previous messages
+        TED_AUTH.clearFormMessage('register-message');
 
-        // Show loading
-        TED_AUTH.showLoading('Creating your account...');
+        // Set button to loading state
+        TED_AUTH.setButtonLoading('register-btn', 'Register');
 
         // Call register API
         const result = await TED_AUTH.register(userData);
 
-        // Close loading
-        TED_AUTH.closeLoading();
-
-        console.log('Registration result:', result);
+        // Reset button
+        TED_AUTH.resetButton('register-btn', 'Register');
 
         if (result.success) {
             if (result.data.requires_2fa) {
                 // Redirect to 2FA verification page
-                TED_AUTH.showSuccess('Registration successful! Please verify your email.');
+                TED_AUTH.showFormMessage('register-message', 'Registration successful! Please verify your email.', 'success');
                 setTimeout(() => {
                     window.location.href = `/verify-2fa?email=${encodeURIComponent(result.data.email)}`;
                 }, 1500);
             } else {
-                TED_AUTH.showSuccess('Registration successful! Please login to continue.');
+                TED_AUTH.showFormMessage('register-message', 'Registration successful! Redirecting to login...', 'success');
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 2000);
             }
         } else {
-            console.error('Registration error:', result.error);
-            TED_AUTH.showError(result.error);
+            TED_AUTH.showFormMessage('register-message', result.error, 'error');
         }
     });
 });

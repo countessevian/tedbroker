@@ -1963,7 +1963,8 @@ async function loadCryptoWallets() {
                     <td><span class="badge badge-${wallet.is_active ? 'active' : 'inactive'}">${wallet.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>${date}</td>
                     <td>
-                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteCryptoWallet('${wallet.id}')">Delete</button>
+                        <button class="btn btn-primary" style="padding: 5px 10px; margin-right: 5px;" onclick="showEditCryptoWalletModal('${wallet.id}')"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteCryptoWallet('${wallet.id}')"><i class="fas fa-trash"></i> Delete</button>
                     </td>
                 </tr>
             `;
@@ -2044,6 +2045,71 @@ async function deleteCryptoWallet(walletId) {
         } else {
             const error = await response.json();
             alert('Error: ' + (error.detail || 'Failed to delete wallet'));
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Show edit crypto wallet modal
+async function showEditCryptoWalletModal(walletId) {
+    try {
+        const response = await adminFetch(`/api/admin/crypto-wallets/${walletId}`);
+        const wallet = await response.json();
+
+        // Populate form fields
+        document.getElementById('edit-crypto-wallet-id').value = wallet.id;
+        document.getElementById('edit-crypto-currency').value = wallet.currency;
+        document.getElementById('edit-crypto-wallet-address').value = wallet.wallet_address;
+        document.getElementById('edit-crypto-network').value = wallet.network || '';
+        document.getElementById('edit-crypto-active').checked = wallet.is_active;
+
+        // Show modal
+        const modal = document.getElementById('edit-crypto-wallet-modal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    } catch (error) {
+        Swal.fire({ title: 'Error!', text: 'Error loading wallet details', icon: 'error' });
+        console.error(error);
+    }
+}
+
+// Hide edit crypto wallet modal
+function hideEditCryptoWalletModal() {
+    const modal = document.getElementById('edit-crypto-wallet-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.getElementById('edit-crypto-wallet-form').reset();
+    }
+}
+
+// Submit edited crypto wallet
+async function submitEditedCryptoWallet(event) {
+    event.preventDefault();
+
+    const walletId = document.getElementById('edit-crypto-wallet-id').value;
+    const walletData = {
+        currency: document.getElementById('edit-crypto-currency').value,
+        wallet_address: document.getElementById('edit-crypto-wallet-address').value,
+        network: document.getElementById('edit-crypto-network').value || null,
+        is_active: document.getElementById('edit-crypto-active').checked
+    };
+
+    try {
+        const response = await adminFetch(`/api/admin/crypto-wallets/${walletId}`, {
+            method: 'PUT',
+            body: JSON.stringify(walletData)
+        });
+
+        if (response.ok) {
+            Swal.fire({ title: 'Success!', text: 'Crypto wallet updated successfully!', icon: 'success' });
+            hideEditCryptoWalletModal();
+            loadCryptoWallets();
+        } else {
+            const error = await response.json();
+            Swal.fire({ title: 'Error!', text: `Error: ${error.detail || 'Failed to update wallet'}`, icon: 'error' });
         }
     } catch (error) {
         Swal.fire({ title: 'Error!', text: 'Network error. Please try again.', icon: 'error' });

@@ -64,18 +64,16 @@ class CreatePlan(BaseModel):
 
 class CreateCryptoWallet(BaseModel):
     """Schema for creating a crypto wallet"""
-    currency: str = Field(..., description="Cryptocurrency type (BTC, ETH, USDT)")
+    currency: str = Field(..., min_length=1, max_length=20, description="Cryptocurrency symbol (e.g., BTC, ETH, USDT, BNB, SOL, etc.)")
     wallet_address: str = Field(..., min_length=1, description="Wallet address")
-    network: Optional[str] = Field(None, description="Network (e.g., TRC20 for USDT)")
+    network: Optional[str] = Field(None, max_length=50, description="Network (e.g., TRC20, ERC20, BEP20, etc.)")
     is_active: bool = Field(default=True, description="Whether the wallet is active")
 
     @field_validator('currency')
     @classmethod
     def validate_currency(cls, v):
-        allowed = ['BTC', 'ETH', 'USDT']
-        if v.upper() not in allowed:
-            raise ValueError(f'Currency must be one of: {", ".join(allowed)}')
-        return v.upper()
+        # Allow any currency symbol, just normalize to uppercase
+        return v.upper().strip()
 
 
 class CreateBankAccount(BaseModel):
@@ -1589,6 +1587,47 @@ async def get_crypto_wallets(
     ]
 
 
+@router.get("/crypto-wallets/{wallet_id}")
+async def get_crypto_wallet(
+    wallet_id: str,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Get a specific crypto wallet (admin only)
+
+    Args:
+        wallet_id: Wallet ID
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Wallet data
+    """
+    crypto_wallets = get_collection(CRYPTO_WALLETS_COLLECTION)
+
+    try:
+        wallet = crypto_wallets.find_one({"_id": ObjectId(wallet_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid wallet ID"
+        )
+
+    if not wallet:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Wallet not found"
+        )
+
+    return {
+        "id": str(wallet["_id"]),
+        "currency": wallet["currency"],
+        "wallet_address": wallet["wallet_address"],
+        "network": wallet.get("network"),
+        "is_active": wallet.get("is_active", True),
+        "created_at": wallet["created_at"].isoformat() if wallet.get("created_at") else None
+    }
+
+
 @router.post("/crypto-wallets")
 async def create_crypto_wallet(
     wallet_data: CreateCryptoWallet,
@@ -1627,6 +1666,67 @@ async def create_crypto_wallet(
         "network": wallet_dict["network"],
         "is_active": wallet_dict["is_active"],
         "created_at": wallet_dict["created_at"].isoformat()
+    }
+
+
+@router.put("/crypto-wallets/{wallet_id}")
+async def update_crypto_wallet(
+    wallet_id: str,
+    wallet_data: CreateCryptoWallet,
+    current_admin: dict = Depends(get_current_admin)
+):
+    """
+    Update an existing crypto wallet (admin only)
+
+    Args:
+        wallet_id: Wallet ID
+        wallet_data: Updated crypto wallet information
+        current_admin: Current authenticated admin
+
+    Returns:
+        dict: Updated wallet data
+    """
+    crypto_wallets = get_collection(CRYPTO_WALLETS_COLLECTION)
+
+    try:
+        wallet = crypto_wallets.find_one({"_id": ObjectId(wallet_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid wallet ID"
+        )
+
+    if not wallet:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Wallet not found"
+        )
+
+    # Update wallet document
+    update_dict = {
+        "currency": wallet_data.currency,
+        "wallet_address": wallet_data.wallet_address,
+        "network": wallet_data.network,
+        "is_active": wallet_data.is_active,
+        "updated_at": datetime.utcnow()
+    }
+
+    # Update wallet in database
+    crypto_wallets.update_one(
+        {"_id": ObjectId(wallet_id)},
+        {"$set": update_dict}
+    )
+
+    # Get updated wallet
+    updated_wallet = crypto_wallets.find_one({"_id": ObjectId(wallet_id)})
+
+    return {
+        "id": str(updated_wallet["_id"]),
+        "currency": updated_wallet["currency"],
+        "wallet_address": updated_wallet["wallet_address"],
+        "network": updated_wallet.get("network"),
+        "is_active": updated_wallet.get("is_active", True),
+        "created_at": updated_wallet["created_at"].isoformat() if updated_wallet.get("created_at") else None
     }
 
 

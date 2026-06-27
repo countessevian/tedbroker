@@ -848,13 +848,9 @@
             <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fab fa-bitcoin"></i> Add Crypto Wallet</h2>
             <form id="add-crypto-wallet-form" onsubmit="submitNewCryptoWallet(event)">
                 <div class="form-group">
-                    <label for="crypto-currency">Cryptocurrency *</label>
-                    <select id="crypto-currency" required>
-                        <option value="">-- Select --</option>
-                        <option value="BTC">BTC (Bitcoin)</option>
-                        <option value="ETH">ETH (Ethereum)</option>
-                        <option value="USDT">USDT (Tether)</option>
-                    </select>
+                    <label for="crypto-currency">Cryptocurrency Symbol *</label>
+                    <input type="text" id="crypto-currency" required placeholder="e.g., BTC, ETH, USDT, BNB, SOL, ADA, etc." style="text-transform: uppercase;">
+                    <small style="color: #8b93a7; font-size: 11px;">Enter any cryptocurrency symbol (e.g., BTC, ETH, USDT, BNB, SOL, DOGE, etc.)</small>
                 </div>
 
                 <div class="form-group">
@@ -864,7 +860,7 @@
 
                 <div class="form-group">
                     <label for="crypto-network">Network (Optional)</label>
-                    <input type="text" id="crypto-network" placeholder="e.g., TRC20 for USDT">
+                    <input type="text" id="crypto-network" placeholder="e.g., TRC20, ERC20, BEP20, BSC, Polygon, etc.">
                 </div>
 
                 <div class="form-group">
@@ -879,6 +875,47 @@
                         <i class="fas fa-plus"></i> Add Wallet
                     </button>
                     <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideAddCryptoWalletModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Crypto Wallet Modal -->
+    <div class="modal" id="edit-crypto-wallet-modal">
+        <div class="modal-content">
+            <h2 style="color: #D32F2F; margin-bottom: 20px;"><i class="fab fa-bitcoin"></i> Edit Crypto Wallet</h2>
+            <form id="edit-crypto-wallet-form" onsubmit="submitEditedCryptoWallet(event)">
+                <input type="hidden" id="edit-crypto-wallet-id">
+                <div class="form-group">
+                    <label for="edit-crypto-currency">Cryptocurrency Symbol *</label>
+                    <input type="text" id="edit-crypto-currency" required placeholder="e.g., BTC, ETH, USDT, BNB, SOL, ADA, etc." style="text-transform: uppercase;">
+                    <small style="color: #8b93a7; font-size: 11px;">Enter any cryptocurrency symbol</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-crypto-wallet-address">Wallet Address *</label>
+                    <input type="text" id="edit-crypto-wallet-address" required placeholder="Enter wallet address">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-crypto-network">Network (Optional)</label>
+                    <input type="text" id="edit-crypto-network" placeholder="e.g., TRC20, ERC20, BEP20, BSC, Polygon, etc.">
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="edit-crypto-active" style="width: auto; margin-right: 10px;">
+                        <span>Active (visible to users)</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-save"></i> Update Wallet
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="hideEditCryptoWalletModal()">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>

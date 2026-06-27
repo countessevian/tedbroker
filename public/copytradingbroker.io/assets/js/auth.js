@@ -295,6 +295,46 @@ const TED_AUTH = {
     },
 
     /**
+     * Show message in a UI container
+     */
+    showFormMessage(elementId, message, type) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        el.textContent = message;
+        el.className = 'form-message ' + type;
+    },
+
+    /**
+     * Clear message from a UI container
+     */
+    clearFormMessage(elementId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        el.textContent = '';
+        el.className = 'form-message';
+    },
+
+    /**
+     * Set button to loading state
+     */
+    setButtonLoading(btnId, originalText) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="btn-spinner"></span>Submitting';
+    },
+
+    /**
+     * Reset button from loading state
+     */
+    resetButton(btnId, originalText) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.disabled = false;
+        btn.textContent = originalText;
+    },
+
+    /**
      * Show loading indicator
      */
     showLoading(message = 'Please wait...') {
