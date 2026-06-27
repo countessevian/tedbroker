@@ -6897,6 +6897,7 @@
 
     // Expose closeMobileNav globally for switchToTab to call
     window.closeMobileNav = closeMobileNav;
+    window.populateMobileProfile = populateMobileProfile;
 
     hamburgerBtn.addEventListener('click', function() {
         if (mobileNav.classList.contains('active')) {
@@ -6977,19 +6978,30 @@
         }
     });
 
-    // Populate user profile from existing DOM
-    function populateMobileProfile() {
-        var userName = document.getElementById('user-display-name');
-        var userEmail = document.getElementById('user-email');
+    // Populate user profile from existing DOM or userData parameter
+    function populateMobileProfile(userData) {
         var mobileName = document.getElementById('mobile-nav-user-name');
         var mobileEmail = document.getElementById('mobile-nav-user-email');
         var mobileAvatar = document.getElementById('mobile-nav-avatar');
 
-        if (userName && mobileName) mobileName.textContent = userName.textContent;
-        if (userEmail && mobileEmail) mobileEmail.textContent = userEmail.textContent;
-        if (userName && mobileAvatar) {
-            var initials = userName.textContent.trim().charAt(0).toUpperCase();
-            mobileAvatar.textContent = initials || 'U';
+        if (userData) {
+            // Use fresh API data
+            var displayName = userData.full_name || userData.username || 'User';
+            if (mobileName) mobileName.textContent = displayName;
+            if (mobileEmail) mobileEmail.textContent = userData.email || '';
+            if (mobileAvatar) {
+                mobileAvatar.textContent = displayName.charAt(0).toUpperCase() || 'U';
+            }
+        } else {
+            // Fallback: read from DOM elements (may have defaults)
+            var userName = document.getElementById('user-display-name');
+            var userEmail = document.getElementById('user-email');
+            if (userName && mobileName) mobileName.textContent = userName.textContent;
+            if (userEmail && mobileEmail) mobileEmail.textContent = userEmail.textContent;
+            if (userName && mobileAvatar) {
+                var initials = userName.textContent.trim().charAt(0).toUpperCase();
+                mobileAvatar.textContent = initials || 'U';
+            }
         }
     }
     populateMobileProfile();

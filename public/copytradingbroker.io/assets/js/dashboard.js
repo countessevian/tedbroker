@@ -653,68 +653,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Check if user is new and hasn't been referred yet
     checkAndShowReferralModal(userData);
 
-    // Load expert traders when traders tab is clicked
-    const tradersTab = document.querySelector('.menu-item[data-tab="traders"]');
-    if (tradersTab) {
-        tradersTab.addEventListener('click', loadExpertTraders);
-    }
-
-    // Load investment plans when subscription tab is clicked
-    // Note: subscription is in a submenu, so we need to select submenu-item
-    const subscriptionTab = document.querySelector('.submenu-item[data-tab="subscription"], .menu-item[data-tab="subscription"]');
-    if (subscriptionTab) {
-        subscriptionTab.addEventListener('click', function() {
-            // Force reload each time to ensure fresh data
-            loadInvestmentPlans(true);
-        });
-    }
-
-    // Load ETF plans when ETF plans tab is clicked
-    const etfPlansTab = document.querySelector('.submenu-item[data-tab="etf-plans"], .menu-item[data-tab="etf-plans"]');
-    if (etfPlansTab) {
-        etfPlansTab.addEventListener('click', function() {
-            // Force reload each time to ensure fresh data
-            loadETFPlans(true);
-        });
-    }
-
-    // Load DeFi plans when DeFi Earnings tab is clicked
-    const defiPlansTab = document.querySelector('.submenu-item[data-tab="defi-earnings"], .menu-item[data-tab="defi-earnings"]');
-    if (defiPlansTab) {
-        defiPlansTab.addEventListener('click', function() {
-            // Force reload each time to ensure fresh data
-            loadDeFiPlans(true);
-        });
-    }
-
-    // Load Options plans when Options tab is clicked
-    const optionsPlansTab = document.querySelector('.submenu-item[data-tab="options"], .menu-item[data-tab="options"]');
-    if (optionsPlansTab) {
-        optionsPlansTab.addEventListener('click', function() {
-            // Force reload each time to ensure fresh data
-            loadOptionsPlans(true);
-        });
-    }
-
-    // Load wallet data when wallet tab is clicked
-    const walletTab = document.querySelector('.menu-item[data-tab="wallet"]');
-    if (walletTab) {
-        walletTab.addEventListener('click', loadWalletData);
-    }
-
-    // Load referral data when referrals tab is clicked
-    const referralsTab = document.querySelector('.menu-item[data-tab="referrals"]');
-    if (referralsTab) {
-        referralsTab.addEventListener('click', loadReferralData);
-    }
-
-    // Load posts when network posts sub-tab is clicked
-    const postsTab = document.querySelector('.submenu-item[data-tab="posts"]');
-    if (postsTab) {
-        postsTab.addEventListener('click', function() {
-            loadPosts(true);
-        });
-    }
+    // Tab-specific data loading is now handled by loadTabData() in dashboard.html
+    // which is called from all tab click handlers (app bar, dropdowns, left panel)
 });
 
 /**
@@ -732,16 +672,16 @@ function populateDashboard(userData) {
         userAvatarElement.textContent = avatarLetter;
     }
 
-    // Populate sidebar user profile
-    const sidebarAvatarElement = document.getElementById('sidebar-user-avatar');
+    // Populate app bar user profile
+    const sidebarAvatarElement = document.getElementById('app-bar-user-avatar');
     if (sidebarAvatarElement) {
         sidebarAvatarElement.textContent = avatarLetter;
     }
-    const sidebarFullNameElement = document.getElementById('sidebar-user-full-name');
+    const sidebarFullNameElement = document.getElementById('app-bar-user-full-name');
     if (sidebarFullNameElement) {
         sidebarFullNameElement.textContent = displayName;
     }
-    const sidebarUsernameElement = document.getElementById('sidebar-user-username');
+    const sidebarUsernameElement = document.getElementById('app-bar-user-username');
     if (sidebarUsernameElement) {
         sidebarUsernameElement.textContent = '@' + userData.username;
     }
@@ -754,6 +694,11 @@ function populateDashboard(userData) {
 
     // Email
     document.getElementById('user-email').textContent = userData.email;
+
+    // Update mobile nav profile with real user data
+    if (typeof window.populateMobileProfile === 'function') {
+        window.populateMobileProfile(userData);
+    }
 
     // Email in security section
     const securityEmailElement = document.getElementById('security-user-email');
@@ -4840,26 +4785,7 @@ function createInvestmentCard(investment) {
     return card;
 }
 
-// Add portfolio tab click listener
-document.addEventListener('DOMContentLoaded', function() {
-    // Automated Calls tab
-    const automatedCallsTab = document.querySelector('.submenu-item[data-tab="automated-calls"]');
-    if (automatedCallsTab) {
-        automatedCallsTab.addEventListener('click', () => loadPortfolioPerformance(true));
-    }
-    
-    // Active Copies tab
-    const activeCopiesTab = document.querySelector('.submenu-item[data-tab="active-copies"]');
-    if (activeCopiesTab) {
-        activeCopiesTab.addEventListener('click', () => loadActiveCopies(true));
-    }
-    
-    // Performance tab
-    const performanceTab = document.querySelector('.submenu-item[data-tab="performance"]');
-    if (performanceTab) {
-        performanceTab.addEventListener('click', () => loadPerformance(true));
-    }
-});
+// Tab-specific data loading is handled by loadTabData() in dashboard.html
 
 /**
  * Load and display active investments on the dashboard home tab
@@ -6040,11 +5966,8 @@ let currentCategory = 'all';
 
 /**
  * Load news articles when news tab is clicked
+ * Tab-specific data loading is handled by loadTabData() in dashboard.html
  */
-const newsTab = document.querySelector('.menu-item[data-tab="news"]');
-if (newsTab) {
-    newsTab.addEventListener('click', loadNewsArticles);
-}
 
 /**
  * Fetch news from API
@@ -6401,7 +6324,7 @@ window.dismissNotification = dismissNotification;
  */
 function disableSidebarMenus() {
     // Get all sidebar menu items
-    const menuItems = document.querySelectorAll('.sidebar a, .sidebar .menu-item');
+    const menuItems = document.querySelectorAll('.app-bar-menu a, .app-bar-menu .menu-item, .left-panel a, .left-panel .menu-item');
 
     menuItems.forEach(item => {
         // NEVER disable logout button - check multiple conditions to be safe
